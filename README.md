@@ -8,11 +8,4 @@ Do not Edit straight to main.
 Always, and always 
 - Create your own branch based of Main and edit there
 
-When pushing your beautiful creation to your branch on GitHub, 
-Only push your 2 folders
-- Source
-- Resource
-
-Nothing else
-
 Cheers :D 
