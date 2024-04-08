@@ -1,15 +1,34 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include "tilemap.h"
 
-#define SPEED 100
+#define SPEED 300
+#define TILE_SIZE 64
+#define TILE_W_AMOUNT 60
+#define TILE_H_AMOUNT 60
+#define GAME_W TILE_W_AMOUNT*TILE_SIZE
+#define GAME_H TILE_H_AMOUNT*TILE_SIZE
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
-SDL_Texture *pTexture = NULL;
+
+/// * temporary defines. Set to 1 to enable and 0 to disable
+#define FOLLOW_PLAYER 0
+#define VINGETTE 0
+
+//! explanation of #if, #else, #endif 
+// They are like if, and else statements, but they are used at compile time and not at runtime. Therefor they can only be used with #define statements.
+// This is okay for Testing purposes, but it is not recommended to use #if, #else, #endif in the main code. I am using them now in the code to quickly turn on and off some features. This will be changed in the future.
+#if FOO
+    // if FOO is set to 1, everything between the #if FOO and #else will be included. The #else will be ignored.
+#else
+    // if FOO is set to 0, everything between the #else and #endif will be included. Everything between #if FOO and #else will be ignored.
+#endif
+
+
 SDL_Window* pWindow = NULL;
-SDL_Renderer *pRenderer = NULL;
-SDL_Surface *pSurface = NULL;
+SDL_Renderer* pRenderer = NULL;
 
 int init_SDL_window(void){
     if(SDL_Init(SDL_INIT_VIDEO)!=0){
@@ -31,26 +50,43 @@ int init_SDL_window(void){
         return 1;    
     }
 
-    pSurface = IMG_Load("resources/ship.png");
-    if(!pSurface){
-        printf("Error: %s\n",SDL_GetError());
-        SDL_DestroyRenderer(pRenderer);
-        SDL_DestroyWindow(pWindow);
-        SDL_Quit();
-        return 1;    
-    }
-    pTexture = SDL_CreateTextureFromSurface(pRenderer, pSurface);
-    SDL_FreeSurface(pSurface);
-    if(!pTexture){
-        printf("Error: %s\n",SDL_GetError());
-        SDL_DestroyRenderer(pRenderer);
-        SDL_DestroyWindow(pWindow);
-        SDL_Quit();
-        return 1;    
-    }
-    
+
     return 0;
 }
+
+
+
+void create_texture(SDL_Texture** texture, const char* path)
+{
+    SDL_Surface* surface = IMG_Load(path);
+    if(!surface)
+    {
+        printf("Error: %s\n",SDL_GetError());
+        SDL_DestroyRenderer(pRenderer);
+        SDL_DestroyWindow(pWindow);
+        SDL_Quit();
+        return;
+    }
+    *texture = SDL_CreateTextureFromSurface(pRenderer, surface);
+    SDL_FreeSurface(surface);
+    if(!*texture)
+    {
+        printf("Error: %s\n",SDL_GetError());
+        SDL_DestroyRenderer(pRenderer);
+        SDL_DestroyWindow(pWindow);
+        SDL_Quit();
+        return;
+    }
+}
+#if FOLLOW_PLAYER
+SDL_Rect follow_camera(SDL_Rect* camera, SDL_Rect* target)
+{
+    SDL_Rect new_camera = *target;
+    new_camera.x -= camera->x;
+    new_camera.y -= camera->y;
+    return new_camera;
+}
+#endif
 
 
 int main(int argv, char** args){
@@ -58,19 +94,62 @@ int main(int argv, char** args){
         printf("Error: %s\n",SDL_GetError());
     }
 
-    SDL_Rect shipRect;
-    SDL_QueryTexture(pTexture,NULL,NULL,&shipRect.w,&shipRect.h);
-    shipRect.w/=4;
-    shipRect.h/=4;
-    float shipX = (WINDOW_WIDTH - shipRect.w)/2;//left side
-    float shipY = (WINDOW_HEIGHT - shipRect.h)/2;//upper side
-    float shipVelocityX = 0;//unit: pixels/s
-    float shipVelocityY = 0;
 
-    bool closeWindow = false;
+    // TODO: Move this to a function, maybe in a separate file
+    SDL_Texture* pWhite = NULL;
+    SDL_Texture* pBlack = NULL;
+    SDL_Texture* pTexture = NULL;
+    SDL_Texture* pVingette = NULL;
+
+    create_texture(&pBlack, "resources/black.png");
+    create_texture(&pWhite, "resources/white.png");
+
+    // * ship texture
+    SDL_Rect shipRect;
+    create_texture(&pTexture, "resources/ship.png");
+    SDL_QueryTexture(pTexture, NULL, NULL, &shipRect.w, &shipRect.h);
+    shipRect.x = 100;
+    shipRect.y = 100;
+    shipRect.w /= 4;
+    shipRect.h /= 4;
+
+#if VINGETTE
+    // * psudo vingette effect
+    create_texture(&pVingette, "resources/vingette.png");
+    SDL_Rect vingetteRect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    SDL_QueryTexture(pVingette, NULL, NULL, &vingetteRect.w, &vingetteRect.h);
+#endif
+
+    TileMap tilemap;
+    SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
+    tilemap_init(&tilemap, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
+    Tile white_tile = { 0,0, pWhite, rect };
+    Tile black_tile = { 1,0, pBlack, rect };
+    // TODO: implement a LoadFromFile function
+    for(int y = 0; y < tilemap.height; y++)
+    {
+        for(int x = 0; x < tilemap.width; x++)
+        {
+            if((x + y) % 2 == 0)
+            {
+                tilemap_set_tile(&tilemap, x, y, &white_tile);
+            }
+            else
+            {
+                tilemap_set_tile(&tilemap, x, y, &black_tile);
+            }
+        }
+    }
+
     bool up,down,left,right;
     up = down = left = right = false;
-
+#if FOLLOW_PLAYER
+    // camera is centered on the player
+    SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    camera.x = (shipRect.x + shipRect.w / 2) + WINDOW_WIDTH / 2;
+    camera.y = (shipRect.y + shipRect.h / 2) + WINDOW_HEIGHT / 2;
+#endif
+    bool closeWindow = false;
     while(!closeWindow){
 
         SDL_Event event;
@@ -79,6 +158,7 @@ int main(int argv, char** args){
                 case SDL_QUIT:
                     closeWindow = true;
                     break;
+                // * this is the movement code from simpleSDLexample1.
                 case SDL_KEYDOWN:
                     switch(event.key.keysym.scancode){
                         case SDL_SCANCODE_W:
@@ -121,29 +201,50 @@ int main(int argv, char** args){
                     break;
             }
         }
-
-        shipVelocityX = shipVelocityY = 0;
-        if(up && !down) shipVelocityY = -SPEED;
-        if(down && !up) shipVelocityY = SPEED;
-        if(left && !right) shipVelocityX = -SPEED;
-        if(right && !left) shipVelocityX = SPEED;
-        shipX += shipVelocityX/60;//60 frames/s
-        shipY += shipVelocityY/60;
-        if(shipX<0) shipX=0;
-        if(shipY<0) shipY=0;
-        if(shipX>WINDOW_WIDTH-shipRect.w) shipX = WINDOW_WIDTH-shipRect.w;
-        if(shipY>WINDOW_HEIGHT-shipRect.h) shipY = WINDOW_HEIGHT-shipRect.h;
-        shipRect.x = shipX;
-        shipRect.y = shipY;
+        // still the movement code from simpleSDLexample1
+        if(up && !down)
+        {
+            shipRect.y -= SPEED / 60;
+        }
+        if(down && !up)
+        {
+            shipRect.y += SPEED / 60;
+        }
+        if(left && !right)
+        {
+            shipRect.x -= SPEED / 60;
+        }
+        if(right && !left)
+        {
+            shipRect.x += SPEED / 60;
+        }
 
         SDL_RenderClear(pRenderer);
-        SDL_RenderCopy(pRenderer,pTexture,NULL,&shipRect);
+#if FOLLOW_PLAYER
+        camera.x = (shipRect.x + shipRect.w / 2) - WINDOW_WIDTH / 2;
+        camera.y = (shipRect.y + shipRect.h / 2) - WINDOW_HEIGHT / 2;
+        SDL_Rect shipdest = follow_camera(&camera, &shipRect);
+        tilemap_draw(&tilemap, pRenderer, &camera);
+#else
+        SDL_Rect none = { 0,0,0,0 };
+        SDL_Rect shipdest = shipRect;
+        tilemap_draw(&tilemap, pRenderer, &none);
+#endif
+        SDL_RenderCopy(pRenderer, pTexture, NULL, &shipdest);
+#if VINGETTE
+        // * psudo vingette effect
+        SDL_RenderCopy(pRenderer, pVingette, NULL, &vingetteRect);
+#endif
         SDL_RenderPresent(pRenderer);
         SDL_Delay(1000/60);//60 frames/s
     }
 
-    SDL_DestroyTexture(pTexture);
     SDL_DestroyRenderer(pRenderer);
+    SDL_DestroyTexture(pTexture);
+#if VINGETTE
+    SDL_DestroyTexture(pVingette);
+#endif
+    tilemap_free(&tilemap);
     SDL_DestroyWindow(pWindow);
 
     SDL_Quit();
