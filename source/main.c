@@ -6,7 +6,7 @@
 #include "tilemap.h"
 #include "music.h" 
 
-#define SPEED 600
+#define SPEED 300
 #define TILE_SIZE 64
 #define TILE_W_AMOUNT 60
 #define TILE_H_AMOUNT 60
@@ -38,23 +38,6 @@ int init_SDL_window(void){
     }
     return 0;
 }
-// void init_music(void){
-//     // Initialize SDL_mixer
-//     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-//         printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-//         return;
-//     }
-
-//     // Load background music
-//     Mix_Music* backgroundMusic = Mix_LoadMUS("resources/background_music.mp3");
-//     if (!backgroundMusic) {
-//         printf("Failed to load background music! SDL_mixer Error: %s\n", Mix_GetError());
-//         return;
-//     }
-
-//     // Play the background music in an infinite loop
-//     Mix_PlayMusic(backgroundMusic, -1);
-// }
 void create_texture(SDL_Texture** texture, const char* path)
 {
     SDL_Surface* surface = IMG_Load(path);
