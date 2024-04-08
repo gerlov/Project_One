@@ -2,11 +2,10 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
-#include "hello.h"
 #include "tilemap.h"
 
 #define SPEED 300
-#define TILE_SIZE 32
+#define TILE_SIZE 64
 #define TILE_W_AMOUNT 60
 #define TILE_H_AMOUNT 60
 #define GAME_W TILE_W_AMOUNT*TILE_SIZE
@@ -82,8 +81,6 @@ int main(int argv, char** args){
     SDL_Rect shipRect;
     shipRect.x = 100;
     shipRect.y = 100;
-    shipRect.w/=4;
-    shipRect.h/=4;
 
     // TODO: Move this to a function, maybe in a separate file
     SDL_Texture* pWhite = NULL;
@@ -95,18 +92,20 @@ int main(int argv, char** args){
     create_texture(&pWhite, "resources/white.png");
     create_texture(&pTexture, "resources/ship.png");
     SDL_QueryTexture(pTexture, NULL, NULL, &shipRect.w, &shipRect.h);
+    shipRect.w /= 4;
+    shipRect.h /= 4;
 
     // * psudo vingette effect
-    //create_texture(&pVingette, "resources/vingette.png");
-    // SDL_Rect vingetteRect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
-    // SDL_QueryTexture(pVingette, NULL, NULL, &vingetteRect.w, &vingetteRect.h);
+    create_texture(&pVingette, "resources/vingette.png");
+    SDL_Rect vingetteRect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    SDL_QueryTexture(pVingette, NULL, NULL, &vingetteRect.w, &vingetteRect.h);
 
 
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
     tilemap_init(&tilemap, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
-    Tile white_tile = { 0, pWhite, rect };
-    Tile black_tile = { 1, pBlack, rect };
+    Tile white_tile = { 0,0, pWhite, rect };
+    Tile black_tile = { 1,0, pBlack, rect };
     // TODO: implement a LoadFromFile function
     for(int y = 0; y < tilemap.height; y++)
     {
@@ -202,6 +201,7 @@ int main(int argv, char** args){
         camera.y = (shipRect.y + shipRect.h / 2) - WINDOW_HEIGHT / 2;
         // this preserves the ship cordinates while keeping the camera centered on the ship
         SDL_Rect shipdest = follow_camera(&camera, &shipRect);
+        // SDL_Rect none = { 0,0,0,0 };
 
         SDL_RenderClear(pRenderer);
         tilemap_draw(&tilemap, pRenderer, &camera);
@@ -215,7 +215,7 @@ int main(int argv, char** args){
 
     SDL_DestroyRenderer(pRenderer);
     SDL_DestroyTexture(pTexture);
-    // SDL_DestroyTexture(pVingette);
+    SDL_DestroyTexture(pVingette);
     tilemap_free(&tilemap);
     SDL_DestroyWindow(pWindow);
 
