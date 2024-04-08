@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
-
+#include <stdbool.h>
 #include "music.h"
 
+bool musicPaused = false;
 
 /******************************************************
  * Function: init_music                              *
@@ -43,4 +44,22 @@ void play_sound_once(void) {
         return;
     }
     Mix_PlayChannel(-1, sound, 0); // Play the sound once
+}
+
+/******************************************************
+ * Function: toggle_music                            *
+ * Description: Toggles the playback of the          *
+ *              background music between playing     *
+ *              and paused state.                    *
+ * Parameters: None                                  *
+ * Returns: None                                     *
+ ******************************************************/
+void toggle_music(void) {
+    if (musicPaused) {
+        Mix_ResumeMusic(); 
+        musicPaused = false;
+    } else {
+        Mix_PauseMusic();
+        musicPaused = true;
+    }
 }

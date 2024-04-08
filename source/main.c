@@ -122,8 +122,9 @@ int main(int argv, char** args){
     }
 
     bool closeWindow = false;
-    bool up,down,left,right, space;
-    up = down = left = right = space = false;
+    bool music = true;
+    bool up,down,left,right, space, m;
+    up = down = left = right = space = m = false;
     // camera is centered on the player
     SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
     camera.x = (shipRect.x + shipRect.w / 2) + WINDOW_WIDTH / 2;
@@ -139,6 +140,9 @@ int main(int argv, char** args){
                     break;
                 case SDL_KEYDOWN:
                     switch(event.key.keysym.scancode){
+                        case SDL_SCANCODE_M:
+                            m = true;
+                            break;
                         case SDL_SCANCODE_SPACE:
                             space = true;
                             break;
@@ -201,6 +205,11 @@ int main(int argv, char** args){
         if(space){
             play_sound_once();
             space = false;
+        }
+
+        if (m) {
+            toggle_music();
+            m = false;
         }
 
         camera.x = (shipRect.x + shipRect.w / 2) - WINDOW_WIDTH / 2;
