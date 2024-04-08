@@ -2,9 +2,11 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 #include "tilemap.h"
+#include "music.h" 
 
-#define SPEED 300
+#define SPEED 600
 #define TILE_SIZE 64
 #define TILE_W_AMOUNT 60
 #define TILE_H_AMOUNT 60
@@ -34,13 +36,25 @@ int init_SDL_window(void){
         SDL_Quit();
         return 1;    
     }
-
-
     return 0;
 }
+// void init_music(void){
+//     // Initialize SDL_mixer
+//     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+//         printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+//         return;
+//     }
 
+//     // Load background music
+//     Mix_Music* backgroundMusic = Mix_LoadMUS("resources/background_music.mp3");
+//     if (!backgroundMusic) {
+//         printf("Failed to load background music! SDL_mixer Error: %s\n", Mix_GetError());
+//         return;
+//     }
 
-
+//     // Play the background music in an infinite loop
+//     Mix_PlayMusic(backgroundMusic, -1);
+// }
 void create_texture(SDL_Texture** texture, const char* path)
 {
     SDL_Surface* surface = IMG_Load(path);
@@ -77,6 +91,8 @@ int main(int argv, char** args){
     if(init_SDL_window() != 0){
         printf("Error: %s\n",SDL_GetError());
     }
+
+    init_music();
 
     SDL_Rect shipRect;
     shipRect.x = 100;
@@ -123,8 +139,8 @@ int main(int argv, char** args){
     }
 
     bool closeWindow = false;
-    bool up,down,left,right;
-    up = down = left = right = false;
+    bool up,down,left,right, space;
+    up = down = left = right = space = false;
     // camera is centered on the player
     SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
     camera.x = (shipRect.x + shipRect.w / 2) + WINDOW_WIDTH / 2;
@@ -140,6 +156,9 @@ int main(int argv, char** args){
                     break;
                 case SDL_KEYDOWN:
                     switch(event.key.keysym.scancode){
+                        case SDL_SCANCODE_SPACE:
+                            space = true;
+                            break;
                         case SDL_SCANCODE_W:
                         case SDL_SCANCODE_UP:
                             up=true;
@@ -196,6 +215,10 @@ int main(int argv, char** args){
         {
             shipRect.x += SPEED / 60;
         }
+        if(space){
+            play_sound_once();
+            space = false;
+        }
 
         camera.x = (shipRect.x + shipRect.w / 2) - WINDOW_WIDTH / 2;
         camera.y = (shipRect.y + shipRect.h / 2) - WINDOW_HEIGHT / 2;
@@ -210,7 +233,7 @@ int main(int argv, char** args){
         // SDL_RenderCopy(pRenderer, pVingette, NULL, &vingetteRect);
 
         SDL_RenderPresent(pRenderer);
-        SDL_Delay(1000/60);//60 frames/s
+        SDL_Delay(1000/120);//60 frames/s
     }
 
     SDL_DestroyRenderer(pRenderer);

@@ -23,7 +23,7 @@ else
 		# make sure to install SDL2 using brew
 		# and that 'sdl2-config --prefix' returns '/opt/homebrew' in the terminal
 		INCLUDE=`sdl2-config --prefix`/include/ # SDL2 include path
-		LDFLAGS=`sdl2-config --cflags --libs ` -lSDL2_image -lSDL2_ttf -lSDL2_net
+		LDFLAGS=`sdl2-config --cflags --libs ` -lSDL2_image -lSDL2_ttf -lSDL2_net -lSDL2_mixer
 		TARGET:=$(TARGET).out
 		
 	endif
@@ -33,7 +33,7 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 # ----- Compile the program -----------------
 
 # run 'make' to compile the program
-$(TARGET): main.o tilemap.o
+$(TARGET): main.o tilemap.o music.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 
@@ -42,6 +42,10 @@ main.o: $(SRCDIR)/main.c
 	
 tilemap.o: $(SRCDIR)/tilemap.c
 	$(CC) $(CFLAGS) $(SRCDIR)/tilemap.c
+
+music.o: $(SRCDIR)/music.c
+	$(CC) $(CFLAGS) $(SRCDIR)/music.c
+
 
 # ----- Run the program -----------------
 # run 'make run' to compile and run the program in one command
