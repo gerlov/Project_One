@@ -5,6 +5,7 @@
 #include <SDL2/SDL_mixer.h>
 #include "tilemap.h"
 #include "music.h" 
+#include "window.h"
 
 #define SPEED 300
 #define TILE_SIZE 64
@@ -28,35 +29,9 @@
     // if FOO is set to 0, everything between the #else and #endif will be included. Everything between #if FOO and #else will be ignored.
 #endif
 
-
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
 
-int init_SDL_window(void)
-{
-    if(SDL_Init(SDL_INIT_VIDEO) != 0)
-    {
-        printf("Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-    pWindow = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
-    if(!pWindow)
-    {
-        printf("Error: %s\n", SDL_GetError());
-        SDL_Quit();
-        return 1;
-    }
-    pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if(!pRenderer)
-    {
-        printf("Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(pWindow);
-        SDL_Quit();
-        return 1;
-    }
-    return 0;
-}
 void create_texture(SDL_Texture** texture, const char* path)
 {
     SDL_Surface* surface = IMG_Load(path);
@@ -92,16 +67,12 @@ SDL_Rect follow_camera(SDL_Rect* camera, SDL_Rect* target)
 
 int main(int argv, char** args)
 {
-    if(init_SDL_window() != 0)
-    {
-        printf("Error: %s\n", SDL_GetError());
+    if(init_SDL_window(&pWindow, &pRenderer, WINDOW_WIDTH, WINDOW_HEIGHT) != 0) {
+        printf("Failed to initialize window and renderer.\n");
+        return 1;
     }
 
     init_music();
-
-
-    init_music();
-
 
     // TODO: Move this to a function, maybe in a separate file
     SDL_Texture* pWhite = NULL;
@@ -271,14 +242,12 @@ int main(int argv, char** args)
         SDL_Delay(1000 / 120);//60 frames/s
     }
 
-    SDL_DestroyRenderer(pRenderer);
-    SDL_DestroyTexture(pTexture);
 #if VINGETTE
     SDL_DestroyTexture(pVingette);
 #endif
     tilemap_free(&tilemap);
-    SDL_DestroyWindow(pWindow);
+    SDL_DestroyTexture(pTexture);
 
-    SDL_Quit();
+    cleanup_SDL(pWindow, pRenderer);
     return 0;
 }
