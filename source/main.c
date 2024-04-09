@@ -122,8 +122,8 @@ int main(int argv, char** args)
 
 
     bool music = true;
-    bool up, down, left, right, space, m;
-    up = down = left = right = space = m = false;
+    bool up, down, left, right, space, m, l_volym, i_volym;
+    up = down = left = right = space = m = l_volym = i_volym = false;
 #if FOLLOW_PLAYER
     // camera is centered on the player
     SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
@@ -146,6 +146,12 @@ int main(int argv, char** args)
             case SDL_KEYDOWN:
                 switch(event.key.keysym.scancode)
                 {
+                case SDL_SCANCODE_L:
+                    l_volym = true;
+                    break;
+                case SDL_SCANCODE_I:
+                    i_volym = true;
+                    break;
                 case SDL_SCANCODE_M:
                     m = true;
                     break;
@@ -215,11 +221,18 @@ int main(int argv, char** args)
             play_sound_once();
             space = false;
         }
-
         if(m)
         {
             toggle_music();
             m = false;
+        }
+        if(l_volym){
+            decrease_volume();
+            l_volym = false;
+        }
+        if(i_volym){
+            increase_volume();
+            i_volym = false;
         }
 
         SDL_RenderClear(pRenderer);

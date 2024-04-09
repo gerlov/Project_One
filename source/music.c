@@ -5,6 +5,8 @@
 #include "music.h"
 
 bool musicPaused = false;
+static int volume = MIX_MAX_VOLUME / 2; 
+
 
 /******************************************************
  * Function: init_music                              *
@@ -62,4 +64,21 @@ void toggle_music(void) {
         Mix_PauseMusic();
         musicPaused = true;
     }
+}
+
+
+void increase_volume(void) {
+    volume += 10; 
+    if (volume > MIX_MAX_VOLUME) {
+        volume = MIX_MAX_VOLUME; // Ensure volume doesn't exceed maximum
+    }
+    Mix_VolumeMusic(volume);
+}
+
+void decrease_volume(void) {
+    volume -= 10; // Decrease volume by 10 units
+    if (volume < 0) {
+        volume = 0; // Ensure volume doesn't go below 0
+    }
+    Mix_VolumeMusic(volume);
 }
