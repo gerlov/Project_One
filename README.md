@@ -13,6 +13,6 @@ Always, and always
 -   Use the "Review - Request" and ask someone to review it
 -   If both OK's the code and any merge conflict is fixed
 -   And the MOST RECENT code from main merged together with your code works on YOUR test branch
--   In case of conflicts, contanct the person the conflict arises with and solve the merge.
+-   In case of conflicts, contact the person the conflict arises with and solve the merge.
 
 Cheers :D 
