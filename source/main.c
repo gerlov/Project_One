@@ -2,7 +2,9 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 #include "tilemap.h"
+#include "music.h" 
 
 #define SPEED 300
 #define TILE_SIZE 64
@@ -30,38 +32,37 @@
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
 
-int init_SDL_window(void){
-    if(SDL_Init(SDL_INIT_VIDEO)!=0){
-        printf("Error: %s\n",SDL_GetError());
+int init_SDL_window(void)
+{
+    if(SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
+        printf("Error: %s\n", SDL_GetError());
         return 1;
     }
 
-    pWindow = SDL_CreateWindow(NULL,SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,WINDOW_WIDTH,WINDOW_HEIGHT,0);
-    if(!pWindow){
-        printf("Error: %s\n",SDL_GetError());
+    pWindow = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+    if(!pWindow)
+    {
+        printf("Error: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
-    pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
-    if(!pRenderer){
-        printf("Error: %s\n",SDL_GetError());
+    pRenderer = SDL_CreateRenderer(pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if(!pRenderer)
+    {
+        printf("Error: %s\n", SDL_GetError());
         SDL_DestroyWindow(pWindow);
         SDL_Quit();
-        return 1;    
+        return 1;
     }
-
-
     return 0;
 }
-
-
-
 void create_texture(SDL_Texture** texture, const char* path)
 {
     SDL_Surface* surface = IMG_Load(path);
     if(!surface)
     {
-        printf("Error: %s\n",SDL_GetError());
+        printf("Error: %s\n", SDL_GetError());
         SDL_DestroyRenderer(pRenderer);
         SDL_DestroyWindow(pWindow);
         SDL_Quit();
@@ -71,7 +72,7 @@ void create_texture(SDL_Texture** texture, const char* path)
     SDL_FreeSurface(surface);
     if(!*texture)
     {
-        printf("Error: %s\n",SDL_GetError());
+        printf("Error: %s\n", SDL_GetError());
         SDL_DestroyRenderer(pRenderer);
         SDL_DestroyWindow(pWindow);
         SDL_Quit();
@@ -89,10 +90,17 @@ SDL_Rect follow_camera(SDL_Rect* camera, SDL_Rect* target)
 #endif
 
 
-int main(int argv, char** args){
-    if(init_SDL_window() != 0){
-        printf("Error: %s\n",SDL_GetError());
+int main(int argv, char** args)
+{
+    if(init_SDL_window() != 0)
+    {
+        printf("Error: %s\n", SDL_GetError());
     }
+
+    init_music();
+
+
+    init_music();
 
 
     // TODO: Move this to a function, maybe in a separate file
@@ -141,8 +149,10 @@ int main(int argv, char** args){
         }
     }
 
-    bool up,down,left,right;
-    up = down = left = right = false;
+
+    bool music = true;
+    bool up, down, left, right, space, m;
+    up = down = left = right = space = m = false;
 #if FOLLOW_PLAYER
     // camera is centered on the player
     SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
@@ -150,55 +160,66 @@ int main(int argv, char** args){
     camera.y = (shipRect.y + shipRect.h / 2) + WINDOW_HEIGHT / 2;
 #endif
     bool closeWindow = false;
-    while(!closeWindow){
+    while(!closeWindow)
+    {
 
         SDL_Event event;
-        while(SDL_PollEvent(&event)){
-            switch(event.type){
-                case SDL_QUIT:
-                    closeWindow = true;
+        while(SDL_PollEvent(&event))
+        {
+            switch(event.type)
+            {
+            case SDL_QUIT:
+                closeWindow = true;
+                break;
+            // * this is the movement code from simpleSDLexample1.
+            case SDL_KEYDOWN:
+                switch(event.key.keysym.scancode)
+                {
+                case SDL_SCANCODE_M:
+                    m = true;
                     break;
-                // * this is the movement code from simpleSDLexample1.
-                case SDL_KEYDOWN:
-                    switch(event.key.keysym.scancode){
-                        case SDL_SCANCODE_W:
-                        case SDL_SCANCODE_UP:
-                            up=true;
-                            break;
-                        case SDL_SCANCODE_A:
-                        case SDL_SCANCODE_LEFT:
-                            left=true;
-                            break;
-                        case SDL_SCANCODE_S:
-                        case SDL_SCANCODE_DOWN:
-                            down=true;
-                            break;
-                        case SDL_SCANCODE_D:
-                        case SDL_SCANCODE_RIGHT:
-                            right=true;
-                            break;
-                    }
+                case SDL_SCANCODE_SPACE:
+                    space = true;
                     break;
-                case SDL_KEYUP:
-                    switch(event.key.keysym.scancode){
-                        case SDL_SCANCODE_W:
-                        case SDL_SCANCODE_UP:
-                            up=false;
-                        break;
-                        case SDL_SCANCODE_A:
-                        case SDL_SCANCODE_LEFT:
-                            left=false;
-                        break;
-                        case SDL_SCANCODE_S:
-                        case SDL_SCANCODE_DOWN:
-                            down=false;
-                        break;
-                        case SDL_SCANCODE_D:
-                        case SDL_SCANCODE_RIGHT:
-                            right=false;
-                        break;
-                    }
+                case SDL_SCANCODE_W:
+                case SDL_SCANCODE_UP:
+                    up = true;
                     break;
+                case SDL_SCANCODE_A:
+                case SDL_SCANCODE_LEFT:
+                    left = true;
+                    break;
+                case SDL_SCANCODE_S:
+                case SDL_SCANCODE_DOWN:
+                    down = true;
+                    break;
+                case SDL_SCANCODE_D:
+                case SDL_SCANCODE_RIGHT:
+                    right = true;
+                    break;
+                }
+                break;
+            case SDL_KEYUP:
+                switch(event.key.keysym.scancode)
+                {
+                case SDL_SCANCODE_W:
+                case SDL_SCANCODE_UP:
+                    up = false;
+                    break;
+                case SDL_SCANCODE_A:
+                case SDL_SCANCODE_LEFT:
+                    left = false;
+                    break;
+                case SDL_SCANCODE_S:
+                case SDL_SCANCODE_DOWN:
+                    down = false;
+                    break;
+                case SDL_SCANCODE_D:
+                case SDL_SCANCODE_RIGHT:
+                    right = false;
+                    break;
+                }
+                break;
             }
         }
         // still the movement code from simpleSDLexample1
@@ -218,6 +239,17 @@ int main(int argv, char** args){
         {
             shipRect.x += SPEED / 60;
         }
+        if(space)
+        {
+            play_sound_once();
+            space = false;
+        }
+
+        if(m)
+        {
+            toggle_music();
+            m = false;
+        }
 
         SDL_RenderClear(pRenderer);
 #if FOLLOW_PLAYER
@@ -236,7 +268,7 @@ int main(int argv, char** args){
         SDL_RenderCopy(pRenderer, pVingette, NULL, &vingetteRect);
 #endif
         SDL_RenderPresent(pRenderer);
-        SDL_Delay(1000/60);//60 frames/s
+        SDL_Delay(1000 / 120);//60 frames/s
     }
 
     SDL_DestroyRenderer(pRenderer);
