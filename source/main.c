@@ -4,8 +4,9 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include "tilemap.h"
-#include "music.h" 
+#include "music.h"
 #include "window.h"
+#include "menu.h"
 
 #define SPEED 300
 #define TILE_SIZE 64
@@ -120,7 +121,7 @@ int main(int argv, char** args)
         }
     }
 
-
+    bool menu = false;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
     up = down = left = right = space = m = lower_volume = inc_volume = false;
@@ -146,12 +147,6 @@ int main(int argv, char** args)
             case SDL_KEYDOWN:
                 switch(event.key.keysym.scancode)
                 {
-                case SDL_SCANCODE_L:
-                    lower_volume = true;
-                    break;
-                case SDL_SCANCODE_I:
-                    inc_volume = true;
-                    break;
                 case SDL_SCANCODE_M:
                     m = true;
                     break;
@@ -225,14 +220,6 @@ int main(int argv, char** args)
         {
             toggle_music();
             m = false;
-        }
-        if(lower_volume){
-            decrease_volume();
-            lower_volume = false;
-        }
-        if(inc_volume){
-            increase_volume();
-            inc_volume = false;
         }
 
         SDL_RenderClear(pRenderer);
