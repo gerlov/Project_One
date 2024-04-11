@@ -228,7 +228,6 @@ int main(int argv, char **args)
                 break;
             }   
         }   
-
         // made some changes to the movement logic to enable 
         // collision detection.  
 
