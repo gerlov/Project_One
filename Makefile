@@ -35,7 +35,7 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 # ----- Compile the program -----------------
 
 # run 'make' to compile the program
-$(TARGET): main.o tilemap.o music.o window.o
+$(TARGET): main.o tilemap.o music.o window.o collisions.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 
@@ -49,7 +49,10 @@ music.o: $(SRCDIR)/music.c
 	$(CC) $(CFLAGS) $(SRCDIR)/music.c
 
 window.o: $(SRCDIR)/window.c
-	$(CC) $(CFLAGS) $(SRCDIR)/window.c
+	$(CC) $(CFLAGS) $(SRCDIR)/window.c  
+
+collisions.o: $(SRCDIR)/collisions.c
+	$(CC) $(CFLAGS) $(SRCDIR)/collisions.c	
 
 
 # ----- Run the program -----------------
