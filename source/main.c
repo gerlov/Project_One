@@ -147,6 +147,9 @@ int main(int argv, char** args)
             case SDL_KEYDOWN:
                 switch(event.key.keysym.scancode)
                 {
+                case SDL_SCANCODE_ESCAPE:
+                    menu = true;
+                    break;
                 case SDL_SCANCODE_M:
                     m = true;
                     break;
@@ -210,6 +213,11 @@ int main(int argv, char** args)
         if(right && !left)
         {
             shipRect.x += SPEED / 60;
+        }
+        if(menu)
+        {
+            closeWindow = open_menu(pRenderer);
+            menu = false;
         }
         if(space)
         {
