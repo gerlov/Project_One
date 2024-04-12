@@ -6,16 +6,19 @@
 #include "tilemap.h"
 #include "music.h"
 #include "window.h"
+#include "collisions.h"
 #include "menu.h"
+#include <stdlib.h> // rand(), srand() 
+#include <time.h>   // for seeding srand()      
 
 #define SPEED 300
 #define TILE_SIZE 64
-#define TILE_W_AMOUNT 60
-#define TILE_H_AMOUNT 60
+#define TILE_W_AMOUNT 19  // changed from 60 to test collisions 
+#define TILE_H_AMOUNT 11  // changed from 60 to test collisions
 #define GAME_W TILE_W_AMOUNT*TILE_SIZE
 #define GAME_H TILE_H_AMOUNT*TILE_SIZE
 #define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#define WINDOW_HEIGHT 700  // changed from 800 to adjust to my screen size
 
 /// * temporary defines. Set to 1 to enable and 0 to disable
 #define FOLLOW_PLAYER 0
@@ -120,11 +123,62 @@ int main(int argv, char** args)
             }
         }
     }
+    
 
     bool menu = false;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
-    up = down = left = right = space = m = lower_volume = inc_volume = false;
+    up = down = left = right = space = m = lower_volume = inc_volume = false;   
+
+
+    ////////////////////////////////////////////////////////
+    // TODO: remove. these are to test collisions only.      
+
+    SDL_Texture* bush = NULL;
+    SDL_Texture* cactus = NULL;                
+    SDL_Texture* stone = NULL; 
+    SDL_Texture* tile2 = NULL;  
+    SDL_Texture* tile5 = NULL; 
+
+    create_texture(&bush, "resources/testpack/Bush.png");    
+    create_texture(&cactus, "resources/testpack/Cactus.png"); 
+    create_texture(&stone, "resources/testpack/Stone.png"); 
+    create_texture(&tile2, "resources/testpack/tile2.png"); 
+    create_texture(&tile5, "resources/testpack/tile5.png"); 
+
+    srand(time(NULL)); 
+
+    Tile testTiles[] = {
+        {2, 0, bush, rect},       // not solid (decoration)   
+        {3, 0, cactus, rect},     // not solid
+        {4, 0, stone, rect},      // not solid   
+        {5, 1, tile2, rect},      // solid (blocks movement) 
+        {6, 1, tile5, rect}       // solid    
+    };         
+    
+
+    // place 3 of each randomly 
+    bool positions[TILE_W_AMOUNT][TILE_H_AMOUNT] = {false};  // Track whether a position is occupied
+    for (int i = 0; i < 5; i++) {
+        int count = 0;
+        while (count < 3) {
+            int x = rand() % TILE_W_AMOUNT;
+            int y = rand() % TILE_H_AMOUNT;
+
+            if (!positions[x][y]) {  // Check if the position is already occupied
+                tilemap_set_tile(&tilemap, x, y, &testTiles[i]);
+                positions[x][y] = true;  // Mark the position as occupied
+                count++;
+            }
+        }
+    }
+
+
+
+    /////////////////////////////////////////////////////////////// 
+
+
+
 #if FOLLOW_PLAYER
     // camera is centered on the player
     SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
@@ -195,30 +249,28 @@ int main(int argv, char** args)
                     break;
                 }
                 break;
-            }
-        }
-        // still the movement code from simpleSDLexample1
-        if(up && !down)
-        {
-            shipRect.y -= SPEED / 60;
-        }
-        if(down && !up)
-        {
-            shipRect.y += SPEED / 60;
-        }
-        if(left && !right)
-        {
-            shipRect.x -= SPEED / 60;
-        }
-        if(right && !left)
-        {
-            shipRect.x += SPEED / 60;
-        }
-        if(menu)
-        {
-            closeWindow = mainMenu(pRenderer);
-            menu = false;
-        }
+            }   
+        }   
+
+        // made some changes to the movement logic to enable 
+        // collision detection.  
+
+        // movement change per update (assume 60 is fps?)
+        int speedPerFrame = SPEED / 60;   // suggest better name?
+
+        SDL_Rect nextPosition = shipRect; 
+
+        // we have bool (1 or 0) direction variables (up, down etc)  
+        nextPosition.y += (down - up) * speedPerFrame;  // vertical movement 
+        nextPosition.x += (right - left) *speedPerFrame;  // horisontal 
+
+        // check for collision 
+        if (!collides(&nextPosition, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
+            shipRect = nextPosition; // here: no collision, updates position 
+        } 
+        // here: collision, doesnt update position (stops),  notifies collision
+        else play_sound_once();     
+      
         if(space)
         {
             play_sound_once();
@@ -228,6 +280,11 @@ int main(int argv, char** args)
         {
             toggle_music();
             m = false;
+        }
+        if(menu)
+        {
+            closeWindow = mainMenu(pRenderer);
+            menu = false;
         }
 
         SDL_RenderClear(pRenderer);
