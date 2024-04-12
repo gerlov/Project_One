@@ -4,9 +4,10 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include "tilemap.h"
-#include "music.h" 
+#include "music.h"
 #include "window.h"
-#include "collisions.h"  
+#include "collisions.h"
+#include "menu.h"
 #include <stdlib.h> // rand(), srand() 
 #include <time.h>   // for seeding srand()      
 
@@ -124,7 +125,7 @@ int main(int argv, char** args)
     }
     
 
-
+    bool menu = false;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
     up = down = left = right = space = m = lower_volume = inc_volume = false;   
@@ -200,11 +201,8 @@ int main(int argv, char** args)
             case SDL_KEYDOWN:
                 switch(event.key.keysym.scancode)
                 {
-                case SDL_SCANCODE_L:
-                    lower_volume = true;
-                    break;
-                case SDL_SCANCODE_I:
-                    inc_volume = true;
+                case SDL_SCANCODE_ESCAPE:
+                    menu = true;
                     break;
                 case SDL_SCANCODE_M:
                     m = true;
@@ -271,9 +269,8 @@ int main(int argv, char** args)
             shipRect = nextPosition; // here: no collision, updates position 
         } 
         // here: collision, doesnt update position (stops),  notifies collision
-        else play_sound_once();                      
-
-
+        else play_sound_once();     
+      
         if(space)
         {
             play_sound_once();
@@ -284,13 +281,10 @@ int main(int argv, char** args)
             toggle_music();
             m = false;
         }
-        if(lower_volume){
-            decrease_volume();
-            lower_volume = false;
-        }
-        if(inc_volume){
-            increase_volume();
-            inc_volume = false;
+        if(menu)
+        {
+            closeWindow = mainMenu(pRenderer);
+            menu = false;
         }
 
         SDL_RenderClear(pRenderer);
