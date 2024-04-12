@@ -4,7 +4,6 @@
 #include <SDL2/SDL_image.h>
 #include "menu.h"
 
-
 #define BACKGROUND_IMG_PATH "resources/menu-background.png"
 #define START_GAME_IMG_PATH "resources/StartGame.png"
 #define OPTIONS_IMG_PATH "resources/Options.png"
@@ -16,32 +15,32 @@
 #define BUTTON_HEIGHT 162
 #define BUTTONS_X 425
 
-bool renderMenuItem(SDL_Renderer* renderer, const char* file, int x, int y, int width, int height)
+bool renderMenuItem(MenuItem item)
 {
-    SDL_Texture *texture = IMG_LoadTexture(renderer, file);
-    if (texture == NULL) {
+    if (item.texture == NULL) {
         printf("Error loading image: %s\n", IMG_GetError());
         return true;
     }
-	// put the location where we want the texture to be drawn into a rectangle
-	SDL_Rect image; image.x = x; image.y = y; image.w = width; image.h = height; 
     // copy the texture to the rendering context
-    SDL_RenderCopy(renderer, texture, NULL, &image);
-
-    SDL_RenderPresent(renderer);
+    SDL_RenderCopy(item.renderer, item.texture, NULL, &item.position);
 
     return false;
 }
 
-bool options(SDL_Renderer* renderer)
+bool optionsMenu(SDL_Renderer* renderer)
 {
     bool options = true;
     bool closeWindow = false;
 
     SDL_RenderClear(renderer);
-
-    if(renderMenuItem(renderer, BACKGROUND_IMG_PATH, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)) return closeWindow;
-    if(renderMenuItem(renderer, EXIT_OPTIONS_IMG_PATH, BUTTONS_X, 500, BUTTON_WIDTH, BUTTON_HEIGHT)) return closeWindow;
+    // Load all textures for options menu
+    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    MenuItem exitOptions = {IMG_LoadTexture(renderer, EXIT_OPTIONS_IMG_PATH), renderer, {BUTTONS_X, 500, BUTTON_WIDTH, BUTTON_HEIGHT}};
+    // Render all items
+    if(renderMenuItem(background)) return closeWindow;
+    if(renderMenuItem(exitOptions)) return closeWindow;
+    // Present render
+    SDL_RenderPresent(renderer);
 
     // Options loop
     while (options) {
@@ -78,12 +77,18 @@ bool options(SDL_Renderer* renderer)
     return closeWindow;
 }
 
-bool open_menu(SDL_Renderer* renderer)
+bool mainMenu(SDL_Renderer* renderer)
 {
     int w, h; // Texture width and height
     bool menu = true;
     bool closeWindow = false;
     bool menuRendered = false;
+
+    // Load all textures for main menu
+    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    MenuItem startGame = {IMG_LoadTexture(renderer, START_GAME_IMG_PATH), renderer, {BUTTONS_X, 100, BUTTON_WIDTH, BUTTON_HEIGHT}};
+    MenuItem options = {IMG_LoadTexture(renderer, OPTIONS_IMG_PATH), renderer, {BUTTONS_X, 300, BUTTON_WIDTH, BUTTON_HEIGHT}};
+    MenuItem quitGame = {IMG_LoadTexture(renderer, QUIT_GAME_IMG_PATH), renderer, {BUTTONS_X, 500, BUTTON_WIDTH, BUTTON_HEIGHT}};
 
 	// Main menu loop
 	while (menu) {
@@ -93,10 +98,12 @@ bool open_menu(SDL_Renderer* renderer)
             SDL_RenderClear(renderer);
 
             // Render background and menu items
-            if(renderMenuItem(renderer, BACKGROUND_IMG_PATH, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)) return closeWindow;
-            if(renderMenuItem(renderer, START_GAME_IMG_PATH, BUTTONS_X, 100, BUTTON_WIDTH, BUTTON_HEIGHT)) return closeWindow;
-            if(renderMenuItem(renderer, OPTIONS_IMG_PATH, BUTTONS_X, 300, BUTTON_WIDTH, BUTTON_HEIGHT)) return closeWindow;
-            if(renderMenuItem(renderer, QUIT_GAME_IMG_PATH, BUTTONS_X, 500, BUTTON_WIDTH, BUTTON_HEIGHT)) return closeWindow;
+            if(renderMenuItem(background)) return closeWindow;
+            if(renderMenuItem(startGame)) return closeWindow;
+            if(renderMenuItem(options)) return closeWindow;
+            if(renderMenuItem(quitGame)) return closeWindow;
+
+            SDL_RenderPresent(renderer);
 
             menuRendered = true;
         }
@@ -129,7 +136,7 @@ bool open_menu(SDL_Renderer* renderer)
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
                 {
-                    if(options(renderer) == true)
+                    if(optionsMenu(renderer) == true)
                     {
                         closeWindow = true;
                         menu = false;

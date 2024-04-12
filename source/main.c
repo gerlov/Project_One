@@ -216,7 +216,7 @@ int main(int argv, char** args)
         }
         if(menu)
         {
-            closeWindow = open_menu(pRenderer);
+            closeWindow = mainMenu(pRenderer);
             menu = false;
         }
         if(space)

@@ -1,21 +1,22 @@
 #ifndef MENU_H
 #define MENU_H
 
-/// @brief Function for rendering all images displayed
-/// @param renderer The renderer to draw the images to
-/// @param file The file to be displayed
-/// @param x x coordinate of where the file should be displayed
-/// @param y y coordinate of where the file should be displayed
-/// @param width width of the image
-/// @param height height of the image
-/// @return returns true if there is an error loading the image
-bool renderMenuItem(SDL_Renderer* renderer, const char* file, int x, int y, int width, int height);
+typedef struct MenuItem {
+    SDL_Texture* texture;
+    SDL_Renderer* renderer;
+    SDL_Rect position;
+} MenuItem;
 
-bool options(SDL_Renderer* renderer);
+/// @brief Function for rendering all images displayed
+/// @param item Struct containing the texture, renderer and the position of the image
+/// @return returns true if there is an error loading the image
+bool renderMenuItem(MenuItem item);
+
+bool optionsMenu(SDL_Renderer* renderer);
 
 /// @brief Main code for the menu
 /// @param renderer The renderer to draw the menu to
-bool open_menu(SDL_Renderer* renderer);
+bool mainMenu(SDL_Renderer* renderer);
 
 
 
