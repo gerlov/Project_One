@@ -1,4 +1,5 @@
 #include "window.h"
+#include "music.h"
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 
@@ -22,6 +23,8 @@ int init_SDL_window(SDL_Window **window, SDL_Renderer **renderer, int WINDOW_WID
         SDL_Quit();
         return 1;
     }
+    init_sounds();
+
     return 0;
 }
 

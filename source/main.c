@@ -76,7 +76,10 @@ int main(int argv, char** args)
         return 1;
     }
 
-    init_music();
+    char soundPathbgm[] = "resources/music/bgm1.mp3";
+    BackgroundMusic *bgm =init_background_music(soundPathbgm, 20);
+    play_background_music(bgm);
+    free_bgm(bgm);
 
     // TODO: Move this to a function, maybe in a separate file
     SDL_Texture* pWhite = NULL;
@@ -174,11 +177,6 @@ int main(int argv, char** args)
     }
 
 
-
-    /////////////////////////////////////////////////////////////// 
-
-
-
 #if FOLLOW_PLAYER
     // camera is centered on the player
     SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
@@ -258,22 +256,28 @@ int main(int argv, char** args)
         // movement change per update (assume 60 is fps?)
         int speedPerFrame = SPEED / 60;   // suggest better name?
 
+
         SDL_Rect nextPosition = shipRect; 
 
         // we have bool (1 or 0) direction variables (up, down etc)  
         nextPosition.y += (down - up) * speedPerFrame;  // vertical movement 
         nextPosition.x += (right - left) *speedPerFrame;  // horisontal 
-
+        char soundPath2[] = "resources/music/sse2.mp3";
+        Single_sound *wall = init_sound_effect(soundPath2, 10);
         // check for collision 
         if (!collides(&nextPosition, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
             shipRect = nextPosition; // here: no collision, updates position 
         } 
         // here: collision, doesnt update position (stops),  notifies collision
-        else play_sound_once();     
-      
+        else play_sound_once(wall);     
+
+        char soundPath[] = "resources/music/sse1.mp3";
+        Single_sound *kill_sound = init_sound_effect(soundPath, 30);
+
         if(space)
         {
-            play_sound_once();
+            play_sound_once(kill_sound);
+            free_sse(kill_sound);
             space = false;
         }
         if(m)
@@ -312,7 +316,6 @@ int main(int argv, char** args)
 #endif
     tilemap_free(&tilemap);
     SDL_DestroyTexture(pTexture);
-
     cleanup_SDL(pWindow, pRenderer);
     return 0;
 }
