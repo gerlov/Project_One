@@ -99,7 +99,7 @@ int main(int argv, char **args)
 
     TileMap tilemap;
     tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
-    tilemap_load(&tilemap, 1);
+    tilemap_load(&tilemap, 2);
 
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;

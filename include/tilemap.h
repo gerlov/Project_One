@@ -3,11 +3,20 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
+typedef enum TileType {
+    TILE_EMPTY,
+    TILE_WALL,
+    TILE_FLOOR,
+    TILE_DECOR,
+    TILE_WIN
+} TileType;
+
 /// @brief Struct that represents a tile
 typedef struct Tile
 {
     int id;            // tile id. Used to determine which texture and properties should be loaded for this tile !UNIPLEMENTED!
     int is_solid;      // if this tile is solid or not
+    TileType type;     // type of the tile
     SDL_Rect src_rect; // source rectangle of the texture
 } Tile;
 /// @brief Struct that represents a tilemap
@@ -23,14 +32,6 @@ typedef struct TileMap
     int tile_size;           // in pixels
 } TileMap;
 
-/// @brief Struct to load tilemap data from a file
-typedef struct TileMapData
-{
-    int width;     // in tiles
-    int height;    // in tiles
-    int tile_size; // in pixels
-    int *tiles;    // 1D array of tile ids
-} TileMapData;
 
 /// @brief Inits a tilemap
 /// @param tilemap the tilemap to init
@@ -81,4 +82,10 @@ Tile *get_tile(TileMap *tilemap, int x, int y);
 Tile *get_world_tile(TileMap *tilemap, int x, int y);
 /// @brief Frees the tilemap and all of its textures
 void tilemap_free(TileMap *tilemap);
+
+
+void generate_maze(TileMap *tilemap, int width, int height, int seed);
+
+void recursive_backtrack(int maze[], int visited[], int width, int height, int current_x, int current_y);
+
 #endif // TILEMAP_H
