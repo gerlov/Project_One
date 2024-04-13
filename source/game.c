@@ -111,7 +111,7 @@ int runGame()
     }
     
 
-    bool menu = false;
+    bool menu = true;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
     up = down = left = right = space = m = lower_volume = inc_volume = false;   
