@@ -22,32 +22,9 @@
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 700  // changed from 800 to adjust to my screen size
 
-/// * temporary defines. Set to 1 to enable and 0 to disable
-#define FOLLOW_PLAYER 0
-#define VINGETTE 0
-
-//! explanation of #if, #else, #endif 
-// They are like if, and else statements, but they are used at compile time and not at runtime. Therefor they can only be used with #define statements.
-// This is okay for Testing purposes, but it is not recommended to use #if, #else, #endif in the main code. I am using them now in the code to quickly turn on and off some features. This will be changed in the future.
-#if FOO
-    // if FOO is set to 1, everything between the #if FOO and #else will be included. The #else will be ignored.
-#else
-    // if FOO is set to 0, everything between the #else and #endif will be included. Everything between #if FOO and #else will be ignored.
-#endif
-
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
 
-
-#if FOLLOW_PLAYER
-SDL_Rect follow_camera(SDL_Rect* camera, SDL_Rect* target)
-{
-    SDL_Rect new_camera = *target;
-    new_camera.x -= camera->x;
-    new_camera.y -= camera->y;
-    return new_camera;
-}
-#endif
 
 
 int runGame()
@@ -80,14 +57,6 @@ int runGame()
     init_character(&secondCharacter, pRenderer, "resources/ship.png"); // Use a different texture if desired
     secondCharacter.rect.x = 120; // Starting position
     secondCharacter.rect.y = 120; // Starting position
-
-
-#if VINGETTE
-    // * psudo vingette effect
-    create_texture(&pVingette, pRenderer,  "resources/vingette.png");
-    SDL_Rect vingetteRect = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
-    SDL_QueryTexture(pVingette, NULL, NULL, &vingetteRect.w, &vingetteRect.h);
-#endif
 
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
@@ -162,13 +131,6 @@ int runGame()
         }
     }
 
-
-#if FOLLOW_PLAYER
-    // camera is centered on the player
-    SDL_Rect camera = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
-    camera.x = (shipRect.x + shipRect.w / 2) + WINDOW_WIDTH / 2;
-    camera.y = (shipRect.y + shipRect.h / 2) + WINDOW_HEIGHT / 2;
-#endif
     bool closeWindow = false;
     while(!closeWindow)
     {
@@ -277,21 +239,10 @@ int runGame()
             menu = false;
         }
 
-#if FOLLOW_PLAYER
-        camera.x = (shipRect.x + shipRect.w / 2) - WINDOW_WIDTH / 2;
-        camera.y = (shipRect.y + shipRect.h / 2) - WINDOW_HEIGHT / 2;
-        SDL_Rect shipdest = follow_camera(&camera, &shipRect);
-        tilemap_draw(&tilemap, pRenderer, &camera);
-#else
-        SDL_Rect none = { 0,0,0,0 };
-        SDL_Rect shipdest = shipRect.rect;
-        tilemap_draw(&tilemap, pRenderer, &none);
-#endif
 
-#if VINGETTE
-        // * psudo vingette effect
-        SDL_RenderCopy(pRenderer, pVingette, NULL, &vingetteRect);
-#endif
+        SDL_Rect none = { 0,0,0,0 };
+
+        tilemap_draw(&tilemap, pRenderer, &none);
         draw_character(pRenderer, &shipRect);
         draw_character(pRenderer, &secondCharacter);
 
@@ -299,9 +250,6 @@ int runGame()
         SDL_Delay(1000 / 120);//60 frames/s
     }
 
-#if VINGETTE
-    SDL_DestroyTexture(pVingette);
-#endif
     tilemap_free(&tilemap);
     cleanup_character(&shipRect);
     cleanup_character(&secondCharacter);

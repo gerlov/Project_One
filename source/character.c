@@ -41,6 +41,7 @@ void draw_character(SDL_Renderer *pRenderer, Character *character) {
     destRect.h = character->rect.h;  
     SDL_RenderCopy(pRenderer, character->texture, NULL, &destRect);
     
+    
 }
 
 void cleanup_character(Character* character) {
