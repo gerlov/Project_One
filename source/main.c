@@ -9,7 +9,8 @@
 #include "collisions.h"
 #include "menu.h"
 #include <stdlib.h> // rand(), srand() 
-#include <time.h>   // for seeding srand()      
+#include <time.h>   // for seeding srand()    
+#include "character.h"  
 
 #define SPEED 300
 #define TILE_SIZE 64
@@ -35,6 +36,14 @@
 
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
+
+
+
+typedef struct _char{
+    SDL_Rect rect;
+    SDL_Texture* texture;
+} _char;
+
 
 void create_texture(SDL_Texture** texture, const char* path)
 {
@@ -90,14 +99,17 @@ int main(int argv, char** args)
     create_texture(&pBlack, "resources/black.png");
     create_texture(&pWhite, "resources/white.png");
 
+
+
+    _char shipRect;
     // * ship texture
-    SDL_Rect shipRect;
-    create_texture(&pTexture, "resources/ship.png");
-    SDL_QueryTexture(pTexture, NULL, NULL, &shipRect.w, &shipRect.h);
-    shipRect.x = 100;
-    shipRect.y = 100;
-    shipRect.w /= 4;
-    shipRect.h /= 4;
+    // SDL_Rect shipRect;
+    create_texture(&shipRect.texture, "resources/ship.png");
+    SDL_QueryTexture(shipRect.texture, NULL, NULL, &shipRect.rect.x, &shipRect.rect.y);
+    shipRect.rect.x = 100;
+    shipRect.rect.y = 100;
+    shipRect.rect.w /= 4;
+    shipRect.rect.h /= 4;
 
 #if VINGETTE
     // * psudo vingette effect
@@ -257,7 +269,7 @@ int main(int argv, char** args)
         int speedPerFrame = SPEED / 60;   // suggest better name?
 
 
-        SDL_Rect nextPosition = shipRect; 
+        SDL_Rect nextPosition = shipRect.rect; 
 
         // we have bool (1 or 0) direction variables (up, down etc)  
         nextPosition.y += (down - up) * speedPerFrame;  // vertical movement 
@@ -266,7 +278,7 @@ int main(int argv, char** args)
         Single_sound *wall = init_sound_effect(soundPath2, 10);
         // check for collision 
         if (!collides(&nextPosition, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
-            shipRect = nextPosition; // here: no collision, updates position 
+            shipRect.rect = nextPosition; // here: no collision, updates position 
         } 
         // here: collision, doesnt update position (stops),  notifies collision
         else play_sound_once(wall);     
@@ -299,10 +311,10 @@ int main(int argv, char** args)
         tilemap_draw(&tilemap, pRenderer, &camera);
 #else
         SDL_Rect none = { 0,0,0,0 };
-        SDL_Rect shipdest = shipRect;
+        SDL_Rect shipdest = shipRect.rect;
         tilemap_draw(&tilemap, pRenderer, &none);
 #endif
-        SDL_RenderCopy(pRenderer, pTexture, NULL, &shipdest);
+        SDL_RenderCopy(pRenderer, shipRect.texture, NULL, &shipdest);
 #if VINGETTE
         // * psudo vingette effect
         SDL_RenderCopy(pRenderer, pVingette, NULL, &vingetteRect);
@@ -315,7 +327,7 @@ int main(int argv, char** args)
     SDL_DestroyTexture(pVingette);
 #endif
     tilemap_free(&tilemap);
-    SDL_DestroyTexture(pTexture);
+    // SDL_DestroyTexture(pTexture);
     cleanup_SDL(pWindow, pRenderer);
     return 0;
 }
