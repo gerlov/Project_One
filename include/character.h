@@ -15,9 +15,11 @@ typedef struct Character{
 } Character;
 
 
-
+///@brief Hunt function for a hunter character against other characters within kill distance.
+///@param hunter Pointer to the Character designated as the hunter; must have isHunter set to 1.
+///@param characters Array of pointers to Character structures, including both hunters and non-hunters.
+///@param num_characters Total number of characters in the characters array.
 void kill_command(Character *hunter, Character **characters, int num_characters);
-
 
 
 ///@brief Initializes a character with a texture loaded from a specified file path.
