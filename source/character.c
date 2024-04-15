@@ -12,8 +12,8 @@ int speed = 300 / 60;
 void init_character(Character* character, SDL_Renderer *pRenderer, const char *filePath){
     create_texture(&character->texture, pRenderer, filePath);
     SDL_QueryTexture(character->texture, NULL, NULL, &character->rect.w, &character->rect.h);
-    character->rect.x = 100;
-    character->rect.y = 100;
+    character->rect.x = 200;
+    character->rect.y = 200;
     character->rect.w /= 4;
     character->rect.h /= 4;
 }
