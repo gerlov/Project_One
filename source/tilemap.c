@@ -1,6 +1,7 @@
 #include "tilemap.h"
 #include <stdio.h>
 #include <SDL2/SDL_image.h>
+#include <time.h>
 
 #define MAZE_SCALEUP_FACTOR 3
 #define TILEMAP_MAP1_W 32
