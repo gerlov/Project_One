@@ -6,16 +6,18 @@
 
 ///@struct Character
 ///@brief Represents a game character with a position, size, and texture.
+///The isHunter == 1 if they are a hunter, 0 otherwise.
 typedef struct Character{
     SDL_Rect rect;
     SDL_Texture* texture;
+    int isHunter;
 } Character;
 
 ///@brief Initializes a character with a texture loaded from a specified file path.
 ///@param character Pointer to the Character to be initialized.
 ///@param pRenderer The renderer used to create the texture.
 ///@param filePath Path to the image file used to create the character's texture.
-void init_character(Character* character, SDL_Renderer* pRenderer, const char* filePath);
+void init_character(Character* character, SDL_Renderer* pRenderer, const char* filePath, int isHunter);
 
 ///@brief Updates the position of the character based on input and checks for collisions.
 ///@param character Pointer to the Character that is being moved.

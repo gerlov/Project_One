@@ -51,10 +51,10 @@ int runGame()
 
 
     Character shipRect;
-    init_character(&shipRect, pRenderer, "resources/ship.png");
+    init_character(&shipRect, pRenderer, "resources/ship.png", 1);
 
     Character secondCharacter;
-    init_character(&secondCharacter, pRenderer, "resources/ship.png"); // Use a different texture if desired
+    init_character(&secondCharacter, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
     secondCharacter.rect.x = 120; // Starting position
     secondCharacter.rect.y = 120; // Starting position
 
