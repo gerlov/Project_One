@@ -52,7 +52,7 @@ void move_character(Character *character, TileMap *tilemap,
 
     // Check collision with other characters
     for (int i = 0; i < num_other_characters; i++) {
-        if (character != other_characters[i] && characters_collide(&nextPosition, &other_characters[i]->rect)) {
+        if (character != other_characters[i] && other_characters[i]->isKilled == 0 && characters_collide(&nextPosition, &other_characters[i]->rect)) {
             play_sound_once(oi);
             return; // collision with another character, return immediately
         }

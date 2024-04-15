@@ -53,7 +53,6 @@ int runGame()
     init_character(&testHuman, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
     testHuman.rect.x = 420;
 
-
     //Keeping track of all characters
     Character* characters[] = {&testHunter, &testHuman};
     int num_characters = 2;  
@@ -199,6 +198,7 @@ int runGame()
         tilemap_draw(&tilemap);
         draw_character(pRenderer, &testHunter);
         draw_character(pRenderer, &testHuman);
+
 
         SDL_RenderPresent(pRenderer);
         SDL_Delay(1000 / 120);//60 frames/s
