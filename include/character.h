@@ -11,7 +11,11 @@ typedef struct Character{
     SDL_Rect rect;
     SDL_Texture* texture;
     int isHunter;
+    int isKilled;
 } Character;
+
+void kill_command(Character *hunter, Character *prey);
+
 
 ///@brief Initializes a character with a texture loaded from a specified file path.
 ///@param character Pointer to the Character to be initialized.

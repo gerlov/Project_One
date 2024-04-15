@@ -217,15 +217,12 @@ int runGame()
         //draw all charz
         move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, up, down, left, right);
         move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, w, s, a, d);
-        
+    
 
-        char soundPath[] = "resources/music/sse1.mp3";
-        Single_sound *kill_sound = init_sound_effect(soundPath, 30);
 
         if(space)
         {
-            play_sound_once(kill_sound);
-            free_sse(kill_sound);
+            kill_command(&shipRect, &secondCharacter);
             space = false;
         }
         if(m)

@@ -2,6 +2,7 @@
 #include "texture.h"
 #include "collisions.h"
 #include "tilemap.h"
+#include <math.h> 
 #include "music.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -23,29 +24,52 @@ void init_character(Character* character, SDL_Renderer *pRenderer, const char *f
     }else{
         character->isHunter = 0;
     }
+    character->isKilled = 0;
 
 }
 
 void move_character(Character *character, TileMap *tilemap, int WINDOW_WIDTH, int WINDOW_HEIGHT, int up, int down, int left, int right){
-    char soundPath2[] = "resources/music/sse2.mp3";
-    Single_sound *wall = init_sound_effect(soundPath2, 10);
+    if(character->isKilled == 0){
+        char soundPath2[] = "resources/music/sse2.mp3";
+        Single_sound *wall = init_sound_effect(soundPath2, 10);
 
-    SDL_Rect nextPosition = character->rect; 
-    nextPosition.y += (down - up) * speed;  // Vertical movement
-    nextPosition.x += (right - left) * speed;  // Horizontal movement
+        SDL_Rect nextPosition = character->rect; 
+        nextPosition.y += (down - up) * speed;  // Vertical movement
+        nextPosition.x += (right - left) * speed;  // Horizontal movement
 
-    // Check for collision with the tilemap
-    if (!collides(&nextPosition, tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
-        character->rect = nextPosition; // Update position if no collision
-        return;  // No collision occurred
-    } else play_sound_once(wall);     
-    
+        // Check for collision with the tilemap
+        if (!collides(&nextPosition, tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
+            character->rect = nextPosition; // Update position if no collision
+            return;  // No collision occurred
+        } else play_sound_once(wall);     
+    }
+
     return;
 }
+void kill_command(Character *hunter, Character *prey) {
+    if (hunter->isHunter && !prey->isHunter) {
+        // Calculate the absolute distance between hunter and prey
+        int y_distance = abs(hunter->rect.y - prey->rect.y);
+        int x_distance = abs(hunter->rect.x - prey->rect.x);
 
-void kill_command(Character *character_one, Character *character_two){
-    
+        // Define the maximum distance at which a hunter can kill a prey
+        const int killDistance = 100; // This represents the maximum distance in pixels
+
+        // Check if the hunter is close enough to kill the prey
+        if (y_distance <= killDistance && x_distance <= killDistance) {
+            prey->isKilled = 1; // Mark the prey as killed
+            hunter->rect.x = prey->rect.x; // Move hunter to prey's position
+            hunter->rect.y = prey->rect.y;
+
+            // Play sound effect for kill
+            char soundPath[] = "resources/music/sse1.mp3";
+            Single_sound *kill_sound = init_sound_effect(soundPath, 30);
+            play_sound_once(kill_sound);
+            free_sse(kill_sound);
+        }
+    }
 }
+
 
 void draw_character(SDL_Renderer *pRenderer, Character *character) {
     SDL_Rect destRect = character->rect;  
