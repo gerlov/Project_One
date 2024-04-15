@@ -15,6 +15,7 @@ typedef struct Character{
 } Character;
 
 
+
 void kill_command(Character *hunter, Character **characters, int num_characters);
 
 
