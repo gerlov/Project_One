@@ -14,8 +14,8 @@ int hunter_characters = 0;
 void init_character(Character* character, SDL_Renderer *pRenderer, const char *filePath, int isHunter){
     create_texture(&character->texture, pRenderer, filePath);
     SDL_QueryTexture(character->texture, NULL, NULL, &character->rect.w, &character->rect.h);
-    character->rect.x = 100;
-    character->rect.y = 100;
+    character->rect.x = 200;
+    character->rect.y = 200;
     character->rect.w /= 4;
     character->rect.h /= 4;
     if(hunter_characters == 0 && isHunter == 1){
