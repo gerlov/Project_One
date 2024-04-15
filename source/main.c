@@ -11,16 +11,16 @@
 #include <time.h>   // for seeding srand()      
 
 #define SPEED 300
-#define TILE_SIZE 64
-#define TILE_W_AMOUNT 60
-#define TILE_H_AMOUNT 60
+#define TILE_SIZE 32
+#define TILE_W_AMOUNT 128
+#define TILE_H_AMOUNT 128
 #define GAME_W TILE_W_AMOUNT *TILE_SIZE
 #define GAME_H TILE_H_AMOUNT *TILE_SIZE
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 700  // changed from 800 to adjust to my screen size
 
 /// * temporary defines. Set to 1 to enable and 0 to disable
-#define FOLLOW_PLAYER 0
+#define FOLLOW_PLAYER 1
 #define VINGETTE 0
 
 //! explanation of #if, #else, #endif
@@ -100,6 +100,8 @@ int main(int argv, char **args)
     TileMap tilemap;
     tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
     tilemap_load(&tilemap, 2);
+    randomize_floor(&tilemap, 0);
+    orient_walls(&tilemap);
 
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
@@ -241,11 +243,12 @@ int main(int argv, char **args)
         nextPosition.x += (right - left) *speedPerFrame;  // horisontal 
 
         // check for collision 
-        if (!collides(&nextPosition, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
-            shipRect = nextPosition; // here: no collision, updates position 
-        } 
+        // if (!collides(&nextPosition, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
+        //     shipRect = nextPosition; // here: no collision, updates position 
+        // } 
+        shipRect = nextPosition;
         // here: collision, doesnt update position (stops),  notifies collision
-        else play_sound_once();                      
+        // else play_sound_once();                      
 
 
         

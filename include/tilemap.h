@@ -11,6 +11,20 @@ typedef enum TileType {
     TILE_WIN
 } TileType;
 
+/// @brief Enum that represents a direction. Used for the orientation of the walls as a hash
+typedef enum Direction
+{
+    NONE = 0,
+    UP = 1,
+    RIGHT = 2,
+    DOWN = 4,
+    LEFT = 8,
+    TOP_RIGHT = 16,
+    BOTTOM_RIGHT = 17,
+    BOTTOM_LEFT = 18,
+    TOP_LEFT = 19
+} Direction;
+
 /// @brief Struct that represents a tile
 typedef struct Tile
 {
@@ -24,6 +38,7 @@ typedef struct TileMap
 {
     SDL_Renderer *pRenderer; // renderer to load the textures with
     SDL_Texture *pTexture;   // texture of the tilemap
+    SDL_Texture *pFloorTexture; // texture of the floor
     int x;                   // x position of the tilemap
     int y;                   // y position of the tilemap
     int width;               // in tiles
@@ -56,7 +71,7 @@ void tilemap_load_file(TileMap *tilemap, const char *file_path);
 /// @param file_path the path to save the tilemap to
 void tilemap_save_file(TileMap *tilemap, const char *file_path);
 
-/// @brief Sets a tile in the tilemap
+/// @brief Sets a tile in the tilemap. Tiles set after the Orient_walls or randomize_floor functions will not be oriented or randomized
 /// @param tilemap the tilemap to set the tile in
 /// @param x the x position of the tile
 /// @param y the y position of the tile
@@ -83,9 +98,29 @@ Tile *get_world_tile(TileMap *tilemap, int x, int y);
 /// @brief Frees the tilemap and all of its textures
 void tilemap_free(TileMap *tilemap);
 
-
+/// @brief Generates a maze using the recursive backtracking algorithm. It also scales the maze up by the factor defined in MAZE_SCALEUP_FACTOR
+/// @param tilemap the tilemap to generate the maze in
+/// @param width the width of the maze
+/// @param height the height of the maze
+/// @param seed the seed to use for the random number generator
 void generate_maze(TileMap *tilemap, int width, int height, int seed);
 
+/// @brief A recursive backtracking algorithm to generate a maze
+/// @param maze maze array
+/// @param visited visited array
+/// @param width the width of the maze
+/// @param height height of the maze
+/// @param current_x current x position (chosen at random when started)
+/// @param current_y current y position (chosen at random when started)
 void recursive_backtrack(int maze[], int visited[], int width, int height, int current_x, int current_y);
+
+/// @brief Randomize the floor pattern
+/// @param tilemap pointer to the tilemap
+/// @param seed the seed for the random number generator
+void randomize_floor(TileMap *tilemap, int seed);
+
+/// @brief Orients the walls based on the surrounding tiles
+/// @param tilemap the tilemap to orient the walls in
+void orient_walls(TileMap *tilemap);
 
 #endif // TILEMAP_H
