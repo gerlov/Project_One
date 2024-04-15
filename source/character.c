@@ -25,7 +25,6 @@ void init_character(Character* character, SDL_Renderer *pRenderer, const char *f
         character->isHunter = 0;
     }
     character->isKilled = 0;
-
 }
 
 void move_character(Character *character, TileMap *tilemap, int WINDOW_WIDTH, int WINDOW_HEIGHT, int up, int down, int left, int right){
@@ -47,13 +46,14 @@ void move_character(Character *character, TileMap *tilemap, int WINDOW_WIDTH, in
     return;
 }
 void kill_command(Character *hunter, Character *prey) {
-    if (hunter->isHunter && !prey->isHunter) {
+
+    if (hunter->isHunter && !prey->isHunter && !prey->isKilled) {
         // Calculate the absolute distance between hunter and prey
         int y_distance = abs(hunter->rect.y - prey->rect.y);
         int x_distance = abs(hunter->rect.x - prey->rect.x);
 
         // Define the maximum distance at which a hunter can kill a prey
-        const int killDistance = 100; // This represents the maximum distance in pixels
+        const int killDistance = 80; // This represents the maximum distance in pixels
 
         // Check if the hunter is close enough to kill the prey
         if (y_distance <= killDistance && x_distance <= killDistance) {

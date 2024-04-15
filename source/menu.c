@@ -9,8 +9,8 @@
 #define OPTIONS_IMG_PATH "resources/Options.png"
 #define QUIT_GAME_IMG_PATH "resources/QuitGame.png"
 #define EXIT_OPTIONS_IMG_PATH "resources/ExitOptions.png"
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 2200
+#define WINDOW_HEIGHT 1200
 #define BUTTON_WIDTH 349
 #define BUTTON_HEIGHT 162
 #define BUTTONS_X 425
