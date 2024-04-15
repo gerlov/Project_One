@@ -1,6 +1,7 @@
 #include "collisions.h" 
 #include "window.h"
 #include "tilemap.h"  
+#include "character.h"  
 
 
 bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int windowHeight) {
@@ -28,7 +29,11 @@ bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int win
     } 
 
     return false;    
-} 
+}    
 
 
 
+bool characters_collide(SDL_Rect *rect1, SDL_Rect *rect2) {
+    return SDL_HasIntersection(rect1, rect2);
+}
+ 

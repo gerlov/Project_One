@@ -54,6 +54,9 @@ int runGame()
     secondCharacter.rect.x = 300; // Starting position
     secondCharacter.rect.y = 300; // Starting position
 
+    Character* characters[] = {&shipRect, &secondCharacter};
+    int num_characters = 2;  
+
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
     tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
@@ -197,8 +200,10 @@ int runGame()
         }   
 
         //draw all charz
-        move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, up, down, left, right);
-        move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, w, s, a, d);
+        move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                      up, down, left, right, characters, num_characters);
+        move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                      w, s, a, d, characters, num_characters);
         
 
         char soundPath[] = "resources/music/sse1.mp3";
