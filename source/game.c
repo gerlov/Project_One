@@ -19,8 +19,8 @@
 #define TILE_H_AMOUNT 128  // changed from 60 to test collisions
 #define GAME_W TILE_W_AMOUNT*TILE_SIZE
 #define GAME_H TILE_H_AMOUNT*TILE_SIZE
-#define WINDOW_WIDTH 2200
-#define WINDOW_HEIGHT 1200  // changed from 800 to adjust to my screen size
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 800  // changed from 800 to adjust to my screen size
 
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
@@ -203,6 +203,7 @@ int runGame()
 
         if(space)
         {
+            //space to kill, 
             kill_command(&shipRect, &secondCharacter);
             space = false;
         }

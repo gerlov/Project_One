@@ -14,6 +14,9 @@ typedef struct Character{
     int isKilled;
 } Character;
 
+/// @brief Allows the hunter to immobolize the other character if in range and presses space atm
+/// @param hunter send in the hunter character
+/// @param prey  send in the noneHunter character
 void kill_command(Character *hunter, Character *prey);
 
 
