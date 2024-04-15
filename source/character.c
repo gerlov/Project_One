@@ -83,6 +83,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
                 Single_sound *kill_sound = init_sound_effect(soundPath, 30);
                 play_sound_once(kill_sound);
                 free_sse(kill_sound);
+                break; //Kills one, otherwise more in a small space
             }
         }
     }
