@@ -40,8 +40,6 @@ int runGame()
     free_bgm(bgm);
 
     // TODO: Move this to a function, maybe in a separate file
-    SDL_Texture* pWhite = NULL;
-    SDL_Texture* pBlack = NULL;
     SDL_Texture* pTexture = NULL;
     SDL_Texture* pVingette = NULL;
 

@@ -28,8 +28,6 @@ typedef enum Direction
 /// @brief Struct that represents a tile
 typedef struct Tile
 {
-    int id;            // tile id. Used to determine which texture and properties should be loaded for this tile !UNIPLEMENTED!
-    int is_solid;      // if this tile is solid or not
     TileType type;     // type of the tile
     SDL_Rect src_rect; // source rectangle of the texture
 } Tile;
@@ -123,4 +121,17 @@ void randomize_floor(TileMap *tilemap, int seed);
 /// @param tilemap the tilemap to orient the walls in
 void orient_walls(TileMap *tilemap);
 
+/// @brief helper function for a 2d array disguesed as a 1d array
+/// @param x 
+/// @param y 
+/// @param width width of the 2d array
+/// @return converted index
+int get_index(int x, int y, int width);
+
+/// @brief Get the type of the neighbouring tiles
+/// @param tilemap 
+/// @param x 
+/// @param y 
+/// @return array of that contains the type of the neighbouring tiles in the order of up, right, down, left, top right, bottom right, bottom left, top left
+TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
 #endif // TILEMAP_H
