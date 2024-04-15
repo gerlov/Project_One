@@ -35,6 +35,8 @@ void move_character(Character *character, TileMap *tilemap,
     char soundPath2[] = "resources/music/sse2.mp3"; 
     char oiSoundPath[] = "resources/music/oi.mp3"; 
 
+    if(character->isKilled == 1) return;
+
     Single_sound *wall = init_sound_effect(soundPath2, 10); 
     Single_sound *oi = init_sound_effect(oiSoundPath, 30);                   
 
@@ -61,25 +63,24 @@ void move_character(Character *character, TileMap *tilemap,
 }
 
 // TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
-void kill_command(Character *hunter, Character *prey) {
+void kill_command(Character *hunter, Character **characters, int num_characters) {
+    const int killDistance = 80; // This represents the maximum distance in pixels
 
-    if (hunter->isHunter && !prey->isHunter && !prey->isKilled) {
-
-        int y_distance = abs(hunter->rect.y - prey->rect.y);
-        int x_distance = abs(hunter->rect.x - prey->rect.x);
-
-        const int killDistance = 80; // This represents the maximum distance in pixels
-
-        if (y_distance <= killDistance && x_distance <= killDistance) {
-            prey->isKilled = 1; // Change target to killed
-            hunter->rect.x = prey->rect.x; // Move hunter to prey
-            hunter->rect.y = prey->rect.y;
-
-            // Play sound effect for kill
-            char soundPath[] = "resources/music/sse1.mp3";
-            Single_sound *kill_sound = init_sound_effect(soundPath, 30);
-            play_sound_once(kill_sound);
-            free_sse(kill_sound);
+    for (int i = 0; i < num_characters; i++) {
+        if (characters[i]->isHunter == 0 && !characters[i]->isKilled) {
+            int y_distance = abs(hunter->rect.y - characters[i]->rect.y);
+            int x_distance = abs(hunter->rect.x - characters[i]->rect.x);
+            if (y_distance <= killDistance && x_distance <= killDistance) {
+                characters[i]->isKilled = 1; // Change target to kille
+                // If we want to teleport to the target, however doesnt work with collision of chars
+                // hunter->rect.x =characters[i]->rect.x; 
+                // hunter->rect.y = characters[i]->rect.y;
+                // Play sound effect for kill
+                char soundPath[] = "resources/music/sse1.mp3";
+                Single_sound *kill_sound = init_sound_effect(soundPath, 30);
+                play_sound_once(kill_sound);
+                free_sse(kill_sound);
+            }
         }
     }
 }

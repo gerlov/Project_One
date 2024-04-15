@@ -46,15 +46,26 @@ int runGame()
 
 
 
-    Character shipRect;
-    init_character(&shipRect, pRenderer, "resources/ship.png", 1);
+    Character testHunter;
+    init_character(&testHunter, pRenderer, "resources/ship.png", 1);
 
-    Character secondCharacter;
-    init_character(&secondCharacter, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
-    secondCharacter.rect.x = 420;
+    Character testHuman;
+    init_character(&testHuman, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
+    testHuman.rect.x = 420;
 
-    Character* characters[] = {&shipRect, &secondCharacter};
+
+    //Keeping track of all characters
+    Character* characters[] = {&testHunter, &testHuman};
     int num_characters = 2;  
+
+    //Finding the hunter
+    Character* hunter = NULL;
+    for (int i = 0; i < num_characters; i++) {
+        if (characters[i]->isHunter == 1) {
+            hunter = characters[i];
+            break;
+        }
+    }
 
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
@@ -72,48 +83,7 @@ int runGame()
     bool w, a, s, d;
     w = a = s = d = false;  
 
-
-    ////////////////////////////////////////////////////////
-    // TODO: remove. these are to test collisions only.      
-
-    // SDL_Texture* bush = NULL;
-    // SDL_Texture* cactus = NULL;                
-    // SDL_Texture* stone = NULL; 
-    // SDL_Texture* tile2 = NULL;  
-    // SDL_Texture* tile5 = NULL; 
-
-    // create_texture(&bush, pRenderer, "resources/testpack/Bush.png");    
-    // create_texture(&cactus, pRenderer, "resources/testpack/Cactus.png"); 
-    // create_texture(&stone, pRenderer, "resources/testpack/Stone.png"); 
-    // create_texture(&tile2, pRenderer, "resources/testpack/tile2.png"); 
-    // create_texture(&tile5, pRenderer, "resources/testpack/tile5.png"); 
-
     srand(time(NULL)); 
-
-    // Tile testTiles[] = {
-    //     {2, 0, bush, rect},       // not solid (decoration)   
-    //     {3, 0, cactus, rect},     // not solid
-    //     {4, 0, stone, rect},      // not solid   
-    //     {5, 1, tile2, rect},      // solid (blocks movement) 
-    //     {6, 1, tile5, rect}       // solid    
-    // };         
-    
-
-    // // place 3 of each randomly 
-    // bool positions[TILE_W_AMOUNT][TILE_H_AMOUNT] = {false};  // Track whether a position is occupied
-    // for (int i = 0; i < 5; i++) {
-    //     int count = 0;
-    //     while (count < 3) {
-    //         int x = rand() % TILE_W_AMOUNT;
-    //         int y = rand() % TILE_H_AMOUNT;
-
-    //         if (!positions[x][y]) {  // Check if the position is already occupied
-    //             tilemap_set_tile(&tilemap, x, y, &testTiles[i]);
-    //             positions[x][y] = true;  // Mark the position as occupied
-    //             count++;
-    //         }
-    //     }
-    // }
 
     bool closeWindow = false;
     while(!closeWindow)
@@ -199,9 +169,9 @@ int runGame()
         }   
 
         //draw all charz
-        move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+        move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
                       up, down, left, right, characters, num_characters);
-        move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+        move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
                       w, s, a, d, characters, num_characters);
         
 
@@ -209,9 +179,8 @@ int runGame()
 
         if(space)
         {
-            //space to kill, 
-            kill_command(&shipRect, &secondCharacter);
-            space = false;
+            kill_command(hunter, characters, num_characters);
+            space = false;                
         }
         if(m)
         {
@@ -228,16 +197,16 @@ int runGame()
         
 
         tilemap_draw(&tilemap);
-        draw_character(pRenderer, &shipRect);
-        draw_character(pRenderer, &secondCharacter);
+        draw_character(pRenderer, &testHunter);
+        draw_character(pRenderer, &testHuman);
 
         SDL_RenderPresent(pRenderer);
         SDL_Delay(1000 / 120);//60 frames/s
     }
 
     tilemap_free(&tilemap);
-    cleanup_character(&shipRect);
-    cleanup_character(&secondCharacter);
+    cleanup_character(&testHunter);
+    cleanup_character(&testHuman);
     cleanup_SDL(pWindow, pRenderer);
     return 0;
 }
