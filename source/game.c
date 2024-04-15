@@ -51,7 +51,10 @@ int runGame()
 
     Character secondCharacter;
     init_character(&secondCharacter, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
+    secondCharacter.rect.x = 420;
 
+    Character* characters[] = {&shipRect, &secondCharacter};
+    int num_characters = 2;  
 
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
@@ -196,9 +199,12 @@ int runGame()
         }   
 
         //draw all charz
-        move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, up, down, left, right);
-        move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, w, s, a, d);
-    
+        move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                      up, down, left, right, characters, num_characters);
+        move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                      w, s, a, d, characters, num_characters);
+        
+
 
 
         if(space)
