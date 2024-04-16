@@ -18,6 +18,7 @@ void init_character(Character* character, SDL_Renderer *pRenderer, const char *f
     character->rect.y = 200;
     character->rect.w /= 4;
     character->rect.h /= 4;
+    character->direction='d';
     if(hunter_characters == 0 && isHunter == 1){
         hunter_characters = 1;
         character->isHunter = isHunter;
@@ -90,13 +91,63 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
 }
 
 
-void draw_character(SDL_Renderer *pRenderer, Character *character) {
+void draw_character(SDL_Renderer *pRenderer, Character *character, char direction) {
+
+    SDL_Rect srcRect;
+    
+    if (character->isHunter == 1) {
+        if (direction == 'u') {
+        srcRect.x = 50;
+        srcRect.y = 195;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'd') {
+        srcRect.x = 50;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+        } else if (direction == 'l') {
+            
+        srcRect.x = 50;
+        srcRect.y = 65;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'r') {
+        srcRect.x = 50;
+        srcRect.y = 130;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+        }
+    } else {
+        if (direction == 'u') {
+        srcRect.x = 100;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'd') {
+        srcRect.x = 0;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+        } else if (direction == 'l') {
+        srcRect.x = 50;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'r') {
+        srcRect.x = 150;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+        }
+    }
+
+
     SDL_Rect destRect = character->rect;  
     destRect.w = character->rect.w;  
     destRect.h = character->rect.h;  
-    SDL_RenderCopy(pRenderer, character->texture, NULL, &destRect);
-    
-    
+
+    SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
 }
 
 void cleanup_character(Character* character) {
