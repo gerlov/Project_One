@@ -29,6 +29,7 @@ SDL_Renderer* pRenderer = NULL;
 
 int runGame()
 {
+
     if(init_SDL_window(&pWindow, &pRenderer, WINDOW_WIDTH, WINDOW_HEIGHT) != 0) {
         printf("Failed to initialize window and renderer.\n");
         return 1;
@@ -47,11 +48,11 @@ int runGame()
 
 
     Character testHunter;
-    init_character(&testHunter, pRenderer, "resources/ship.png", 1);
+    init_character(&testHunter, pRenderer, "resources/characters/hunter.png", 1);
 
     Character testHuman;
-    init_character(&testHuman, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
-    testHuman.rect.x = 420;
+    init_character(&testHuman, pRenderer, "resources/characters/TestChar.png", 0); // Use a different texture if desired
+    testHuman.rect.x = 520;
 
     //Keeping track of all characters
     Character* characters[] = {&testHunter, &testHuman};
@@ -112,27 +113,35 @@ int runGame()
                         break;
                     case SDL_SCANCODE_W:
                         w = true;
+                        testHuman.direction='u';
                         break;
                     case SDL_SCANCODE_UP:
                         up = true;
+                        testHunter.direction='u';
                         break;
                     case SDL_SCANCODE_A:
                         a = true;
+                        testHuman.direction='l';
                         break;
                     case SDL_SCANCODE_LEFT:
                         left = true;
+                        testHunter.direction='l';
                         break;
                     case SDL_SCANCODE_S:
                         s = true;
+                        testHuman.direction='d';
                         break;
                     case SDL_SCANCODE_DOWN:
                         down = true;
+                        testHunter.direction='d';
                         break;
                     case SDL_SCANCODE_D:
                         d = true;
+                        testHuman.direction='r';
                         break;
                     case SDL_SCANCODE_RIGHT:
                         right = true;
+                        testHunter.direction='r';
                         break;
                 }
                 break;
@@ -196,8 +205,8 @@ int runGame()
         
 
         tilemap_draw(&tilemap);
-        draw_character(pRenderer, &testHunter);
-        draw_character(pRenderer, &testHuman);
+        draw_character(pRenderer, &testHunter, testHunter.direction);
+        draw_character(pRenderer, &testHuman, testHuman.direction);
 
 
         SDL_RenderPresent(pRenderer);
