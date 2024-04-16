@@ -185,11 +185,6 @@ int runGame()
                 kill_command(hunter, characters, num_characters);
                 space = false;                
             }
-            if(m)
-            {
-                toggle_music();
-                m = false;
-            }
 
             tilemap_draw(&tilemap);
             draw_character(pRenderer, &testHunter);

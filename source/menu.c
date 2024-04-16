@@ -3,17 +3,24 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "menu.h"
+#include "music.h"
 
 #define BACKGROUND_IMG_PATH "resources/menu-background.png"
 #define START_GAME_IMG_PATH "resources/StartGame.png"
 #define OPTIONS_IMG_PATH "resources/Options.png"
 #define QUIT_GAME_IMG_PATH "resources/QuitGame.png"
 #define EXIT_OPTIONS_IMG_PATH "resources/ExitOptions.png"
+#define MUTE_MUSIC_IMG_PATH "resources/MuteMusic.png"
+#define UNMUTE_MUSIC_IMG_PATH "resources/UnmuteMusic.png"
+#define DECREASE_MUSIC_IMG_PATH "resources/DecreaseMusic.png"
+#define INCREASE_MUSIC_IMG_PATH "resources/IncreaseMusic.png"
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
 #define BUTTON_WIDTH 349
 #define BUTTON_HEIGHT 162
 #define BUTTONS_X 425
+
+bool musicMuted = false;
 
 bool renderMenuItem(MenuItem item)
 {
@@ -35,15 +42,31 @@ bool optionsMenu(SDL_Renderer* renderer)
     SDL_RenderClear(renderer);
     // Load all textures for options menu
     MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    MenuItem decreaseMusic = {IMG_LoadTexture(renderer, DECREASE_MUSIC_IMG_PATH), renderer, {BUTTONS_X, 100, BUTTON_WIDTH/2, BUTTON_HEIGHT}};
+    MenuItem increaseMusic = {IMG_LoadTexture(renderer, INCREASE_MUSIC_IMG_PATH), renderer, {BUTTONS_X+175, 100, BUTTON_WIDTH/2, BUTTON_HEIGHT}};
+    MenuItem muteMusic = {IMG_LoadTexture(renderer, MUTE_MUSIC_IMG_PATH), renderer, {BUTTONS_X, 300, BUTTON_WIDTH, BUTTON_HEIGHT}};
+    MenuItem unmuteMusic = {IMG_LoadTexture(renderer, UNMUTE_MUSIC_IMG_PATH), renderer, {BUTTONS_X, 300, BUTTON_WIDTH, BUTTON_HEIGHT}};
     MenuItem exitOptions = {IMG_LoadTexture(renderer, EXIT_OPTIONS_IMG_PATH), renderer, {BUTTONS_X, 500, BUTTON_WIDTH, BUTTON_HEIGHT}};
+
     // Render all items
     if(renderMenuItem(background)) return closeWindow;
+    if(renderMenuItem(decreaseMusic)) return closeWindow;
+    if(renderMenuItem(increaseMusic)) return closeWindow;
     if(renderMenuItem(exitOptions)) return closeWindow;
-    // Present render
-    SDL_RenderPresent(renderer);
 
     // Options loop
     while (options) {
+        //Check whether the music is muted or not
+        if(musicMuted)
+        {
+            if(renderMenuItem(unmuteMusic)) return closeWindow;
+        }
+        else
+        {
+            if(renderMenuItem(muteMusic)) return closeWindow;
+        }
+
+        SDL_RenderPresent(renderer);
 		// Event handling
 		SDL_Event event;
         while(SDL_PollEvent(&event))
@@ -65,7 +88,25 @@ bool optionsMenu(SDL_Renderer* renderer)
             case SDL_MOUSEBUTTONDOWN:
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY); // Get mouse location
-                if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT)
+
+                if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH/2 && 
+                    mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT) // If the decrease music button is clicked
+                {
+                    decrease_volume();
+                }
+                else if (mouseX >= BUTTONS_X+175 && mouseX <= BUTTONS_X + BUTTON_WIDTH && 
+                    mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT) // If the increase music button is clicked
+                {
+                    increase_volume();
+                }
+                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && 
+                    mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT) // If the mute/unmute music button is clicked
+                {
+                    toggle_music();
+                    musicMuted = !musicMuted;
+                }
+                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && 
+                    mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT) // If the exit button is clicked
                 {
                     options = false;
                 }
@@ -79,7 +120,6 @@ bool optionsMenu(SDL_Renderer* renderer)
 
 bool mainMenu(SDL_Renderer* renderer)
 {
-    int w, h; // Texture width and height
     bool menu = true;
     bool closeWindow = false;
     bool menuRendered = false;
@@ -130,11 +170,13 @@ bool mainMenu(SDL_Renderer* renderer)
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY); // Get mouse location
 
-                if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT)
+                if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && 
+                    mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT)
                 {
                     menu = false;
                 }
-                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
+                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
+                         mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
                 {
                     if(optionsMenu(renderer) == true)
                     {
@@ -143,7 +185,8 @@ bool mainMenu(SDL_Renderer* renderer)
                     }
                     menuRendered = false;
                 }
-                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH && mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT)
+                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
+                         mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT)
                 {
                     closeWindow = true;
                     menu = false;
