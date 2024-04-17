@@ -1,4 +1,5 @@
 #include "tilemap.h"
+#include "texture.h"
 #include <stdio.h>
 #include <SDL2/SDL_image.h>
 #include <time.h>

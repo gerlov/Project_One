@@ -8,19 +8,20 @@
 #include "window.h"
 #include "collisions.h"
 #include "menu.h"
-#include <stdlib.h> // rand(), srand() 
-#include <time.h>   // for seeding srand()    
+#include <stdlib.h> 
+#include <time.h>     
 #include "character.h"  
 #include "texture.h"
+#include "functions.h"  
 
 #define SPEED 300
 #define TILE_SIZE 64
-#define TILE_W_AMOUNT 128  // changed from 60 to test collisions 
-#define TILE_H_AMOUNT 128  // changed from 60 to test collisions
+#define TILE_W_AMOUNT 128  
+#define TILE_H_AMOUNT 128 
 #define GAME_W TILE_W_AMOUNT*TILE_SIZE
 #define GAME_H TILE_H_AMOUNT*TILE_SIZE
 #define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800  // changed from 800 to adjust to my screen size
+#define WINDOW_HEIGHT 700  
 
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;

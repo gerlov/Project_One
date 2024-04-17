@@ -8,7 +8,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
-int speed = 300 / 60;
+// int speed = 300 / 60;
 int hunter_characters = 0;
 
 void init_character(Character* character, SDL_Renderer *pRenderer, const char *filePath, int isHunter){
@@ -26,6 +26,9 @@ void init_character(Character* character, SDL_Renderer *pRenderer, const char *f
         character->isHunter = 0;
     }
     character->isKilled = 0;
+    character -> health = 100;    
+    character -> speed = 5;       // 300 / 60
+    character -> visible = 1;
 }
 
 void move_character(Character *character, TileMap *tilemap, 
@@ -42,8 +45,8 @@ void move_character(Character *character, TileMap *tilemap,
     Single_sound *oi = init_sound_effect(oiSoundPath, 30);                   
 
     SDL_Rect nextPosition = character->rect;
-    nextPosition.y += (down - up) * speed;  
-    nextPosition.x += (right - left) * speed;
+    nextPosition.y += (down - up) * character -> speed;  
+    nextPosition.x += (right - left) * character -> speed;
 
     // Check collision with the environment
     if (collides(&nextPosition, tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
@@ -61,33 +64,6 @@ void move_character(Character *character, TileMap *tilemap,
 
     // Update the character's position if no collisions occurred
     character->rect = nextPosition;
-}
-
-// TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
-void kill_command(Character *hunter, Character **characters, int num_characters) {
-    if(hunter == NULL) return; 
-
-    const int killDistance = 80; // This represents the maximum distance in pixels
-
-    for (int i = 0; i < num_characters; i++) {
-        if(characters[i] == NULL) continue;
-        if (characters[i]->isHunter == 0 && !characters[i]->isKilled) {
-            int y_distance = abs(hunter->rect.y - characters[i]->rect.y);
-            int x_distance = abs(hunter->rect.x - characters[i]->rect.x);
-            if (y_distance <= killDistance && x_distance <= killDistance) {
-                characters[i]->isKilled = 1; // Change target to kille
-                // If we want to teleport to the target, however doesnt work with collision of chars
-                // hunter->rect.x =characters[i]->rect.x; 
-                // hunter->rect.y = characters[i]->rect.y;
-                // Play sound effect for kill
-                char soundPath[] = "resources/music/sse1.mp3";
-                Single_sound *kill_sound = init_sound_effect(soundPath, 30);
-                play_sound_once(kill_sound);
-                free_sse(kill_sound);
-                break; //Kills one, otherwise more in a small space
-            }
-        }
-    }
 }
 
 

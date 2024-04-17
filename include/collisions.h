@@ -13,13 +13,13 @@
 /// @return Returns true if collision is detected, false otherwise.
 bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int windowHeight);
 
+bool intersects_with_tile(SDL_Rect *nextPosition, TileMap *tilemap, TileType tiletype); 
 
 /// @brief Checks for collision between two (character) rectangles.   
 /// @param rect1 Pointer to the first SDL_Rect representing the first character's position and size.
 /// @param rect2 Pointer to the second SDL_Rect representing the second character's position and size.
-/// @return Returns true if the two rectangles intersect (collision detected), false otherwise.
+/// @return Returns true if the two rectangles intersect, false otherwise.
 bool characters_collide(SDL_Rect *rect1, SDL_Rect *rect2); 
-
 
 #endif // COLLISIONS_H
  

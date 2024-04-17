@@ -8,7 +8,10 @@ typedef enum TileType {
     TILE_WALL,
     TILE_FLOOR,
     TILE_DECOR,
-    TILE_WIN
+    TILE_WIN,
+    POWERUP_HEALTH, 
+    POWERUP_SPEED,
+    POWERUP_INVISIBLE 
 } TileType;
 
 /// @brief Enum that represents a direction. Used for the orientation of the walls as a hash
