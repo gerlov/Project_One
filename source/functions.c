@@ -45,8 +45,9 @@ void apply_powerup(Character *character, TileType type) {
         case POWERUP_INVISIBLE:
             character->visible = 0;
             break;
+        // place more powerup types, either for hunter och player. 
         default:
-            // Optionally handle unknown or inappropriate types
+            // handle unknown or inappropriate types
             break;
     }
 }
