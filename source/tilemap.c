@@ -374,6 +374,10 @@ void orient_walls(TileMap *tilemap)
                 {
                     dir = dir | TOP_LEFT;
                 }
+                else {
+                    // if the tile is surrounded by walls
+                    tile->type = TILE_EMPTY;
+                }
             }
             // walls is a array of SDL_Rect that is ordered in a way that it behaves a kind of hash map
             tile->src_rect = walls[dir];

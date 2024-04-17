@@ -12,6 +12,7 @@
 #include <time.h>   // for seeding srand()    
 #include "character.h"  
 #include "texture.h"
+#include "vision.h"
 
 #define SPEED 300
 #define TILE_SIZE 64
@@ -57,7 +58,7 @@ int runGame()
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
     tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
-    tilemap_load(&tilemap, 2);
+    tilemap_load(&tilemap, 1);
     randomize_floor(&tilemap, 0);
     orient_walls(&tilemap);
     
@@ -68,50 +69,10 @@ int runGame()
     up = down = left = right = space = m = lower_volume = inc_volume = false;   
 
     bool w, a, s, d;
-    w = a = s = d = false;  
-
-
-    ////////////////////////////////////////////////////////
-    // TODO: remove. these are to test collisions only.      
-
-    // SDL_Texture* bush = NULL;
-    // SDL_Texture* cactus = NULL;                
-    // SDL_Texture* stone = NULL; 
-    // SDL_Texture* tile2 = NULL;  
-    // SDL_Texture* tile5 = NULL; 
-
-    // create_texture(&bush, pRenderer, "resources/testpack/Bush.png");    
-    // create_texture(&cactus, pRenderer, "resources/testpack/Cactus.png"); 
-    // create_texture(&stone, pRenderer, "resources/testpack/Stone.png"); 
-    // create_texture(&tile2, pRenderer, "resources/testpack/tile2.png"); 
-    // create_texture(&tile5, pRenderer, "resources/testpack/tile5.png"); 
+    w = a = s = d = false;
 
     srand(time(NULL)); 
 
-    // Tile testTiles[] = {
-    //     {2, 0, bush, rect},       // not solid (decoration)   
-    //     {3, 0, cactus, rect},     // not solid
-    //     {4, 0, stone, rect},      // not solid   
-    //     {5, 1, tile2, rect},      // solid (blocks movement) 
-    //     {6, 1, tile5, rect}       // solid    
-    // };         
-    
-
-    // // place 3 of each randomly 
-    // bool positions[TILE_W_AMOUNT][TILE_H_AMOUNT] = {false};  // Track whether a position is occupied
-    // for (int i = 0; i < 5; i++) {
-    //     int count = 0;
-    //     while (count < 3) {
-    //         int x = rand() % TILE_W_AMOUNT;
-    //         int y = rand() % TILE_H_AMOUNT;
-
-    //         if (!positions[x][y]) {  // Check if the position is already occupied
-    //             tilemap_set_tile(&tilemap, x, y, &testTiles[i]);
-    //             positions[x][y] = true;  // Mark the position as occupied
-    //             count++;
-    //         }
-    //     }
-    // }
 
     bool closeWindow = false;
     while(!closeWindow)
@@ -119,6 +80,7 @@ int runGame()
 
 
         SDL_Event event;
+        SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255); // black
         SDL_RenderClear(pRenderer);
         while(SDL_PollEvent(&event))
         {
@@ -227,6 +189,7 @@ int runGame()
         tilemap_draw(&tilemap);
         draw_character(pRenderer, &shipRect);
         draw_character(pRenderer, &secondCharacter);
+        send_rays(pRenderer, &tilemap, &shipRect.rect);
 
         SDL_RenderPresent(pRenderer);
         SDL_Delay(1000 / 120);//60 frames/s
