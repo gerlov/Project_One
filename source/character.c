@@ -76,14 +76,16 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
             int x_distance = abs(hunter->rect.x - characters[i]->rect.x);
             if (y_distance <= killDistance && x_distance <= killDistance) {
                 characters[i]->isKilled = 1; // Change target to kille
-                // If we want to teleport to the target, however doesnt work with collision of chars
-                // hunter->rect.x =characters[i]->rect.x; 
-                // hunter->rect.y = characters[i]->rect.y;
-                // Play sound effect for kill
+                cleanup_character(characters[i]);
+                // Teleport to the target
+                hunter->rect.x = characters[i]->rect.x;
+                hunter->rect.y = characters[i]->rect.y;
+                // kill sound
                 char soundPath[] = "resources/music/sse1.mp3";
                 Single_sound *kill_sound = init_sound_effect(soundPath, 30);
                 play_sound_once(kill_sound);
                 free_sse(kill_sound);
+               
                 break; //Kills one, otherwise more in a small space
             }
         }
