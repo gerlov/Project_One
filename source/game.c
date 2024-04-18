@@ -204,11 +204,12 @@ int runGame()
 
 
         
+        // this makes the camera follow the hunter
+        follow_player(&tilemap.camera, &testHunter.rect, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        tilemap_update_position(&tilemap, &testHunter.rect, WINDOW_WIDTH, WINDOW_HEIGHT);
         tilemap_draw(&tilemap);
-        draw_character(pRenderer, &testHunter, &tilemap , testHunter.direction);
-        draw_character(pRenderer, &testHuman, &tilemap ,testHuman.direction);
+        draw_character(pRenderer, &testHunter, testHunter.direction, &tilemap.camera);
+        draw_character(pRenderer, &testHuman, testHuman.direction, &tilemap.camera);
 
 
         SDL_RenderPresent(pRenderer);

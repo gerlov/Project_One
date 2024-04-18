@@ -196,8 +196,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer, int width, int heigh
     tilemap->tiles = malloc(sizeof(Tile) * width * height);
     tilemap->tile_size = tile_size;
     tilemap->pRenderer = renderer;
-    tilemap->x = 0;
-    tilemap->y = 0;
+    tilemap->camera = (SDL_FPoint){0, 0};
     SDL_Surface *surface = IMG_Load("resources/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
 
     if (!surface)
@@ -240,8 +239,8 @@ void tilemap_draw(TileMap *tilemap)
             Tile *tile = get_tile(tilemap, x, y);
             if (tile != NULL)
             {
-                possition.x = x * tilemap->tile_size - tilemap->x;
-                possition.y = y * tilemap->tile_size - tilemap->y;
+                possition.x = x * tilemap->tile_size - tilemap->camera.x;
+                possition.y = y * tilemap->tile_size - tilemap->camera.y;
                 if (tile->type == TILE_FLOOR)
                 {
                     SDL_RenderCopyEx(tilemap->pRenderer, tilemap->pFloorTexture, &tile->src_rect, &possition, 0, NULL, SDL_FLIP_NONE);
@@ -379,11 +378,4 @@ void orient_walls(TileMap *tilemap)
             tile->src_rect = walls[dir];
         }
     }
-}
-
-
-void tilemap_update_position(TileMap *tilemap, SDL_Rect *character_rect, int window_width, int window_height) {
-
-    tilemap->x = character_rect->x - window_width / 2;
-    tilemap->y = character_rect->y - window_height / 2;
 }

@@ -91,7 +91,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
 }
 
 
-void draw_character(SDL_Renderer *pRenderer, Character *character, TileMap *tilemap, char direction) {
+void draw_character(SDL_Renderer *pRenderer, Character *character, char direction, SDL_FPoint *camera) {
 
     SDL_Rect srcRect;
     
@@ -148,8 +148,8 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, TileMap *tile
     destRect.w = character->rect.w;  
     destRect.h = character->rect.h;
     // Adjust the destination rectangle based on the tilemap's position
-    destRect.x -= tilemap->x;
-    destRect.y -= tilemap->y;
+    destRect.x -= camera->x;
+    destRect.y -= camera->y;
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
     
     
@@ -162,4 +162,9 @@ void cleanup_character(Character* character) {
             character->texture = NULL;  
         }
     }
+}
+
+void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT) {
+    camera->x = player->x - WINDOW_WIDTH / 2 + player->w / 2;
+    camera->y = player->y - WINDOW_HEIGHT / 2 + player->h / 2;
 }
