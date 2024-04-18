@@ -22,6 +22,13 @@
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800  // changed from 800 to adjust to my screen size
 
+// Enum for game states
+typedef enum {
+    PAUSED,
+    PLAYING,
+    QUIT
+} GameState;
+
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
 
@@ -74,8 +81,7 @@ int runGame()
     randomize_floor(&tilemap, 0);
     orient_walls(&tilemap);
     
-
-    bool menu = true;
+    GameState gameState = PAUSED;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
     up = down = left = right = space = m = lower_volume = inc_volume = false;   
@@ -88,8 +94,6 @@ int runGame()
     bool closeWindow = false;
     while(!closeWindow)
     {
-
-
         SDL_Event event;
         SDL_RenderClear(pRenderer);
         while(SDL_PollEvent(&event))
@@ -103,7 +107,7 @@ int runGame()
             case SDL_KEYDOWN:
                 switch (event.key.keysym.scancode) {
                     case SDL_SCANCODE_ESCAPE:
-                        menu = true;
+                        gameState = PAUSED;
                         break;
                     case SDL_SCANCODE_M:
                         m = true;
@@ -176,41 +180,41 @@ int runGame()
             }   
         }   
 
-        //draw all charz
-        move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
-                      up, down, left, right, characters, num_characters);
-        move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
-                      w, s, a, d, characters, num_characters);
-        
-
-
-
-        if(space)
+        switch (gameState)
         {
-            kill_command(hunter, characters, num_characters);
-            space = false;                
+        case PAUSED:
+            SDL_RenderClear(pRenderer);
+            if(mainMenu(pRenderer))
+                gameState = QUIT;
+            else
+                gameState = PLAYING;
+            break;
+        case PLAYING:
+            //draw all charz
+            move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                        up, down, left, right, characters, num_characters);
+            move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                        w, s, a, d, characters, num_characters);
+
+            if(space)
+            {
+                kill_command(hunter, characters, num_characters);
+                space = false;                
+            }
+
+            tilemap_draw(&tilemap);
+            draw_character(pRenderer, &testHunter, testHunter.direction);
+            draw_character(pRenderer, &testHuman, testHuman.direction);
+
+            SDL_RenderPresent(pRenderer);
+            SDL_Delay(1000 / 120);//60 frames/s
+            break;
+        case QUIT:
+            closeWindow = true;
+            break;
+        default:
+            break;
         }
-        if(m)
-        {
-            toggle_music();
-            m = false;
-        }
-        if(menu)
-        {
-            closeWindow = mainMenu(pRenderer);
-            menu = false;
-        }
-
-
-        
-
-        tilemap_draw(&tilemap);
-        draw_character(pRenderer, &testHunter, testHunter.direction);
-        draw_character(pRenderer, &testHuman, testHuman.direction);
-
-
-        SDL_RenderPresent(pRenderer);
-        SDL_Delay(1000 / 120);//60 frames/s
     }
 
     tilemap_free(&tilemap);
