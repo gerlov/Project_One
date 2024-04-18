@@ -16,7 +16,7 @@ int init_SDL_window(SDL_Window **window, SDL_Renderer **renderer, int WINDOW_WID
         return 1;
     }
 
-    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
     if(!(*renderer)) {
         printf("Error creating renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(*window);

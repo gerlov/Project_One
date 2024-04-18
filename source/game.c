@@ -189,7 +189,7 @@ int runGame()
         tilemap_draw(&tilemap);
         draw_character(pRenderer, &shipRect);
         draw_character(pRenderer, &secondCharacter);
-        send_rays(pRenderer, &tilemap, &shipRect.rect);
+        draw_vision(pRenderer, &tilemap, &shipRect.rect, 350, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         SDL_RenderPresent(pRenderer);
         SDL_Delay(1000 / 120);//60 frames/s
