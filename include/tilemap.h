@@ -134,4 +134,11 @@ int get_index(int x, int y, int width);
 /// @param y 
 /// @return array of that contains the type of the neighbouring tiles in the order of up, right, down, left, top right, bottom right, bottom left, top left
 TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
+
+/// @brief makes the tilemap move based on the character position
+/// @param tilemap 
+/// @param character_rect The character's position to base the movement on
+/// @param window_width 
+/// @param window_height 
+void tilemap_update_position(TileMap *tilemap, SDL_Rect *character_rect, int window_width, int window_height);
 #endif // TILEMAP_H

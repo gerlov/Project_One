@@ -380,3 +380,10 @@ void orient_walls(TileMap *tilemap)
         }
     }
 }
+
+
+void tilemap_update_position(TileMap *tilemap, SDL_Rect *character_rect, int window_width, int window_height) {
+
+    tilemap->x = character_rect->x - window_width / 2;
+    tilemap->y = character_rect->y - window_height / 2;
+}

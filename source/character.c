@@ -91,7 +91,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
 }
 
 
-void draw_character(SDL_Renderer *pRenderer, Character *character, char direction) {
+void draw_character(SDL_Renderer *pRenderer, Character *character, TileMap *tilemap, char direction) {
 
     SDL_Rect srcRect;
     
@@ -143,11 +143,16 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, char directio
     }
 
 
+
     SDL_Rect destRect = character->rect;  
     destRect.w = character->rect.w;  
-    destRect.h = character->rect.h;  
-
+    destRect.h = character->rect.h;
+    // Adjust the destination rectangle based on the tilemap's position
+    destRect.x -= tilemap->x;
+    destRect.y -= tilemap->y;
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
+    
+    
 }
 
 void cleanup_character(Character* character) {

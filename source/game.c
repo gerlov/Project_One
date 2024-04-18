@@ -70,7 +70,7 @@ int runGame()
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
     tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
-    tilemap_load(&tilemap, 2);
+    tilemap_load(&tilemap, 1);
     randomize_floor(&tilemap, 0);
     orient_walls(&tilemap);
     
@@ -182,6 +182,7 @@ int runGame()
         move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
                       w, s, a, d, characters, num_characters);
         
+        
 
 
 
@@ -204,9 +205,10 @@ int runGame()
 
         
 
+        tilemap_update_position(&tilemap, &testHunter.rect, WINDOW_WIDTH, WINDOW_HEIGHT);
         tilemap_draw(&tilemap);
-        draw_character(pRenderer, &testHunter, testHunter.direction);
-        draw_character(pRenderer, &testHuman, testHuman.direction);
+        draw_character(pRenderer, &testHunter, &tilemap , testHunter.direction);
+        draw_character(pRenderer, &testHuman, &tilemap ,testHuman.direction);
 
 
         SDL_RenderPresent(pRenderer);
