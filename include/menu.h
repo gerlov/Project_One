@@ -1,16 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
 
-/// @brief Enum for the game state
-/// @param PAUSED The game is paused
-/// @param PLAYING The game is playing
-/// @param QUIT The game is quitting
-typedef enum {
-    PAUSED,
-    PLAYING,
-    QUIT
-} GameState;
-
 /// @brief Struct for the menu items
 /// @param texture The texture of the image
 /// @param renderer The renderer to draw the item to

@@ -48,14 +48,15 @@ bool optionsMenu(SDL_Renderer* renderer)
     MenuItem unmuteMusic = {IMG_LoadTexture(renderer, UNMUTE_MUSIC_IMG_PATH), renderer, {BUTTONS_X, 300, BUTTON_WIDTH, BUTTON_HEIGHT}};
     MenuItem exitOptions = {IMG_LoadTexture(renderer, EXIT_OPTIONS_IMG_PATH), renderer, {BUTTONS_X, 500, BUTTON_WIDTH, BUTTON_HEIGHT}};
 
-    // Render all items
-    if(renderMenuItem(background)) return closeWindow;
-    if(renderMenuItem(decreaseMusic)) return closeWindow;
-    if(renderMenuItem(increaseMusic)) return closeWindow;
-    if(renderMenuItem(exitOptions)) return closeWindow;
-
     // Options loop
     while (options) {
+        // Clear the screen
+        SDL_RenderClear(renderer);
+
+        // Render background and menu items
+        if(renderMenuItem(background)) return closeWindow;
+        if(renderMenuItem(decreaseMusic)) return closeWindow;
+        if(renderMenuItem(increaseMusic)) return closeWindow;
         //Check whether the music is muted or not
         if(musicMuted)
         {
@@ -65,8 +66,10 @@ bool optionsMenu(SDL_Renderer* renderer)
         {
             if(renderMenuItem(muteMusic)) return closeWindow;
         }
+        if(renderMenuItem(exitOptions)) return closeWindow;
 
         SDL_RenderPresent(renderer);
+
 		// Event handling
 		SDL_Event event;
         while(SDL_PollEvent(&event))
@@ -122,7 +125,6 @@ bool mainMenu(SDL_Renderer* renderer)
 {
     bool menu = true;
     bool closeWindow = false;
-    bool menuRendered = false;
 
     // Load all textures for main menu
     MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
@@ -132,21 +134,16 @@ bool mainMenu(SDL_Renderer* renderer)
 
 	// Main menu loop
 	while (menu) {
-        if (!menuRendered)
-        {
-            // Clear the screen
-            SDL_RenderClear(renderer);
+        // Clear the screen
+        SDL_RenderClear(renderer);
 
-            // Render background and menu items
-            if(renderMenuItem(background)) return closeWindow;
-            if(renderMenuItem(startGame)) return closeWindow;
-            if(renderMenuItem(options)) return closeWindow;
-            if(renderMenuItem(quitGame)) return closeWindow;
+        // Render background and menu items
+        if(renderMenuItem(background)) return closeWindow;
+        if(renderMenuItem(startGame)) return closeWindow;
+        if(renderMenuItem(options)) return closeWindow;
+        if(renderMenuItem(quitGame)) return closeWindow;
 
-            SDL_RenderPresent(renderer);
-
-            menuRendered = true;
-        }
+        SDL_RenderPresent(renderer);
 
 		// Event handling
 		SDL_Event event;
@@ -183,7 +180,6 @@ bool mainMenu(SDL_Renderer* renderer)
                         closeWindow = true;
                         menu = false;
                     }
-                    menuRendered = false;
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
                          mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT)
