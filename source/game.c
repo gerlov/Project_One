@@ -21,7 +21,14 @@
 #define GAME_W TILE_W_AMOUNT*TILE_SIZE
 #define GAME_H TILE_H_AMOUNT*TILE_SIZE
 #define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 700  // changed from 800 to adjust to my screen size
+#define WINDOW_HEIGHT 800  // changed from 800 to adjust to my screen size
+
+// Enum for game states
+typedef enum {
+    PAUSED,
+    PLAYING,
+    QUIT
+} GameState;
 
 SDL_Window* pWindow = NULL;
 SDL_Renderer* pRenderer = NULL;
@@ -30,6 +37,7 @@ SDL_Renderer* pRenderer = NULL;
 
 int runGame()
 {
+
     if(init_SDL_window(&pWindow, &pRenderer, WINDOW_WIDTH, WINDOW_HEIGHT) != 0) {
         printf("Failed to initialize window and renderer.\n");
         return 1;
@@ -47,13 +55,25 @@ int runGame()
 
 
 
-    Character shipRect;
-    init_character(&shipRect, pRenderer, "resources/ship.png");
+    Character testHunter;
+    init_character(&testHunter, pRenderer, "resources/characters/hunter.png", 1);
 
-    Character secondCharacter;
-    init_character(&secondCharacter, pRenderer, "resources/ship.png"); // Use a different texture if desired
-    secondCharacter.rect.x = 300; // Starting position
-    secondCharacter.rect.y = 300; // Starting position
+    Character testHuman;
+    init_character(&testHuman, pRenderer, "resources/characters/TestChar.png", 0); // Use a different texture if desired
+    testHuman.rect.x = 520;
+
+    //Keeping track of all characters
+    Character* characters[] = {&testHunter, &testHuman};
+    int num_characters = 2;  
+
+    //Finding the hunter
+    Character* hunter = NULL;
+    for (int i = 0; i < num_characters; i++) {
+        if (characters[i]->isHunter == 1) {
+            hunter = characters[i];
+            break;
+        }
+    }
 
     TileMap tilemap;
     SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
@@ -62,23 +82,19 @@ int runGame()
     randomize_floor(&tilemap, 0);
     orient_walls(&tilemap);
     
-
-    bool menu = true;
+    GameState gameState = PAUSED;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
     up = down = left = right = space = m = lower_volume = inc_volume = false;   
 
     bool w, a, s, d;
     w = a = s = d = false;
-
-    srand(time(NULL)); 
-
-
+  
+    srand(time(NULL));
+  
     bool closeWindow = false;
     while(!closeWindow)
     {
-
-
         SDL_Event event;
         SDL_SetRenderDrawColor(pRenderer, 0, 0, 0, 255); // black
         SDL_RenderClear(pRenderer);
@@ -93,7 +109,7 @@ int runGame()
             case SDL_KEYDOWN:
                 switch (event.key.keysym.scancode) {
                     case SDL_SCANCODE_ESCAPE:
-                        menu = true;
+                        gameState = PAUSED;
                         break;
                     case SDL_SCANCODE_M:
                         m = true;
@@ -103,27 +119,35 @@ int runGame()
                         break;
                     case SDL_SCANCODE_W:
                         w = true;
+                        testHuman.direction='u';
                         break;
                     case SDL_SCANCODE_UP:
                         up = true;
+                        testHunter.direction='u';
                         break;
                     case SDL_SCANCODE_A:
                         a = true;
+                        testHuman.direction='l';
                         break;
                     case SDL_SCANCODE_LEFT:
                         left = true;
+                        testHunter.direction='l';
                         break;
                     case SDL_SCANCODE_S:
                         s = true;
+                        testHuman.direction='d';
                         break;
                     case SDL_SCANCODE_DOWN:
                         down = true;
+                        testHunter.direction='d';
                         break;
                     case SDL_SCANCODE_D:
                         d = true;
+                        testHuman.direction='r';
                         break;
                     case SDL_SCANCODE_RIGHT:
                         right = true;
+                        testHunter.direction='r';
                         break;
                 }
                 break;
@@ -158,46 +182,47 @@ int runGame()
             }   
         }   
 
-        //draw all charz
-        move_character(&shipRect, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, up, down, left, right);
-        move_character(&secondCharacter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, w, s, a, d);
-        
-
-        char soundPath[] = "resources/music/sse1.mp3";
-        Single_sound *kill_sound = init_sound_effect(soundPath, 30);
-
-        if(space)
+        switch (gameState)
         {
-            play_sound_once(kill_sound);
-            free_sse(kill_sound);
-            space = false;
+        case PAUSED:
+            SDL_RenderClear(pRenderer);
+            if(mainMenu(pRenderer))
+                gameState = QUIT;
+            else
+                gameState = PLAYING;
+            break;
+        case PLAYING:
+            //draw all charz
+            move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                        up, down, left, right, characters, num_characters);
+            move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                        w, s, a, d, characters, num_characters);
+
+            if(space)
+            {
+                kill_command(hunter, characters, num_characters);
+                space = false;                
+            }
+
+            tilemap_draw(&tilemap);
+            draw_character(pRenderer, &testHunter, testHunter.direction);
+            draw_character(pRenderer, &testHuman, testHuman.direction);
+            draw_vision(pRenderer, &tilemap, &testHunter.rect, 350, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+            SDL_RenderPresent(pRenderer);
+            SDL_Delay(1000 / 120);//60 frames/s
+            break;
+        case QUIT:
+            closeWindow = true;
+            break;
+        default:
+            break;
         }
-        if(m)
-        {
-            toggle_music();
-            m = false;
-        }
-        if(menu)
-        {
-            closeWindow = mainMenu(pRenderer);
-            menu = false;
-        }
-
-
-        
-
-        tilemap_draw(&tilemap);
-        draw_character(pRenderer, &shipRect);
-        draw_character(pRenderer, &secondCharacter);
-        draw_vision(pRenderer, &tilemap, &shipRect.rect, 350, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-        SDL_RenderPresent(pRenderer);
-        SDL_Delay(1000 / 120);//60 frames/s
     }
 
     tilemap_free(&tilemap);
-    cleanup_character(&shipRect);
-    cleanup_character(&secondCharacter);
+    cleanup_character(&testHunter);
+    cleanup_character(&testHuman);
     cleanup_SDL(pWindow, pRenderer);
     return 0;
 }

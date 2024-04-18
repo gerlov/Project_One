@@ -1,6 +1,10 @@
 #ifndef MENU_H
 #define MENU_H
 
+/// @brief Struct for the menu items
+/// @param texture The texture of the image
+/// @param renderer The renderer to draw the item to
+/// @param position The position of the image
 typedef struct MenuItem {
     SDL_Texture* texture;
     SDL_Renderer* renderer;
