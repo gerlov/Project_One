@@ -29,6 +29,7 @@ SDL_Renderer* pRenderer = NULL;
 
 int runGame()
 {
+
     if(init_SDL_window(&pWindow, &pRenderer, WINDOW_WIDTH, WINDOW_HEIGHT) != 0) {
         printf("Failed to initialize window and renderer.\n");
         return 1;
@@ -47,11 +48,11 @@ int runGame()
 
 
     Character testHunter;
-    init_character(&testHunter, pRenderer, "resources/ship.png", 1);
+    init_character(&testHunter, pRenderer, "resources/characters/hunter.png", 1);
 
     Character testHuman;
-    init_character(&testHuman, pRenderer, "resources/ship.png", 0); // Use a different texture if desired
-    testHuman.rect.x = 420;
+    init_character(&testHuman, pRenderer, "resources/characters/TestChar.png", 0); // Use a different texture if desired
+    testHuman.rect.x = 520;
 
     //Keeping track of all characters
     Character* characters[] = {&testHunter, &testHuman};
@@ -109,27 +110,35 @@ int runGame()
                         break;
                     case SDL_SCANCODE_W:
                         w = true;
+                        testHuman.direction='u';
                         break;
                     case SDL_SCANCODE_UP:
                         up = true;
+                        testHunter.direction='u';
                         break;
                     case SDL_SCANCODE_A:
                         a = true;
+                        testHuman.direction='l';
                         break;
                     case SDL_SCANCODE_LEFT:
                         left = true;
+                        testHunter.direction='l';
                         break;
                     case SDL_SCANCODE_S:
                         s = true;
+                        testHuman.direction='d';
                         break;
                     case SDL_SCANCODE_DOWN:
                         down = true;
+                        testHunter.direction='d';
                         break;
                     case SDL_SCANCODE_D:
                         d = true;
+                        testHuman.direction='r';
                         break;
                     case SDL_SCANCODE_RIGHT:
                         right = true;
+                        testHunter.direction='r';
                         break;
                 }
                 break;
@@ -164,41 +173,40 @@ int runGame()
             }   
         }   
 
-        switch (gameState)
+    switch (gameState)
+    {
+    case PAUSED:
+        SDL_RenderClear(pRenderer);
+        if(mainMenu(pRenderer))
+            gameState = QUIT;
+        else
+            gameState = PLAYING;
+        break;
+    case PLAYING:
+        //draw all charz
+        move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                    up, down, left, right, characters, num_characters);
+        move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
+                    w, s, a, d, characters, num_characters);
+
+        if(space)
         {
-        case PAUSED:
-            SDL_RenderClear(pRenderer);
-            if(mainMenu(pRenderer))
-                gameState = QUIT;
-            else
-                gameState = PLAYING;
-            break;
-        case PLAYING:
-            //draw all charz
-            move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
-                        up, down, left, right, characters, num_characters);
-            move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
-                        w, s, a, d, characters, num_characters);
-            
-            if(space)
-            {
-                kill_command(hunter, characters, num_characters);
-                space = false;                
-            }
-
-            tilemap_draw(&tilemap);
-            draw_character(pRenderer, &testHunter);
-            draw_character(pRenderer, &testHuman);
-
-            SDL_RenderPresent(pRenderer);
-            SDL_Delay(1000 / 120);//60 frames/s
-            break;
-        case QUIT:
-            closeWindow = true;
-            break;
-        default:
-            break;
+            kill_command(hunter, characters, num_characters);
+            space = false;                
         }
+
+        tilemap_draw(&tilemap);
+        draw_character(pRenderer, &testHunter);
+        draw_character(pRenderer, &testHuman);
+
+        SDL_RenderPresent(pRenderer);
+        SDL_Delay(1000 / 120);//60 frames/s
+        break;
+    case QUIT:
+        closeWindow = true;
+        break;
+    default:
+        break;
     }
 
     tilemap_free(&tilemap);

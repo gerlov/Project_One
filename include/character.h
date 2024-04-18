@@ -12,6 +12,7 @@ typedef struct Character{
     SDL_Texture* texture;
     int isHunter;
     int isKilled;
+    char direction;
 } Character;
 
 
@@ -47,7 +48,7 @@ void move_character(Character *character, TileMap *tilemap,
 ///@brief Draws the character on the provided renderer.
 ///@param pRenderer The renderer where the character will be drawn.
 ///@param character Pointer to the Character to be drawn.
-void draw_character(SDL_Renderer* pRenderer, Character* character);
+void draw_character(SDL_Renderer* pRenderer, Character* character, char direction);
 
 ///@brief Frees the resources associated with a character.
 ///@param character Pointer to the Character whose resources need to be freed.
