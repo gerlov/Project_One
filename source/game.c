@@ -14,11 +14,6 @@
 #include "texture.h"
 
 #define SPEED 300
-#define TILE_SIZE 64
-#define TILE_W_AMOUNT 128  // changed from 60 to test collisions 
-#define TILE_H_AMOUNT 128  // changed from 60 to test collisions
-#define GAME_W TILE_W_AMOUNT*TILE_SIZE
-#define GAME_H TILE_H_AMOUNT*TILE_SIZE
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800  // changed from 800 to adjust to my screen size
 
@@ -52,14 +47,25 @@ int runGame()
     SDL_Texture* pVingette = NULL;
 
 
+    TileMap tilemap;
+    tilemap_init(&tilemap, pRenderer);
+    tilemap_load(&tilemap, 1);
+    randomize_floor(&tilemap, 0);
+    orient_walls(&tilemap);
 
 
     Character testHunter;
     init_character(&testHunter, pRenderer, "resources/characters/hunter.png", 1);
-
+    SDL_Point start = get_spawn_point(&tilemap, 1);
+    testHunter.rect.x = start.x;
+    testHunter.rect.y = start.y;
+    
     Character testHuman;
     init_character(&testHuman, pRenderer, "resources/characters/TestChar.png", 0); // Use a different texture if desired
-    testHuman.rect.x = 520;
+    start = get_spawn_point(&tilemap, 0);
+    testHuman.rect.x = start.x;
+    testHuman.rect.y = start.y;
+    
 
     //Keeping track of all characters
     Character* characters[] = {&testHunter, &testHuman};
@@ -74,13 +80,6 @@ int runGame()
         }
     }
 
-    TileMap tilemap;
-    SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
-    tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
-    tilemap_load(&tilemap, 2);
-    randomize_floor(&tilemap, 0);
-    orient_walls(&tilemap);
-    
     GameState gameState = PAUSED;
     bool music = true;
     bool up, down, left, right, space, m, lower_volume, inc_volume;
