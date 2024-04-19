@@ -16,10 +16,6 @@
 #define BUTTON_HEIGHT 162
 #define BUTTONS_X 425
 #define OUTLINE_WIDTH 8
-#define SLIDER_WIDTH 20
-#define SLIDER_HEIGHT 200
-#define SLIDER_PADDING 10
-#define TRACK_WIDTH 10
 
 bool musicMuted = false;
 
