@@ -93,10 +93,6 @@ void initialize_game(Game* game) {
     play_background_music(game->bgm);
     free_bgm(game->bgm);
 
-    // TODO: Move this to a function, maybe in a separate file
-    SDL_Texture* pTexture = NULL;
-    SDL_Texture* pVingette = NULL;
-
 
     const char* characterFiles[] = {
         "resources/characters/monster.png",
@@ -119,7 +115,6 @@ void initialize_game(Game* game) {
     }
 
     // Setting up tilemap;
-    SDL_Rect rect = { 0, 0, game->TILE_SIZE, game->TILE_SIZE };
     tilemap_init(&game->tilemap, game->pRenderer, game->TILE_W_AMOUNT, game->TILE_H_AMOUNT, game->TILE_SIZE);
     tilemap_load(&game->tilemap, 1);
     randomize_floor(&game->tilemap, 0);
@@ -253,10 +248,10 @@ void update_game(Game* game) {
             //Move character
             move_character(game->characters[0], &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 
                         game->up, game->down, game->left, game->right, game->characters, game->PLAYERS);
-            follow_player(&game->tilemap.camera, &game->characters[0], game->WINDOW_WIDTH,game->WINDOW_HEIGHT);
+            follow_player(&game->tilemap.camera,&game->characters[0]->rect, game->WINDOW_WIDTH,game->WINDOW_HEIGHT);
             //Draw stage
             tilemap_draw(&game->tilemap);
-            draw_character(game->pRenderer, game->characters[0]);
+            draw_character(game->pRenderer, game->characters[0], &game->tilemap.camera);
 
 
 
