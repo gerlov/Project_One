@@ -13,6 +13,10 @@ typedef struct Character{
     int isHunter;
     int isKilled;
     char direction;
+    int health, speed, visible;
+    Uint32 speedPowerupTime; // speed powerup timer
+    Uint32 invisiblePowerupTime; // invisibility powerup timer 
+    // add more powerup timers 
 } Character;
 
 

@@ -4,11 +4,12 @@
 #include "tilemap.h"
 #include <math.h> 
 #include "music.h"
+#include "powerup.h" 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
-int speed = 300 / 60;
+//int speed = 300 / 60;
 int hunter_characters = 0;
 
 void init_character(Character* character, SDL_Renderer *pRenderer, const char *filePath, int isHunter){
@@ -26,6 +27,11 @@ void init_character(Character* character, SDL_Renderer *pRenderer, const char *f
         character->isHunter = 0;
     }
     character->isKilled = 0;
+    character -> health = 100; 
+    character -> speed = 5;  // aka 300 / 60 
+    character -> visible = 1; 
+    // powerup timers init
+    character -> speedPowerupTime = character -> invisiblePowerupTime = 0;  
 }
 
 void move_character(Character *character, TileMap *tilemap, 
@@ -33,35 +39,55 @@ void move_character(Character *character, TileMap *tilemap,
                     int up, int down, int left, int right, 
                     Character **other_characters, int num_other_characters) { 
 
-    char soundPath2[] = "resources/music/sse2.mp3"; 
-    char oiSoundPath[] = "resources/music/oi.mp3"; 
+    if(character->isKilled == 1) return;     
 
-    if(character->isKilled == 1) return;
+    Uint32 currentTicks = SDL_GetTicks();   
 
-    Single_sound *wall = init_sound_effect(soundPath2, 10); 
-    Single_sound *oi = init_sound_effect(oiSoundPath, 30);                   
+    // check if powerup timers expired, reset everything to default 
+    if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0) {
+        character->speed -= 20;  // set back to default speed (defined in in init)
+        character->speedPowerupTime = 0;  // reset poerup timer
+    } 
+
+    if (currentTicks > character->invisiblePowerupTime && character->invisiblePowerupTime != 0) {
+        character->visible = 1;  // visible again
+        character->invisiblePowerupTime = 0;  //reset powerup timer
+    }                           
 
     SDL_Rect nextPosition = character->rect;
-    nextPosition.y += (down - up) * speed;  
-    nextPosition.x += (right - left) * speed;
+    nextPosition.y += (down - up) * character -> speed;  
+    nextPosition.x += (right - left) * character -> speed; 
 
     // Check collision with the environment
-    if (collides(&nextPosition, tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
-        play_sound_once(wall);
-        return;  // collision with the world, return immediately
+    if (collides(&nextPosition, tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) 
+    {
+        play_sound_once(init_sound_effect("resources/music/sse2.mp3", 10));
+        return;  // collision with the world, return 
     }
-
-    // Check collision with other characters
+ 
+    // collision with other characters (remove if not needed)
     for (int i = 0; i < num_other_characters; i++) {
-        if (character != other_characters[i] && other_characters[i]->isKilled == 0 && characters_collide(&nextPosition, &other_characters[i]->rect)) {
-            play_sound_once(oi);
-            return; // collision with another character, return immediately
+        if (character != other_characters[i] && 
+            other_characters[i]->isKilled == 0 && 
+            SDL_HasIntersection(&nextPosition, &other_characters[i]->rect)) 
+            {
+                play_sound_once(init_sound_effect("resources/music/oi.mp3", 30)); //  <-- diagnostic, remove   
+                return; // collision with another character, return 
+            }
+    } 
+
+    // powerup tiles intersection 
+     for (int i = 0; i < powerUpCount; i++) { 
+        if (powerUps[i].visible && SDL_HasIntersection(&character->rect, &powerUps[i].rect)) {
+            apply_powerUp(character, powerUps[i].type);
+            powerUps[i].visible = 0; 
         }
     }
 
     // Update the character's position if no collisions occurred
     character->rect = nextPosition;
 }
+
 
 // TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
 void kill_command(Character *hunter, Character **characters, int num_characters) {
@@ -94,6 +120,8 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
 
 
 void draw_character(SDL_Renderer *pRenderer, Character *character, char direction) {
+
+    if (!character->visible) return; 
 
     SDL_Rect srcRect;
     

@@ -12,6 +12,7 @@
 #include <time.h>   // for seeding srand()    
 #include "character.h"  
 #include "texture.h"
+#include "powerup.h" 
 
 #define SPEED 300
 #define TILE_SIZE 64
@@ -80,6 +81,7 @@ int runGame()
     tilemap_load(&tilemap, 2);
     randomize_floor(&tilemap, 0);
     orient_walls(&tilemap);
+    init_powerUps(pRenderer, &tilemap, TILE_SIZE);
     
     GameState gameState = PAUSED;
     bool music = true;
@@ -203,6 +205,7 @@ int runGame()
             }
 
             tilemap_draw(&tilemap);
+            draw_powerUps(pRenderer);
             draw_character(pRenderer, &testHunter, testHunter.direction);
             draw_character(pRenderer, &testHuman, testHuman.direction);
 
@@ -220,6 +223,7 @@ int runGame()
     tilemap_free(&tilemap);
     cleanup_character(&testHunter);
     cleanup_character(&testHuman);
-    cleanup_SDL(pWindow, pRenderer);
+    cleanup_SDL(pWindow, pRenderer); 
+     cleanup_powerUps();
     return 0;
 }
