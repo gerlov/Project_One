@@ -15,8 +15,8 @@
 
 #define MAX_PLAYERS 6
 
-typedef enum
-{
+// Enum for game states
+typedef enum {
     PAUSED,
     PLAYING,
     QUIT
@@ -65,19 +65,17 @@ int runGame()
         update_game(&game);
     }
 
+
     cleanup_game(&game);
     return 0;
 }
+
 
 void initialize_game(Game *game)
 {
     game->PLAYERS = 1;
     game->speed = 300;
     game->TILE_SIZE = 64;
-    game->TILE_W_AMOUNT = 128; // changed from 60 to test collisions
-    game->TILE_H_AMOUNT = 128; // changed from 60 to test collisions
-    game->GAME_W = game->TILE_W_AMOUNT * game->TILE_SIZE;
-    game->GAME_H = game->TILE_H_AMOUNT * game->TILE_SIZE;
     game->WINDOW_WIDTH = 1200;
     game->WINDOW_HEIGHT = 800;
     game->pWindow = NULL;
@@ -93,6 +91,13 @@ void initialize_game(Game *game)
     play_background_music(game->bgm);
     free_bgm(game->bgm);
 
+    // Setting up tilemap;
+    tilemap_init(&game->tilemap, game->pRenderer);
+    tilemap_load(&game->tilemap, 1);
+    randomize_floor(&game->tilemap, 0);
+    orient_walls(&game->tilemap);
+
+
     const char *characterFiles[] = {
         "resources/characters/monster.png",
         "resources/characters/femaleOne.png",
@@ -106,10 +111,13 @@ void initialize_game(Game *game)
         game->characters[i] = NULL; 
     }
 
+
     for (int i = 0; i < game->PLAYERS; i++)
     {
         game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);
-        game->characters[i]->rect.x = 400+i*game->TILE_SIZE;
+        SDL_Point spawn = get_spawn_point(&game->tilemap, game->characters[i]->isHunter);
+        game->characters[i]->rect.x = spawn.x;
+        game->characters[i]->rect.y = spawn.y;
     }
 
     // Finding the hunter
@@ -122,11 +130,10 @@ void initialize_game(Game *game)
         }
     }
 
-    // Setting up tilemap;
-    tilemap_init(&game->tilemap, game->pRenderer, game->TILE_W_AMOUNT, game->TILE_H_AMOUNT, game->TILE_SIZE);
-    tilemap_load(&game->tilemap, 1);
-    randomize_floor(&game->tilemap, 0);
-    orient_walls(&game->tilemap);
+
+
+    game->GAME_W = game->tilemap.width * game->TILE_SIZE;
+    game->GAME_H = game->tilemap.height * game->TILE_SIZE;
 
     // Setting up states
     game->gameState = PAUSED;
