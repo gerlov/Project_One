@@ -96,7 +96,12 @@ void initialize_game(Game *game)
     //Random background;
     int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
     int backgroundIndex = rand() % size_of_soundPathbgm;
-    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
+
+    //SUPER BACKGROUD MUSIC
+    game->bgm = init_background_music("resources/music/PEDRO.mp3", 100);
+
+
+    // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
     play_background_music(game->bgm);
     free_bgm(game->bgm);
 
