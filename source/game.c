@@ -100,6 +100,12 @@ void initialize_game(Game *game)
         "resources/characters/warriorOne.png",
         "resources/characters/warriorTwo.png"};
     // Initate characters
+    //Clear just in case
+    memset(game->characters, 0, sizeof(game->characters)); // Clear the array first
+    for(int i = 0; i < game->PLAYERS; i++){
+        game->characters[i] = NULL; 
+    }
+
     for (int i = 0; i < game->PLAYERS; i++)
     {
         game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);

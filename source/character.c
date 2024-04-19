@@ -85,6 +85,7 @@ void move_character(Character *character, TileMap *tilemap,
 // TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
 void kill_command(Character *hunter, Character **characters, int num_characters) {
     if(hunter == NULL) return; 
+    if(!hunter->isHunter) return;
 
     const int killDistance = 80; // This represents the maximum distance in pixels
 
