@@ -11,7 +11,12 @@
 int speed = 300 / 60;
 int hunter_characters = 0;
 
-void init_character(Character* character, SDL_Renderer *pRenderer, const char *filePath, int isHunter){
+Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isHunter){
+    Character* character = malloc(sizeof(Character));
+    if(character == NULL){
+        printf("Error creating character");
+        return NULL;
+    }
     create_texture(&character->texture, pRenderer, filePath);
     SDL_QueryTexture(character->texture, NULL, NULL, &character->rect.w, &character->rect.h);
     character->rect.x = 400;
@@ -26,6 +31,20 @@ void init_character(Character* character, SDL_Renderer *pRenderer, const char *f
         character->isHunter = 0;
     }
     character->isKilled = 0;
+    character->isMoving = 0;
+    character->currentFrame = 0;
+    character->frameLastUpdated = SDL_GetTicks();
+
+    return character;
+}
+
+void set_direction(Character *character, char direction){
+    character->direction = direction;
+    character->isMoving = 1;
+}
+
+void stop_moving(Character *character){
+    character->isMoving = 0;
 }
 
 void move_character(Character *character, TileMap *tilemap, 
@@ -76,70 +95,49 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
             int x_distance = abs(hunter->rect.x - characters[i]->rect.x);
             if (y_distance <= killDistance && x_distance <= killDistance) {
                 characters[i]->isKilled = 1; // Change target to kille
-                // If we want to teleport to the target, however doesnt work with collision of chars
-                // hunter->rect.x =characters[i]->rect.x; 
-                // hunter->rect.y = characters[i]->rect.y;
-                // Play sound effect for kill
+                cleanup_character(characters[i]);
+                // Teleport to the target
+                hunter->rect.x = characters[i]->rect.x;
+                hunter->rect.y = characters[i]->rect.y;
+                // kill sound
                 char soundPath[] = "resources/music/sse1.mp3";
                 Single_sound *kill_sound = init_sound_effect(soundPath, 30);
                 play_sound_once(kill_sound);
                 free_sse(kill_sound);
+               
                 break; //Kills one, otherwise more in a small space
             }
         }
     }
 }
 
+void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *camera) {
+    // Needs to be same for all 
+    // 128 x 192
+    const int frameWidth = 32; // Sprite sheet width / frames per column
+    const int frameHeight = 48; // Sprite sheet height / frames per row
+    const int frameCount = 4; //Each frame in each row
+    Uint32 timeSinceLastFrame = SDL_GetTicks() - character->frameLastUpdated;
 
-void draw_character(SDL_Renderer *pRenderer, Character *character, char direction, SDL_FPoint *camera) {
+
+    if(character->isMoving && timeSinceLastFrame > (700 / frameCount)) {
+        character->currentFrame = (character->currentFrame + 1) % frameCount;
+        character->frameLastUpdated = SDL_GetTicks();
+    }
+
 
     SDL_Rect srcRect;
+    srcRect.w = frameWidth;
+    srcRect.h = frameHeight;
+    srcRect.x = character->currentFrame * frameWidth;
     
-    if (character->isHunter == 1) {
-        if (direction == 'u') {
-        srcRect.x = 50;
-        srcRect.y = 195;
-        srcRect.w = character->rect.w * 1.3;
-        srcRect.h = character->rect.h;
-    } else if (direction == 'd') {
-        srcRect.x = 50;
-        srcRect.y = 0;
-        srcRect.w = character->rect.w * 1.3;
-        srcRect.h = character->rect.h;
-        } else if (direction == 'l') {
-            
-        srcRect.x = 50;
-        srcRect.y = 65;
-        srcRect.w = character->rect.w * 1.3;
-        srcRect.h = character->rect.h;
-    } else if (direction == 'r') {
-        srcRect.x = 50;
-        srcRect.y = 130;
-        srcRect.w = character->rect.w * 1.3;
-        srcRect.h = character->rect.h;
-        }
-    } else {
-        if (direction == 'u') {
-        srcRect.x = 100;
-        srcRect.y = 0;
-        srcRect.w = character->rect.w;
-        srcRect.h = character->rect.h;
-    } else if (direction == 'd') {
-        srcRect.x = 0;
-        srcRect.y = 0;
-        srcRect.w = character->rect.w;
-        srcRect.h = character->rect.h;
-        } else if (direction == 'l') {
-        srcRect.x = 50;
-        srcRect.y = 0;
-        srcRect.w = character->rect.w;
-        srcRect.h = character->rect.h;
-    } else if (direction == 'r') {
-        srcRect.x = 150;
-        srcRect.y = 0;
-        srcRect.w = character->rect.w;
-        srcRect.h = character->rect.h;
-        }
+
+    switch (character->direction) {
+        case 'd': srcRect.y = 0 * frameHeight; break;
+        case 'l': srcRect.y = 1 * frameHeight; break; 
+        case 'r': srcRect.y = 2 * frameHeight; break; 
+        case 'u': srcRect.y = 3 * frameHeight; break; 
+        default:  srcRect.y = 0 * frameHeight; break; 
     }
 
 
@@ -163,6 +161,7 @@ void cleanup_character(Character* character) {
         }
     }
 }
+
 
 void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT) {
     camera->x = player->x - WINDOW_WIDTH / 2 + player->w / 2;
