@@ -6,11 +6,12 @@
 
 bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int windowHeight) {
 
-    if (nextPosition->x < 0 || nextPosition->y < 0 || 
-        nextPosition->x + nextPosition->w > windowWidth || 
-        nextPosition->y + nextPosition->h > windowHeight)   {  
-            return true;   
-        } 
+    //* removed below because of follow camera
+    // if (nextPosition->x < 0 || nextPosition->y < 0 || 
+    //     nextPosition->x + nextPosition->w > windowWidth || 
+    //     nextPosition->y + nextPosition->h > windowHeight)   {  
+    //         return true;   
+    //     } 
 
     int tileSize = tilemap->tile_size;   
     int leftTile = nextPosition->x / tileSize;  

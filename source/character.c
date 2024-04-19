@@ -85,6 +85,7 @@ void move_character(Character *character, TileMap *tilemap,
 // TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
 void kill_command(Character *hunter, Character **characters, int num_characters) {
     if(hunter == NULL) return; 
+    if(!hunter->isHunter) return;
 
     const int killDistance = 80; // This represents the maximum distance in pixels
 
@@ -111,7 +112,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
     }
 }
 
-void draw_character(SDL_Renderer *pRenderer, Character *character) {
+void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *camera) {
     // Needs to be same for all 
     // 128 x 192
     const int frameWidth = 32; // Sprite sheet width / frames per column
@@ -124,6 +125,7 @@ void draw_character(SDL_Renderer *pRenderer, Character *character) {
         character->currentFrame = (character->currentFrame + 1) % frameCount;
         character->frameLastUpdated = SDL_GetTicks();
     }
+
 
     SDL_Rect srcRect;
     srcRect.w = frameWidth;
@@ -139,12 +141,17 @@ void draw_character(SDL_Renderer *pRenderer, Character *character) {
         default:  srcRect.y = 0 * frameHeight; break; 
     }
 
-    SDL_Rect destRect = character->rect;
-    destRect.w = frameWidth;
-    destRect.h = frameHeight;
 
-    // Draw the character with the updated srcRect and destRect
+
+    SDL_Rect destRect = character->rect;  
+    destRect.w = character->rect.w;  
+    destRect.h = character->rect.h;
+    // Adjust the destination rectangle based on the tilemap's position
+    destRect.x -= camera->x;
+    destRect.y -= camera->y;
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
+    
+    
 }
 
 void cleanup_character(Character* character) {
@@ -157,3 +164,7 @@ void cleanup_character(Character* character) {
 }
 
 
+void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT) {
+    camera->x = player->x - WINDOW_WIDTH / 2 + player->w / 2;
+    camera->y = player->y - WINDOW_HEIGHT / 2 + player->h / 2;
+}

@@ -63,10 +63,19 @@ void move_character(Character *character, TileMap *tilemap,
 ///@brief Draws the character on the provided renderer.
 ///@param pRenderer The renderer where the character will be drawn.
 ///@param character Pointer to the Character to be drawn.
-void draw_character(SDL_Renderer *pRenderer, Character *character);
+///@param camera The camera to adjust for.
+void draw_character(SDL_Renderer* pRenderer, Character* character, SDL_FPoint *camera);
+
 
 ///@brief Frees the resources associated with a character.
 ///@param character Pointer to the Character whose resources need to be freed.
 void cleanup_character(Character* character);
+
+/// @brief Moves the camera to follow the player character within the game window.
+/// @param camera the camera position to update
+/// @param player the character rectangle to follow
+/// @param WINDOW_WIDTH the width of the game window
+/// @param WINDOW_HEIGHT the height of the game window
+void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT);
 
 #endif
