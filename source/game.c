@@ -71,7 +71,7 @@ int runGame()
 
 void initialize_game(Game *game)
 {
-    game->PLAYERS = 2;
+    game->PLAYERS = 1;
     game->speed = 300;
     game->TILE_SIZE = 64;
     game->TILE_W_AMOUNT = 128; // changed from 60 to test collisions
@@ -102,7 +102,8 @@ void initialize_game(Game *game)
     // Initate characters
     for (int i = 0; i < game->PLAYERS; i++)
     {
-        game->characters[i] = init_character(game->pRenderer, characterFiles[0], 1);
+        game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);
+        game->characters[i]->rect.x = 400+i*game->TILE_SIZE;
     }
 
     // Finding the hunter
@@ -237,6 +238,11 @@ void update_game(Game *game)
     {
     case PAUSED:
         SDL_RenderClear(game->pRenderer);
+        game->down = false;
+        game->up = false;
+        game->left = false;
+        game->right = false;
+
         if (mainMenu(game->pRenderer))
             game->gameState = QUIT;
         else
@@ -254,7 +260,11 @@ void update_game(Game *game)
         follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
         // Draw stage
         tilemap_draw(&game->tilemap);
-        draw_character(game->pRenderer, game->characters[0], &game->tilemap.camera);
+        for (int i = 0; i < game->PLAYERS; i++)
+        {
+            draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
+        }
+        
 
         // Render
         SDL_RenderPresent(game->pRenderer);
