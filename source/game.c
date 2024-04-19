@@ -86,8 +86,14 @@ void initialize_game(Game *game)
         exit;
     }
 
-    char soundPathbgm[] = "resources/music/bgm1.mp3";
-    game->bgm = init_background_music(soundPathbgm, 20);
+    char *soundPathbgm[] = {
+        "resources/music/bgm1.mp3",
+        "resources/music/bgm2.mp3",
+        "resources/music/bgm3.mp3",
+        "resources/music/bgm4.mp3"
+    };
+
+    game->bgm = init_background_music(soundPathbgm[0], 20);
     play_background_music(game->bgm);
     free_bgm(game->bgm);
 
