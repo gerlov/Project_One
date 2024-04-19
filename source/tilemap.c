@@ -282,10 +282,12 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
     tilemap->tiles = malloc(sizeof(Tile) * TILEMAP_MAP1_H*TILEMAP_MAP1_W*MAZE_SCALEUP_FACTOR*MAZE_SCALEUP_FACTOR);
     tilemap->tile_size = T_DISPLAY_SIZE;
     tilemap->pRenderer = renderer;
-    tilemap->x = 0;
-    tilemap->y = 0;
+
     tilemap->human_spawn = (SpawnArea){NULL, 0};
     tilemap->hunter_spawn = (SpawnArea){NULL, 0};
+
+    tilemap->camera = (SDL_FPoint){0, 0};
+
     SDL_Surface *surface = IMG_Load("resources/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
 
     if (!surface)
@@ -328,8 +330,8 @@ void tilemap_draw(TileMap *tilemap)
             Tile *tile = get_tile(tilemap, x, y);
             if (tile != NULL)
             {
-                possition.x = x * tilemap->tile_size - tilemap->x;
-                possition.y = y * tilemap->tile_size - tilemap->y;
+                possition.x = x * tilemap->tile_size - tilemap->camera.x;
+                possition.y = y * tilemap->tile_size - tilemap->camera.y;
                 if (tile->type == TILE_FLOOR)
                 {
                     if (tile->human_spawnable) {

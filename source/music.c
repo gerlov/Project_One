@@ -103,3 +103,15 @@ void decrease_volume(void) {
     }
     Mix_VolumeMusic(volume);
 }
+
+
+void set_volume(int new_volume){
+    if(new_volume < 0){
+        volume = 0;
+    }
+    if(new_volume > MIX_MAX_VOLUME){
+        volume = MIX_MAX_VOLUME;
+    }
+    volume = new_volume;
+    Mix_VolumeMusic(volume);
+}
