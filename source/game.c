@@ -13,213 +13,265 @@
 #include "character.h"  
 #include "texture.h"
 
-#define SPEED 300
-#define TILE_SIZE 64
-#define TILE_W_AMOUNT 128  // changed from 60 to test collisions 
-#define TILE_H_AMOUNT 128  // changed from 60 to test collisions
-#define GAME_W TILE_W_AMOUNT*TILE_SIZE
-#define GAME_H TILE_H_AMOUNT*TILE_SIZE
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800  // changed from 800 to adjust to my screen size
+#define MAX_PLAYERS 6
 
-// Enum for game states
 typedef enum {
     PAUSED,
     PLAYING,
     QUIT
 } GameState;
 
-SDL_Window* pWindow = NULL;
-SDL_Renderer* pRenderer = NULL;
+typedef struct _Game{
+    int speed;
+    int TILE_SIZE;
+    int SPEED;
+    int TILE_W_AMOUNT;
+    int TILE_H_AMOUNT;
+    int GAME_W;
+    int GAME_H;
+    int WINDOW_WIDTH;
+    int WINDOW_HEIGHT;
+    int PLAYERS;
+    SDL_Window* pWindow;
+    SDL_Renderer* pRenderer;
+    BackgroundMusic *bgm;
+    Character* characters[MAX_PLAYERS];
+    Character* hunter;
+    TileMap tilemap;
+    GameState gameState;
+    
+    bool space, music, m, lower_volume, inc_volume;
+    bool up, down, left, right;
+    bool w, a, s, d;
+    bool closeWindow;
+
+} Game;
+
+
+void initialize_game(Game* game);
+void process_input(Game* game);
+void update_game(Game* game);
+void cleanup_game(Game* game);
 
 
 
 int runGame()
 {
+    Game game;
+    initialize_game(&game);
 
-    if(init_SDL_window(&pWindow, &pRenderer, WINDOW_WIDTH, WINDOW_HEIGHT) != 0) {
-        printf("Failed to initialize window and renderer.\n");
-        return 1;
+    while (!game.closeWindow) {
+        process_input(&game);
+        update_game(&game);
     }
 
+    cleanup_game(&game);
+    return 0;
+}
+
+
+void initialize_game(Game* game) {
+    game->PLAYERS = 2;
+    game->speed = 300;
+    game->TILE_SIZE = 64;
+    game->TILE_W_AMOUNT = 128; // changed from 60 to test collisions 
+    game->TILE_H_AMOUNT = 128;  // changed from 60 to test collisions
+    game->GAME_W = game->TILE_W_AMOUNT*game->TILE_SIZE;
+    game->GAME_H = game->TILE_H_AMOUNT*game->TILE_SIZE;
+    game->WINDOW_WIDTH = 1200;
+    game->WINDOW_HEIGHT = 800;
+    game->pWindow = NULL;
+    game->pRenderer = NULL;
+    if(init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) != 0) {
+        printf("Failed to initialize window and renderer.\n");
+        exit;
+    }
+
+
     char soundPathbgm[] = "resources/music/bgm1.mp3";
-    BackgroundMusic *bgm =init_background_music(soundPathbgm, 20);
-    play_background_music(bgm);
-    free_bgm(bgm);
+    game->bgm =init_background_music(soundPathbgm, 20);
+    play_background_music(game->bgm);
+    free_bgm(game->bgm);
 
     // TODO: Move this to a function, maybe in a separate file
     SDL_Texture* pTexture = NULL;
     SDL_Texture* pVingette = NULL;
 
 
-
-
-    Character testHunter;
-    init_character(&testHunter, pRenderer, "resources/characters/hunter.png", 1);
-
-    Character testHuman;
-    init_character(&testHuman, pRenderer, "resources/characters/TestChar.png", 0); // Use a different texture if desired
-    testHuman.rect.x = 520;
-
-    //Keeping track of all characters
-    Character* characters[] = {&testHunter, &testHuman};
-    int num_characters = 2;  
+    const char* characterFiles[] = {
+        "resources/characters/monster.png",
+        "resources/characters/femaleOne.png",
+        "resources/characters/maleOne.png",
+        "resources/characters/warriorOne.png",
+        "resources/characters/warriorTwo.png"
+    };
+    //Initate characters
+    for(int i = 0; i < game->PLAYERS; i++){
+        game->characters[i] = init_character(game->pRenderer, characterFiles[0], 1);
+    }
 
     //Finding the hunter
-    Character* hunter = NULL;
-    for (int i = 0; i < num_characters; i++) {
-        if (characters[i]->isHunter == 1) {
-            hunter = characters[i];
+    for (int i = 0; i < game->PLAYERS; i++) {
+        if (game->characters[i]->isHunter == 1) {
+            game->hunter = game->characters[i];
             break;
         }
     }
 
-    TileMap tilemap;
-    SDL_Rect rect = { 0, 0, TILE_SIZE, TILE_SIZE };
-    tilemap_init(&tilemap, pRenderer, TILE_W_AMOUNT, TILE_H_AMOUNT, TILE_SIZE);
-    tilemap_load(&tilemap, 2);
-    randomize_floor(&tilemap, 0);
-    orient_walls(&tilemap);
+    // Setting up tilemap;
+    SDL_Rect rect = { 0, 0, game->TILE_SIZE, game->TILE_SIZE };
+    tilemap_init(&game->tilemap, game->pRenderer, game->TILE_W_AMOUNT, game->TILE_H_AMOUNT, game->TILE_SIZE);
+    tilemap_load(&game->tilemap, 1);
+    randomize_floor(&game->tilemap, 0);
+    orient_walls(&game->tilemap);
     
-    GameState gameState = PAUSED;
-    bool music = true;
-    bool up, down, left, right, space, m, lower_volume, inc_volume;
-    up = down = left = right = space = m = lower_volume = inc_volume = false;   
 
-    bool w, a, s, d;
-    w = a = s = d = false;  
-
+    //Setting up states
+    game->gameState = PAUSED;
+    game->closeWindow = false;
+    game->m = game->lower_volume = game->inc_volume = false;
+    game->w = game->a = game->s = game->d = game->up = game->down = game->left = game->right = false;
+    game->music = true;
     srand(time(NULL)); 
+}
 
-    bool closeWindow = false;
-    while(!closeWindow)
-    {
-        SDL_Event event;
-        SDL_RenderClear(pRenderer);
+void process_input(Game* game) {
+    SDL_Event event;
+        SDL_RenderClear(game->pRenderer);
         while(SDL_PollEvent(&event))
         {
             switch(event.type)
             {
             case SDL_QUIT:
-                closeWindow = true;
+                game->closeWindow = true;
                 break;
             // * this is the movement code from simpleSDLexample1.
             case SDL_KEYDOWN:
                 switch (event.key.keysym.scancode) {
                     case SDL_SCANCODE_ESCAPE:
-                        gameState = PAUSED;
+                        game->gameState = PAUSED;
                         break;
                     case SDL_SCANCODE_M:
-                        m = true;
+                        game->m = true;
                         break;
                     case SDL_SCANCODE_SPACE:
-                        space = true;
-                        break;
-                    case SDL_SCANCODE_W:
-                        w = true;
-                        testHuman.direction='u';
+                        game->space = true;
                         break;
                     case SDL_SCANCODE_UP:
-                        up = true;
-                        testHunter.direction='u';
-                        break;
-                    case SDL_SCANCODE_A:
-                        a = true;
-                        testHuman.direction='l';
+                        game->up = true;
+                        set_direction(game->characters[0], 'u');
                         break;
                     case SDL_SCANCODE_LEFT:
-                        left = true;
-                        testHunter.direction='l';
-                        break;
-                    case SDL_SCANCODE_S:
-                        s = true;
-                        testHuman.direction='d';
+                        game->left = true;
+                        set_direction(game->characters[0], 'l');
                         break;
                     case SDL_SCANCODE_DOWN:
-                        down = true;
-                        testHunter.direction='d';
-                        break;
-                    case SDL_SCANCODE_D:
-                        d = true;
-                        testHuman.direction='r';
+                        game->down = true;
+                        set_direction(game->characters[0], 'd');
                         break;
                     case SDL_SCANCODE_RIGHT:
-                        right = true;
-                        testHunter.direction='r';
+                        game->right = true;
+                        set_direction(game->characters[0], 'r');
                         break;
+
+                    //WASD
+                    // case SDL_SCANCODE_W:
+                    //     game->w = true;
+                    //     set_direction(game->characters[0], 'u');
+                    //     break;
+                    // case SDL_SCANCODE_A:
+                    //     game->a = true;
+                    //     set_direction(game->characters[0], 'l');
+                    //     break;
+                    // case SDL_SCANCODE_S:
+                    //     game->s = true;
+                    //     set_direction(game->characters[0], 'd');
+                    //     break;
+                    // case SDL_SCANCODE_D:
+                    //     game->d = true;
+                    //     set_direction(game->characters[0], 'r');
+                    //     break;
                 }
                 break;
             case SDL_KEYUP:
                 switch (event.key.keysym.scancode) {
-                    case SDL_SCANCODE_W:
-                        w = false;
-                        break;
+                    //ARROWS
                     case SDL_SCANCODE_UP:
-                        up = false;
-                        break;
-                    case SDL_SCANCODE_A:
-                        a = false;
+                        game->up = false;
+                        stop_moving(game->characters[0]);
                         break;
                     case SDL_SCANCODE_LEFT:
-                        left = false;
-                        break;
-                    case SDL_SCANCODE_S:
-                        s = false;
+                        game->left = false;
+                        stop_moving(game->characters[0]);
                         break;
                     case SDL_SCANCODE_DOWN:
-                        down = false;
-                        break;
-                    case SDL_SCANCODE_D:
-                        d = false;
+                        game->down = false;
+                        stop_moving(game->characters[0]);
                         break;
                     case SDL_SCANCODE_RIGHT:
-                        right = false;
+                        game->right = false;
+                        stop_moving(game->characters[0]);
                         break;
+
+
+                    //WASD
+                    // case SDL_SCANCODE_W:
+                    //     game->w = false;
+                    //     break;
+                    // case SDL_SCANCODE_A:
+                    //     game->a = false;
+                    //     break;
+                    // case SDL_SCANCODE_S:
+                    //     game->s = false;
+                    //     break;
+                    // case SDL_SCANCODE_D:
+                    //     game->d = false;
+                    //     break;    
                 }
                 break;
             }   
-        }   
+        } 
+}
 
-        switch (gameState)
+void update_game(Game* game) {
+    switch (game->gameState)
         {
         case PAUSED:
-            SDL_RenderClear(pRenderer);
-            if(mainMenu(pRenderer))
-                gameState = QUIT;
+            SDL_RenderClear(game->pRenderer);
+            if(mainMenu(game->pRenderer))
+                game->gameState = QUIT;
             else
-                gameState = PLAYING;
+                game->gameState = PLAYING;
             break;
-        case PLAYING:
-            //draw all charz
-            move_character(&testHunter, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
-                        up, down, left, right, characters, num_characters);
-            move_character(&testHuman, &tilemap, WINDOW_WIDTH, WINDOW_HEIGHT, 
-                        w, s, a, d, characters, num_characters);
-
-            if(space)
+        case PLAYING:  
+            if(game->space)
             {
-                kill_command(hunter, characters, num_characters);
-                space = false;                
+                kill_command(game->characters[0], game->characters, game->PLAYERS);
+                game->space = false;                
             }
+            //Move character
+            move_character(game->characters[0], &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 
+                        game->up, game->down, game->left, game->right, game->characters, game->PLAYERS);
 
-            tilemap_draw(&tilemap);
-            draw_character(pRenderer, &testHunter, testHunter.direction);
-            draw_character(pRenderer, &testHuman, testHuman.direction);
+            //Draw stage
+            tilemap_draw(&game->tilemap);
+            draw_character(game->pRenderer, game->characters[0]);
 
-            SDL_RenderPresent(pRenderer);
+
+            //Render
+            SDL_RenderPresent(game->pRenderer);
             SDL_Delay(1000 / 120);//60 frames/s
             break;
         case QUIT:
-            closeWindow = true;
+            game->closeWindow = true;
             break;
         default:
             break;
         }
-    }
+}
 
-    tilemap_free(&tilemap);
-    cleanup_character(&testHunter);
-    cleanup_character(&testHuman);
-    cleanup_SDL(pWindow, pRenderer);
-    return 0;
+void cleanup_game(Game* game) {
+    tilemap_free(&game->tilemap);
+    cleanup_character(game->characters[0]);
+    cleanup_SDL(game->pWindow, game->pRenderer);
 }
