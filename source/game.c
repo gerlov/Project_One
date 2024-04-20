@@ -261,6 +261,7 @@ void update_game(Game *game)
             game->gameState = QUIT;
         else
             game->gameState = PLAYING;
+            SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
         break;
     case PLAYING:
         if (game->space)
