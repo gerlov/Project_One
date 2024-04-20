@@ -127,8 +127,8 @@ SDL_Point get_spawn_point(TileMap *tilemap, int ishunter)
 
 void apply_maze(TileMap *tilemap, int maze[], int width, int height)
 {
-    tilemap->width = (width + 4) * MAZE_SCALEUP_FACTOR;
-    tilemap->height = (height + 4) * MAZE_SCALEUP_FACTOR;
+    tilemap->width = (width + 2) * MAZE_SCALEUP_FACTOR;
+    tilemap->height = (height + 2) * MAZE_SCALEUP_FACTOR;
 
     // Set all tiles to wall
     for (int y = 0; y < TILEMAP_MAP1_H; y++)

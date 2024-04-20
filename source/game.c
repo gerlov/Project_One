@@ -130,6 +130,7 @@ void initialize_game(Game *game)
         }
     }
 
+        
 
 
     game->GAME_W = game->tilemap.width * game->TILE_SIZE;
