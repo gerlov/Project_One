@@ -25,13 +25,28 @@ bool renderMenuItem(MenuItem item);
 /// @param y The y position of the button
 void createMenuButton(SDL_Renderer* renderer, char* text, int r, int g, int b, int y);
 
+/// @brief Function for drawing text to the screen
+/// @param renderer The renderer to draw the text to
+/// @param text The text to display
+/// @param y The y position of the text
+void drawText(SDL_Renderer *renderer, char *text, int y);
+
+/// @brief Function for rendering the volume slider
+/// @param renderer The renderer to draw the slider to
+/// @param handleX The x position of the volume sliders handle
+void renderSlider(SDL_Renderer *renderer, float handleX);
+
+/// @brief Function for the toggling of the music as well as syncing with mute/unmute button
+void toggle_music_logic(void);
+
+/// @brief Main function for the options tab
+/// @param renderer The renderer to draw the options tab to
+/// @return returns true if window should be closed
 bool optionsMenu(SDL_Renderer* renderer);
 
 /// @brief Main code for the menu
 /// @param renderer The renderer to draw the menu to
+/// @return returns true if window should be closed
 bool mainMenu(SDL_Renderer* renderer);
-
-
-
 
 #endif // MENU_H
