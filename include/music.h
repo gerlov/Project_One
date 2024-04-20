@@ -21,11 +21,6 @@ typedef struct BackgroundMusic {
     bool paused;
 } BackgroundMusic;
 
-
-/// @brief Sets a direct volume.
-/// @param new_volume takes an int to set a specific volume. If outside of bounds, sets inside.
-void set_volume(int new_volume);
-
 /// @brief Initializes background music with specified parameters.
 /// @param soundPath Path to the music file.
 /// @param volume Initial volume setting.

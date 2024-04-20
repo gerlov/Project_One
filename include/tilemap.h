@@ -25,19 +25,11 @@ typedef enum Direction
     TOP_LEFT = 19
 } Direction;
 
-typedef struct SpawnArea
-{
-    SDL_Point *points;
-    int num_points;
-} SpawnArea;
-
 /// @brief Struct that represents a tile
 typedef struct Tile
 {
     TileType type;     // type of the tile
     SDL_Rect src_rect; // source rectangle of the texture
-    bool hunter_spawnable;   // if the tile is spawnable
-    bool human_spawnable;    // if the tile is spawnable
 } Tile;
 /// @brief Struct that represents a tilemap
 typedef struct TileMap
@@ -45,22 +37,22 @@ typedef struct TileMap
     SDL_Renderer *pRenderer; // renderer to load the textures with
     SDL_Texture *pTexture;   // texture of the tilemap
     SDL_Texture *pFloorTexture; // texture of the floor
-    // int x;                   // x position of the tilemap
-    // int y;                   // y position of the tilemap
-    SDL_FPoint camera;       // camera position
+    int x;                   // x position of the tilemap
+    int y;                   // y position of the tilemap
     int width;               // in tiles
     int height;              // in tiles
     Tile *tiles;             // 1D array of tiles
     int tile_size;           // in pixels
-    SpawnArea hunter_spawn;
-    SpawnArea human_spawn;
 } TileMap;
 
 
 /// @brief Inits a tilemap
 /// @param tilemap the tilemap to init
 /// @param renderer the renderer to load the textures with
-void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer);
+/// @param width the width of the tilemap in tiles
+/// @param height the height of the tilemap in tiles
+/// @param tile_size the size of each tile in pixels (square)
+void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer, int width, int height, int tile_size);
 
 /// @brief Loads the selected map into the tilemap
 /// @param tilemap  The tilemap to load the data into
@@ -106,6 +98,8 @@ void tilemap_free(TileMap *tilemap);
 
 /// @brief Generates a maze using the recursive backtracking algorithm. It also scales the maze up by the factor defined in MAZE_SCALEUP_FACTOR
 /// @param tilemap the tilemap to generate the maze in
+/// @param width the width of the maze
+/// @param height the height of the maze
 /// @param seed the seed to use for the random number generator
 void generate_maze(TileMap *tilemap, int width, int height, int seed);
 
@@ -140,10 +134,4 @@ int get_index(int x, int y, int width);
 /// @param y 
 /// @return array of that contains the type of the neighbouring tiles in the order of up, right, down, left, top right, bottom right, bottom left, top left
 TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
-
-
-void set_spawn_divisions(TileMap *tilemap, int *maze, int width, int height);
-
-SDL_Point get_spawn_point(TileMap *tilemap, int ishunter);
-
 #endif // TILEMAP_H

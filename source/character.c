@@ -11,12 +11,7 @@
 int speed = 300 / 60;
 int hunter_characters = 0;
 
-Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isHunter){
-    Character* character = malloc(sizeof(Character));
-    if(character == NULL){
-        printf("Error creating character");
-        return NULL;
-    }
+void init_character(Character* character, SDL_Renderer *pRenderer, const char *filePath, int isHunter){
     create_texture(&character->texture, pRenderer, filePath);
     SDL_QueryTexture(character->texture, NULL, NULL, &character->rect.w, &character->rect.h);
     character->rect.x = 400;
@@ -31,20 +26,6 @@ Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isH
         character->isHunter = 0;
     }
     character->isKilled = 0;
-    character->isMoving = 0;
-    character->currentFrame = 0;
-    character->frameLastUpdated = SDL_GetTicks();
-
-    return character;
-}
-
-void set_direction(Character *character, char direction){
-    character->direction = direction;
-    character->isMoving = 1;
-}
-
-void stop_moving(Character *character){
-    character->isMoving = 0;
 }
 
 void move_character(Character *character, TileMap *tilemap, 
@@ -85,7 +66,6 @@ void move_character(Character *character, TileMap *tilemap,
 // TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
 void kill_command(Character *hunter, Character **characters, int num_characters) {
     if(hunter == NULL) return; 
-    if(!hunter->isHunter) return;
 
     const int killDistance = 80; // This represents the maximum distance in pixels
 
@@ -112,46 +92,64 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
     }
 }
 
-void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *camera) {
-    // Needs to be same for all 
-    // 128 x 192
-    const int frameWidth = 32; // Sprite sheet width / frames per column
-    const int frameHeight = 48; // Sprite sheet height / frames per row
-    const int frameCount = 4; //Each frame in each row
-    Uint32 timeSinceLastFrame = SDL_GetTicks() - character->frameLastUpdated;
 
-
-    if(character->isMoving && timeSinceLastFrame > (700 / frameCount)) {
-        character->currentFrame = (character->currentFrame + 1) % frameCount;
-        character->frameLastUpdated = SDL_GetTicks();
-    }
-
+void draw_character(SDL_Renderer *pRenderer, Character *character, char direction) {
 
     SDL_Rect srcRect;
-    srcRect.w = frameWidth;
-    srcRect.h = frameHeight;
-    srcRect.x = character->currentFrame * frameWidth;
     
-
-    switch (character->direction) {
-        case 'd': srcRect.y = 0 * frameHeight; break;
-        case 'l': srcRect.y = 1 * frameHeight; break; 
-        case 'r': srcRect.y = 2 * frameHeight; break; 
-        case 'u': srcRect.y = 3 * frameHeight; break; 
-        default:  srcRect.y = 0 * frameHeight; break; 
+    if (character->isHunter == 1) {
+        if (direction == 'u') {
+        srcRect.x = 50;
+        srcRect.y = 195;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'd') {
+        srcRect.x = 50;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+        } else if (direction == 'l') {
+            
+        srcRect.x = 50;
+        srcRect.y = 65;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'r') {
+        srcRect.x = 50;
+        srcRect.y = 130;
+        srcRect.w = character->rect.w * 1.3;
+        srcRect.h = character->rect.h;
+        }
+    } else {
+        if (direction == 'u') {
+        srcRect.x = 100;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'd') {
+        srcRect.x = 0;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+        } else if (direction == 'l') {
+        srcRect.x = 50;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+    } else if (direction == 'r') {
+        srcRect.x = 150;
+        srcRect.y = 0;
+        srcRect.w = character->rect.w;
+        srcRect.h = character->rect.h;
+        }
     }
-
 
 
     SDL_Rect destRect = character->rect;  
     destRect.w = character->rect.w;  
-    destRect.h = character->rect.h;
-    // Adjust the destination rectangle based on the tilemap's position
-    destRect.x -= camera->x;
-    destRect.y -= camera->y;
+    destRect.h = character->rect.h;  
+
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
-    
-    
 }
 
 void cleanup_character(Character* character) {
@@ -161,10 +159,4 @@ void cleanup_character(Character* character) {
             character->texture = NULL;  
         }
     }
-}
-
-
-void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT) {
-    camera->x = player->x - WINDOW_WIDTH / 2 + player->w / 2;
-    camera->y = player->y - WINDOW_HEIGHT / 2 + player->h / 2;
 }
