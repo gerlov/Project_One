@@ -104,7 +104,6 @@ void decrease_volume(void) {
     Mix_VolumeMusic(volume);
 }
 
-
 void set_volume(int new_volume){
     if(new_volume < 0){
         volume = 0;
