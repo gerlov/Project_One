@@ -146,6 +146,7 @@ void initialize_game(Game *game)
 
     //ATM if you dont get hunter, you get the same outfit everytime
     int hunterIndex = rand() % game->PLAYERS;
+    hunterIndex = 0; 
     for (int i = 0; i < game->PLAYERS; i++)
     {
         if(i == hunterIndex){

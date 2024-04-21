@@ -103,7 +103,7 @@ void move_character(Character *character, TileMap *tilemap,
             other_characters[i]->isKilled == 0 && 
             SDL_HasIntersection(&nextPosition, &other_characters[i]->rect)) 
             {
-                play_sound_once(oi_sound); // <- diagnostic, remove
+               // play_sound_once(oi_sound); // <- diagnostic, remove
                 return; // collision with another character, return 
             }
     }
@@ -140,7 +140,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
                 hunter->rect.y = characters[i]->rect.y;
                 // kill sound  
                 play_sound_once(kill_sound);
-                free_sse(kill_sound);
+                // free_sse(kill_sound);
                
                 break; //Kills one, otherwise more in a small space
             }
