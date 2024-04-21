@@ -83,7 +83,6 @@ void initialize_game(Game *game)
     game->WINDOW_HEIGHT = 800;
     game->pWindow = NULL;
     game->pRenderer = NULL;
-    game->music = true;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) != 0)
     {
         printf("Failed to initialize window and renderer.\n");
@@ -106,8 +105,7 @@ void initialize_game(Game *game)
 
 
     // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
-    if (game->music)
-        play_background_music(game->bgm);
+    play_background_music(game->bgm);
     free_bgm(game->bgm);
 
     // Setting up tilemap;
@@ -162,6 +160,7 @@ void initialize_game(Game *game)
     game->m = game->lower_volume = game->inc_volume = false;
     game->w = game->a = game->s = game->d = game->up = game->down = game->left = game->right = false;
     game->space = false;
+    game->music = true;
     
 }
 
