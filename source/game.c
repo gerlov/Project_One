@@ -7,13 +7,15 @@
 #include "music.h"
 #include "window.h"
 #include "collisions.h"
+#include "powerup.h"
 #include "menu.h"
 #include <stdlib.h> // rand(), srand()
 #include <time.h>   // for seeding srand()
 #include "character.h"
 #include "texture.h"
 
-#define MAX_PLAYERS 6
+#define MAX_PLAYERS 6 
+
 
 // Enum for game states
 typedef enum {
@@ -41,6 +43,9 @@ typedef struct _Game
     Character *hunter;
     TileMap tilemap;
     GameState gameState;
+
+    PowerUp powerUps[MAX_POWERUPS];  
+    int powerUpCount;               
 
     bool space, music, m, lower_volume, inc_volume;
     bool up, down, left, right;
@@ -87,6 +92,8 @@ void initialize_game(Game *game)
         exit;
     }
 
+    init_player_sounds(); 
+  
     char *soundPathbgm[] = {
         "resources/music/bgm1.mp3",
         "resources/music/bgm2.mp3",
@@ -103,6 +110,7 @@ void initialize_game(Game *game)
 
 
     // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
+  
     play_background_music(game->bgm);
     free_bgm(game->bgm);
 
@@ -111,6 +119,10 @@ void initialize_game(Game *game)
     tilemap_load(&game->tilemap, 1);
     randomize_floor(&game->tilemap, 0);
     orient_walls(&game->tilemap);
+
+    game->powerUpCount = 0; 
+    load_powerup_resources(game->pRenderer);
+    init_powerUps(game->pRenderer, &game->tilemap, game->TILE_SIZE);   
 
 
 
@@ -134,6 +146,7 @@ void initialize_game(Game *game)
 
     //ATM if you dont get hunter, you get the same outfit everytime
     int hunterIndex = rand() % game->PLAYERS;
+    hunterIndex = 0; 
     for (int i = 0; i < game->PLAYERS; i++)
     {
         if(i == hunterIndex){
@@ -290,6 +303,7 @@ void update_game(Game *game)
         follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
         // Draw stage
         tilemap_draw(&game->tilemap);
+        draw_powerUps(game->pRenderer, &game->tilemap);
         for (int i = 0; i < game->PLAYERS; i++)
         {
             draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
@@ -311,6 +325,8 @@ void update_game(Game *game)
 void cleanup_game(Game *game)
 {
     tilemap_free(&game->tilemap);
+    cleanup_powerup_resources();
     cleanup_character(game->characters[0]);
+    cleanup_player_sounds();
     cleanup_SDL(game->pWindow, game->pRenderer);
 }
