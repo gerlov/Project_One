@@ -73,7 +73,8 @@ int runGame()
 
 void initialize_game(Game *game)
 {
-    game->PLAYERS = 1;
+    srand(time(NULL));
+    game->PLAYERS = 5;
     game->speed = 300;
     game->TILE_SIZE = 64;
     game->WINDOW_WIDTH = 1200;
@@ -86,8 +87,22 @@ void initialize_game(Game *game)
         exit;
     }
 
-    char soundPathbgm[] = "resources/music/bgm1.mp3";
-    game->bgm = init_background_music(soundPathbgm, 20);
+    char *soundPathbgm[] = {
+        "resources/music/bgm1.mp3",
+        "resources/music/bgm2.mp3",
+        "resources/music/bgm3.mp3",
+        "resources/music/bgm4.mp3",
+        "resources/music/PEDRO.mp3"
+    };
+    //Random background;
+    int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
+    int backgroundIndex = rand() % size_of_soundPathbgm;
+
+    //SUPER BACKGROUD MUSIC
+    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 100);
+
+
+    // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
     play_background_music(game->bgm);
     free_bgm(game->bgm);
 
@@ -98,12 +113,17 @@ void initialize_game(Game *game)
     orient_walls(&game->tilemap);
 
 
+
     const char *characterFiles[] = {
-        "resources/characters/monster.png",
+        "resources/characters/warriorTwo.png",
         "resources/characters/femaleOne.png",
         "resources/characters/maleOne.png",
         "resources/characters/warriorOne.png",
-        "resources/characters/warriorTwo.png"};
+        "resources/characters/maleOne.png"};
+    const char *hunterClothes[] = {
+        "resources/characters/monster.png"
+    };
+        
     // Initate characters
     //Clear just in case
     memset(game->characters, 0, sizeof(game->characters)); // Clear the array first
@@ -112,27 +132,23 @@ void initialize_game(Game *game)
     }
 
 
+    //ATM if you dont get hunter, you get the same outfit everytime
+    int hunterIndex = rand() % game->PLAYERS;
     for (int i = 0; i < game->PLAYERS; i++)
     {
-        game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);
+        if(i == hunterIndex){
+            game->characters[i] = init_character(game->pRenderer, hunterClothes[0], 1);
+            game->hunter = game->characters[i];
+        }else{
+            game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);
+        }
+        
         SDL_Point spawn = get_spawn_point(&game->tilemap, game->characters[i]->isHunter);
         game->characters[i]->rect.x = spawn.x;
         game->characters[i]->rect.y = spawn.y;
     }
 
-    // Finding the hunter
-    for (int i = 0; i < game->PLAYERS; i++)
-    {
-        if (game->characters[i]->isHunter == 1)
-        {
-            game->hunter = game->characters[i];
-            break;
-        }
-    }
-
         
-
-
     game->GAME_W = game->tilemap.width * game->TILE_SIZE;
     game->GAME_H = game->tilemap.height * game->TILE_SIZE;
 
@@ -143,7 +159,6 @@ void initialize_game(Game *game)
     game->w = game->a = game->s = game->d = game->up = game->down = game->left = game->right = false;
     game->space = false;
     game->music = true;
-    srand(time(NULL));
 }
 
 void process_input(Game *game)

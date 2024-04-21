@@ -9,15 +9,22 @@ bool musicPaused = false;
 static int volume = MIX_MAX_VOLUME / 2; 
 
 
-BackgroundMusic* init_background_music(char *soundPath, int volume) {
+BackgroundMusic* init_background_music(char *soundPath, int start_volume) {
     BackgroundMusic *bgm = malloc(sizeof(BackgroundMusic));
     if (bgm == NULL) {
         fprintf(stderr, "Failed to allocate memory for background music.\n");
         return NULL;
     }
+    if(start_volume < 0){
+        volume = 0;
+    }
+    if(start_volume > MIX_MAX_VOLUME){
+        volume = MIX_MAX_VOLUME;
+    }
     bgm->soundPath = soundPath;
-    bgm->volume = volume;
+    bgm->volume = start_volume;
     bgm->paused = true;
+    Mix_VolumeMusic(volume);
     return bgm;
 }
 
