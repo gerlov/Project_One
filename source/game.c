@@ -91,14 +91,15 @@ void initialize_game(Game *game)
         "resources/music/bgm1.mp3",
         "resources/music/bgm2.mp3",
         "resources/music/bgm3.mp3",
-        "resources/music/bgm4.mp3"
+        "resources/music/bgm4.mp3",
+        "resources/music/PEDRO.mp3"
     };
     //Random background;
     int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
     int backgroundIndex = rand() % size_of_soundPathbgm;
 
     //SUPER BACKGROUD MUSIC
-    game->bgm = init_background_music("resources/music/PEDRO.mp3", 100);
+    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 100);
 
 
     // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
