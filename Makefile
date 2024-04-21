@@ -73,4 +73,8 @@ run: $(TARGET)
 
 # run 'make clean' to remove the object files and the executable
 clean:
-	rm *.o $(TARGET)
+ifeq ($(OS),Windows_NT)
+	del /Q /F *.o *.exe
+else
+	rm -f *.o $(TARGET)
+endif

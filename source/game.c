@@ -137,15 +137,17 @@ void initialize_game(Game *game)
     {
         if(i == hunterIndex){
             game->characters[i] = init_character(game->pRenderer, hunterClothes[0], 1);
+            game->hunter = game->characters[i];
         }else{
             game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);
         }
-
+        
         SDL_Point spawn = get_spawn_point(&game->tilemap, game->characters[i]->isHunter);
         game->characters[i]->rect.x = spawn.x;
         game->characters[i]->rect.y = spawn.y;
     }
 
+        
     game->GAME_W = game->tilemap.width * game->TILE_SIZE;
     game->GAME_H = game->tilemap.height * game->TILE_SIZE;
 
@@ -273,6 +275,7 @@ void update_game(Game *game)
             game->gameState = QUIT;
         else
             game->gameState = PLAYING;
+            SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
         break;
     case PLAYING:
         if (game->space)
