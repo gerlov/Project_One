@@ -29,7 +29,7 @@ void set_volume(int new_volume);
 /// @brief Initializes background music with specified parameters.
 /// @param soundPath Path to the music file.
 /// @param volume Initial volume setting.
-BackgroundMusic* init_background_music(char *soundPath, int volume);
+BackgroundMusic* init_background_music(char *soundPath, int start_volume);
 
 
 /// @brief Initializes a sound effect with specified parameters.
