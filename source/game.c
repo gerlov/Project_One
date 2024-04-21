@@ -116,7 +116,7 @@ void initialize_game(Game *game)
     randomize_floor(&game->tilemap, 0);
     orient_walls(&game->tilemap);
 
-    initLimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,400);
+    init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,400);
 
     const char *characterFiles[] = {
         "resources/characters/warriorTwo.png",
