@@ -12,6 +12,7 @@
 #include <time.h>   // for seeding srand()
 #include "character.h"
 #include "texture.h"
+#include "limitedvision.h"
 
 #define MAX_PLAYERS 6
 
@@ -41,6 +42,7 @@ typedef struct _Game
     Character *hunter;
     TileMap tilemap;
     GameState gameState;
+    LimitedVision lv;
 
     bool space, music, m, lower_volume, inc_volume;
     bool up, down, left, right;
@@ -81,12 +83,13 @@ void initialize_game(Game *game)
     game->WINDOW_HEIGHT = 800;
     game->pWindow = NULL;
     game->pRenderer = NULL;
+    game->music = false;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) != 0)
     {
         printf("Failed to initialize window and renderer.\n");
         exit;
     }
-
+    
     char *soundPathbgm[] = {
         "resources/music/bgm1.mp3",
         "resources/music/bgm2.mp3",
@@ -103,7 +106,8 @@ void initialize_game(Game *game)
 
 
     // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
-    play_background_music(game->bgm);
+    if (game->music)
+        play_background_music(game->bgm);
     free_bgm(game->bgm);
 
     // Setting up tilemap;
@@ -112,7 +116,7 @@ void initialize_game(Game *game)
     randomize_floor(&game->tilemap, 0);
     orient_walls(&game->tilemap);
 
-
+    initLimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,400);
 
     const char *characterFiles[] = {
         "resources/characters/warriorTwo.png",
@@ -158,7 +162,7 @@ void initialize_game(Game *game)
     game->m = game->lower_volume = game->inc_volume = false;
     game->w = game->a = game->s = game->d = game->up = game->down = game->left = game->right = false;
     game->space = false;
-    game->music = true;
+    
 }
 
 void process_input(Game *game)
@@ -296,6 +300,8 @@ void update_game(Game *game)
         }
         
 
+        SDL_FPoint center = {game->characters[0]->rect.x + game->characters[0]->rect.w / 2 , game->characters[0]->rect.y + game->characters[0]->rect.h / 2 };
+        drawLimitedVision(&game->lv, center);
         // Render
         SDL_RenderPresent(game->pRenderer);
         SDL_Delay(1000 / 120); // 60 frames/s

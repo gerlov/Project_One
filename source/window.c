@@ -9,14 +9,14 @@ int init_SDL_window(SDL_Window **window, SDL_Renderer **renderer, int WINDOW_WID
         return 1;
     }
 
-    *window = SDL_CreateWindow("Game Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+    *window = SDL_CreateWindow("Game Title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if(!(*window)) {
         printf("Error creating window: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
-    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    *renderer = SDL_CreateRenderer(*window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
     if(!(*renderer)) {
         printf("Error creating renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(*window);
