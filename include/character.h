@@ -15,6 +15,9 @@ typedef struct Character{
     char direction;
     int isMoving;
     int currentFrame;
+    int health, speed, visible;
+    Uint32 speedPowerupTime; // speed powerup timer
+    Uint32 invisiblePowerupTime; // invisibility powerup timer  
     Uint32 frameLastUpdated;
 } Character;
 
@@ -76,6 +79,12 @@ void cleanup_character(Character* character);
 /// @param player the character rectangle to follow
 /// @param WINDOW_WIDTH the width of the game window
 /// @param WINDOW_HEIGHT the height of the game window
-void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT);
+void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT);  
+
+///@brief Initializes player-related sounds 
+void init_player_sounds();
+
+///@brief Cleans up player-related sound resources 
+void cleanup_player_sounds();
 
 #endif

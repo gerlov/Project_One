@@ -1,15 +1,31 @@
 #include "character.h"
 #include "texture.h"
 #include "collisions.h"
-#include "tilemap.h"
+#include "tilemap.h" 
+#include "powerup.h"
 #include <math.h> 
 #include "music.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 
-int speed = 300 / 60;
-int hunter_characters = 0;
+// int speed = 300 / 60;
+int hunter_characters = 0; 
+Single_sound *wall_sound;
+Single_sound *oi_sound;  
+Single_sound *kill_sound; 
+
+void init_player_sounds() {
+    wall_sound = init_sound_effect("resources/music/sse2.mp3", 10);
+    oi_sound = init_sound_effect("resources/music/oi.mp3", 30);
+    kill_sound = init_sound_effect("resources/music/sse1.mp3", 30);
+}
+
+void cleanup_player_sounds() {
+    free_sse(wall_sound);
+    free_sse(oi_sound); 
+    free_sse(kill_sound);
+}
 
 Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isHunter){
     Character* character = malloc(sizeof(Character));
@@ -33,8 +49,12 @@ Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isH
     character->isKilled = 0;
     character->isMoving = 0;
     character->currentFrame = 0;
-    character->frameLastUpdated = SDL_GetTicks();
-
+    character->frameLastUpdated = SDL_GetTicks(); 
+    character -> health = 100; 
+    character -> speed = 5;  // aka 300 / 60 
+    character -> visible = 1; 
+    // powerup timers init: 
+    character -> speedPowerupTime = character -> invisiblePowerupTime = 0;  
     return character;
 }
 
@@ -52,29 +72,47 @@ void move_character(Character *character, TileMap *tilemap,
                     int up, int down, int left, int right, 
                     Character **other_characters, int num_other_characters) { 
 
-    char soundPath2[] = "resources/music/sse2.mp3"; 
-    char oiSoundPath[] = "resources/music/oi.mp3"; 
+    if(character->isKilled == 1) return; 
 
-    if(character->isKilled == 1) return;
+    Uint32 currentTicks = SDL_GetTicks(); // for powerup timers  
 
-    Single_sound *wall = init_sound_effect(soundPath2, 10); 
-    Single_sound *oi = init_sound_effect(oiSoundPath, 30);                   
+    // 2 st check for powerup timers expiration, resets everything to default values if expired
+    if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0) {
+        character->speed -= 20;  // set back to default speed (defined in init)
+        character->speedPowerupTime = 0;  // reset poerup timer
+    } 
+
+    if (currentTicks > character->invisiblePowerupTime && character->invisiblePowerupTime != 0) {
+        character->visible = 1;  // visible again
+        character->invisiblePowerupTime = 0;  //reset powerup timer
+    }    
 
     SDL_Rect nextPosition = character->rect;
-    nextPosition.y += (down - up) * speed;  
-    nextPosition.x += (right - left) * speed;
+    nextPosition.y += (down - up) * character -> speed;  
+    nextPosition.x += (right - left) * character -> speed; 
 
-    // Check collision with the environment
-    if (collides(&nextPosition, tilemap, WINDOW_WIDTH, WINDOW_HEIGHT)) {
-        play_sound_once(wall);
-        return;  // collision with the world, return immediately
+    // Check collision with the walls
+    if (collides(&nextPosition, tilemap, TILE_WALL)) {  
+        play_sound_once(wall_sound);
+        return;  
     }
 
-    // Check collision with other characters
+    // collision with other characters (remove if not needed)
     for (int i = 0; i < num_other_characters; i++) {
-        if (character != other_characters[i] && other_characters[i]->isKilled == 0 && characters_collide(&nextPosition, &other_characters[i]->rect)) {
-            play_sound_once(oi);
-            return; // collision with another character, return immediately
+        if (character != other_characters[i] && 
+            other_characters[i]->isKilled == 0 && 
+            SDL_HasIntersection(&nextPosition, &other_characters[i]->rect)) 
+            {
+                play_sound_once(oi_sound); // <- diagnostic, remove
+                return; // collision with another character, return 
+            }
+    }
+
+    // powerup tiles intersection 
+     for (int i = 0; i < powerUpCount; i++) { 
+        if (powerUps[i].visible && SDL_HasIntersection(&character->rect, &powerUps[i].rect)) {
+            apply_powerUp(character, powerUps[i].type);
+            powerUps[i].visible = 0;  
         }
     }
 
@@ -100,9 +138,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
                 // Teleport to the target
                 hunter->rect.x = characters[i]->rect.x;
                 hunter->rect.y = characters[i]->rect.y;
-                // kill sound
-                char soundPath[] = "resources/music/sse1.mp3";
-                Single_sound *kill_sound = init_sound_effect(soundPath, 30);
+                // kill sound  
                 play_sound_once(kill_sound);
                 free_sse(kill_sound);
                
@@ -113,6 +149,9 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
 }
 
 void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *camera) {
+
+    if (!character->visible) return; 
+
     // Needs to be same for all 
     // 128 x 192
     const int frameWidth = 32; // Sprite sheet width / frames per column

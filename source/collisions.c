@@ -1,26 +1,13 @@
-#include "collisions.h" 
-#include "window.h"
+#include "collisions.h"  
 #include "tilemap.h"  
-#include "character.h"  
 
 
-bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int windowHeight) {
-
-
-    //* removed below because of follow camera
-
-    // if (nextPosition->x < 0 || nextPosition->y < 0 || 
-    //     nextPosition->x + nextPosition->w > windowWidth || 
-    //     nextPosition->y + nextPosition->h > windowHeight)   {  
-    //         return true;   
-    //     } 
-
+bool collides(SDL_Rect *nextPosition, TileMap *tilemap, TileType tiletype) { // can check collision with other TileTypes
     int tileSize = tilemap->tile_size;   
     int leftTile = nextPosition->x / tileSize;  
     int rightTile = (nextPosition->x + nextPosition->w - 1) / tileSize;  
     int topTile = nextPosition->y / tileSize;    
     int bottomTile = (nextPosition->y + nextPosition->h - 1) / tileSize;
-
 
     for (int y = topTile; y <= bottomTile; y++) {
         for (int x = leftTile; x <= rightTile; x++) {
@@ -30,13 +17,5 @@ bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int win
             }
         }
     } 
-
-    return false;    
-}    
-
-
-
-bool characters_collide(SDL_Rect *rect1, SDL_Rect *rect2) {
-    return SDL_HasIntersection(rect1, rect2);
-}
- 
+    return false; 
+}  
