@@ -83,7 +83,7 @@ void initialize_game(Game *game)
     game->WINDOW_HEIGHT = 800;
     game->pWindow = NULL;
     game->pRenderer = NULL;
-    game->music = false;
+    game->music = true;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) != 0)
     {
         printf("Failed to initialize window and renderer.\n");

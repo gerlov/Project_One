@@ -24,7 +24,7 @@ void initLimitedVision(LimitedVision *lv, SDL_Renderer *renderer, TileMap *tilem
 
 float rayCast(LimitedVision *lv, SDL_FPoint *center, int angle);
 
-void drawtobuffer(LimitedVision *lv, SDL_FPoint center);
+void drawtobuffer(LimitedVision *lv, SDL_FPoint center, SDL_Vertex *v, int numRays, SDL_Color centerColor, SDL_Color edgeColor);
 
 void drawLimitedVision(LimitedVision *lv, SDL_FPoint center);
 
