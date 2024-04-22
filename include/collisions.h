@@ -3,23 +3,13 @@
 
 #include <SDL2/SDL.h>
 #include "tilemap.h"
-#include "character.h" 
 
-/// @brief Checks for collision between player and world boundaries or solid tiles.
-/// @param nextPosition Pointer to an SDL_Rect for next position.
-/// @param tilemap Pointer to a TileMap for tile properties.
-/// @param windowWidth Width of the game window.
-/// @param windowHeight Height of the game window.
-/// @return Returns true if collision is detected, false otherwise.
-bool collides(SDL_Rect *nextPosition, TileMap *tilemap, int windowWidth, int windowHeight);
+///@brief Checks for collisions between a PLAYER rectangle and specific tile types in a tile mapM
+///@param nextPosition Pointer to the SDL_Rect structure representing the position to check for collisions.
+///@param tilemap Pointer to the TileMap containing the tiles to check against  
+///@param tiletype The type of tile to check for collisions with.
+///@return Returns true if a collision is detected, false otherwise   
+bool collides(SDL_Rect *nextPosition, TileMap *tilemap, TileType tiletype);
 
 
-/// @brief Checks for collision between two (character) rectangles.   
-/// @param rect1 Pointer to the first SDL_Rect representing the first character's position and size.
-/// @param rect2 Pointer to the second SDL_Rect representing the second character's position and size.
-/// @return Returns true if the two rectangles intersect (collision detected), false otherwise.
-bool characters_collide(SDL_Rect *rect1, SDL_Rect *rect2); 
-
-
-#endif // COLLISIONS_H
- 
+#endif 
