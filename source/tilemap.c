@@ -3,11 +3,9 @@
 #include <SDL2/SDL_image.h>
 #include <time.h>
 
-#define MAZE_SCALEUP_FACTOR 3
-#define TILEMAP_MAP1_W 32
-#define TILEMAP_MAP1_H 32
-#define T_SIZE 32
-#define T_DISPLAY_SIZE 64
+
+
+
 
 static Tile tiles_types[] = {
     //  TYPE,   {SRC_X, SRC_Y, SRC_W, SRC_H}
@@ -295,7 +293,6 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
 {
     tilemap->width = TILEMAP_MAP1_H;
     tilemap->height = TILEMAP_MAP1_W;
-    tilemap->tiles = malloc(sizeof(Tile) * TILEMAP_MAP1_H * TILEMAP_MAP1_W * MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR);
     tilemap->tile_size = T_DISPLAY_SIZE;
     tilemap->pRenderer = renderer;
 
@@ -329,7 +326,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
 
 void tilemap_set_tile(TileMap *tilemap, int x, int y, Tile *tile)
 {
-    tilemap->tiles[y * tilemap->width + x] = *tile;
+    tilemap->tiles[y][x] = *tile;
 }
 
 void tilemap_draw(TileMap *tilemap)
@@ -379,24 +376,12 @@ Tile *get_tile(TileMap *tilemap, int x, int y)
     {
         return NULL;
     }
-    return &tilemap->tiles[y * tilemap->width + x];
+    return &tilemap->tiles[y][x];
 }
 
-Tile *get_world_tile(TileMap *tilemap, int x, int y)
-{
-    x /= tilemap->tile_size;
-    y /= tilemap->tile_size;
-    if (x < 0 || x >= tilemap->width || y < 0 || y >= tilemap->height)
-    {
-        return NULL;
-    }
-    return &tilemap->tiles[y * tilemap->width + x];
-}
 
 void tilemap_free(TileMap *tilemap)
 {
-    free(tilemap->tiles);
-    tilemap->tiles = NULL;
     SDL_DestroyTexture(tilemap->pTexture);
     tilemap->pTexture = NULL;
     tilemap->pRenderer = NULL;
@@ -491,6 +476,9 @@ void orient_walls(TileMap *tilemap)
                 else if (neighbours[7] == TILE_FLOOR)
                 {
                     dir = dir | TOP_LEFT;
+                }
+                else {
+                    tile->type = TILE_EMPTY;
                 }
             }
             // walls is a array of SDL_Rect that is ordered in a way that it behaves a kind of hash map

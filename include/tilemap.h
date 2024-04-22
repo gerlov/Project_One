@@ -3,6 +3,11 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
+#define TILEMAP_MAP1_W 32
+#define TILEMAP_MAP1_H 32
+#define MAZE_SCALEUP_FACTOR 3
+#define T_SIZE 32
+#define T_DISPLAY_SIZE 64
 typedef enum TileType {
     TILE_EMPTY,
     TILE_WALL,
@@ -50,7 +55,7 @@ typedef struct TileMap
     SDL_FPoint camera;       // camera position
     int width;               // in tiles
     int height;              // in tiles
-    Tile *tiles;             // 1D array of tiles
+    Tile tiles[TILEMAP_MAP1_H*MAZE_SCALEUP_FACTOR][TILEMAP_MAP1_W*MAZE_SCALEUP_FACTOR];             // 1D array of tiles
     int tile_size;           // in pixels
     SpawnArea hunter_spawn;
     SpawnArea human_spawn;

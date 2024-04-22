@@ -11,7 +11,7 @@ bool collides(SDL_Rect *nextPosition, TileMap *tilemap, TileType tiletype) { // 
 
     for (int y = topTile; y <= bottomTile; y++) {
         for (int x = leftTile; x <= rightTile; x++) {
-            Tile *tile = get_tile(tilemap, x, y);
+            Tile *tile = &tilemap->tiles[y][x];
             if (tile != NULL && tile->type == TILE_WALL) {
                 return true; 
             }

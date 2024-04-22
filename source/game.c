@@ -13,6 +13,7 @@
 #include <time.h>   // for seeding srand()
 #include "character.h"
 #include "texture.h"
+#include "limitedvision.h"
 
 #define MAX_PLAYERS 6 
 
@@ -43,6 +44,7 @@ typedef struct _Game
     Character *hunter;
     TileMap tilemap;
     GameState gameState;
+    LimitedVision lv;
 
     PowerUp powerUps[MAX_POWERUPS];  
     int powerUpCount;               
@@ -93,7 +95,7 @@ void initialize_game(Game *game)
     }
 
     init_player_sounds(); 
-  
+
     char *soundPathbgm[] = {
         "resources/music/bgm1.mp3",
         "resources/music/bgm2.mp3",
@@ -120,11 +122,12 @@ void initialize_game(Game *game)
     randomize_floor(&game->tilemap, 0);
     orient_walls(&game->tilemap);
 
+
+    init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,400);
+
     game->powerUpCount = 0; 
     load_powerup_resources(game->pRenderer);
     init_powerUps(game->pRenderer, &game->tilemap, game->TILE_SIZE);   
-
-
 
     const char *characterFiles[] = {
         "resources/characters/warriorTwo.png",
@@ -172,6 +175,7 @@ void initialize_game(Game *game)
     game->w = game->a = game->s = game->d = game->up = game->down = game->left = game->right = false;
     game->space = false;
     game->music = true;
+    
 }
 
 void process_input(Game *game)
@@ -310,6 +314,8 @@ void update_game(Game *game)
         }
         
 
+        SDL_FPoint center = {game->characters[0]->rect.x + game->characters[0]->rect.w / 2 , game->characters[0]->rect.y + game->characters[0]->rect.h / 2 };
+        drawLimitedVision(&game->lv, center);
         // Render
         SDL_RenderPresent(game->pRenderer);
         SDL_Delay(1000 / 120); // 60 frames/s
