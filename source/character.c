@@ -85,8 +85,33 @@ void move_character(Character *character, TileMap *tilemap,
     if (currentTicks > character->invisiblePowerupTime && character->invisiblePowerupTime != 0) {
         character->visible = 1;  // visible again
         character->invisiblePowerupTime = 0;  //reset powerup timer
-    }    
+    }
+    // Normalize velocity
+    float magnitude = sqrt(character->velocity.x * character->velocity.x + character->velocity.y * character->velocity.y);
+    if (magnitude != 0) {
+        character->velocity.x /= magnitude;
+        character->velocity.x *= character->speed;
+        character->velocity.y /= magnitude;
+        character->velocity.y *= character->speed;
 
+    }
+    
+    if (fabsf(character->velocity.x) > fabsf(character->velocity.y)) {
+        if (character->velocity.x > 0) {
+            set_direction(character, 'r');
+        } else {
+            set_direction(character, 'l');
+        }
+    } else if (fabsf(character->velocity.x) < fabsf(character->velocity.y)) {
+        if (character->velocity.y > 0) {
+            set_direction(character, 'd');
+        } else {
+            set_direction(character, 'u');
+        }
+    }
+    else {
+        stop_moving(character);
+    }
     // Collision detection and movement
     // inspired by Jonathan Whiting at https://jonathanwhiting.com/tutorial/collision/
 
@@ -238,7 +263,6 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
     // Adjust the destination rectangle based on the tilemap's position
     destRect.x -= camera->x;
     destRect.y -= camera->y;
-    SDL_RenderDrawRect(pRenderer, &destRect);
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
     
     
