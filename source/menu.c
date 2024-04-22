@@ -6,10 +6,7 @@
 #include "menu.h"
 #include "music.h"
 
-#define BACKGROUND_IMG_PATH "resources/MenuBackground.png"
-#define START_GAME_IMG_PATH "resources/StartGame.png"
-#define OPTIONS_IMG_PATH "resources/Options.png"
-#define QUIT_GAME_IMG_PATH "resources/QuitGame.png"
+#define BACKGROUND_IMG_PATH "resources/menu/MenuBackground.png"
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
@@ -184,6 +181,8 @@ bool optionsMenu(SDL_Renderer *renderer)
                         mouseY >= SLIDER_Y && mouseY <= SLIDER_Y + SLIDER_HEIGHT)
                     {
                         draggingSlider = true;
+
+                        // For being able to click anywhere on the slider handle  
                         float newHandleX = mouseX - 10; // Center the handle under the mouse
                         // Make sure the slider does not go "out of bounds"
                         if (newHandleX < BUTTONS_X)
@@ -220,6 +219,7 @@ bool optionsMenu(SDL_Renderer *renderer)
             case SDL_MOUSEMOTION:
                 if (draggingSlider)
                 {
+                    // For being able to slide the handle
                     float newHandleX = event.motion.x - 10; // Center the handle under the mouse
                     // Make sure the slider does not go "out of bounds"
                     if (newHandleX < BUTTONS_X)
