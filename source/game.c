@@ -50,9 +50,10 @@ typedef struct _Game
     int powerUpCount;               
 
     bool space, music, m, lower_volume, inc_volume;
-    bool up, down, left, right;
-    bool w, a, s, d;
     bool closeWindow;
+    float deltaTime;
+    Uint32 lastFrameTime;
+    Uint32 currentFrameTime;
 
 } Game;
 
@@ -65,6 +66,7 @@ int runGame()
 {
     Game game;
     initialize_game(&game);
+    game.lastFrameTime = SDL_GetTicks();
 
     while (!game.closeWindow)
     {
@@ -149,9 +151,11 @@ void initialize_game(Game *game)
 
     //ATM if you dont get hunter, you get the same outfit everytime
     int hunterIndex = rand() % game->PLAYERS;
-    hunterIndex = 0; 
+    hunterIndex = 0;
     for (int i = 0; i < game->PLAYERS; i++)
     {
+        SDL_Point spawn = get_spawn_point(&game->tilemap, i == hunterIndex);
+
         if(i == hunterIndex){
             game->characters[i] = init_character(game->pRenderer, hunterClothes[0], 1);
             game->hunter = game->characters[i];
@@ -159,9 +163,9 @@ void initialize_game(Game *game)
             game->characters[i] = init_character(game->pRenderer, characterFiles[i], 0);
         }
         
-        SDL_Point spawn = get_spawn_point(&game->tilemap, game->characters[i]->isHunter);
-        game->characters[i]->rect.x = spawn.x;
-        game->characters[i]->rect.y = spawn.y;
+        game->characters[i]->position.x = spawn.x;
+        game->characters[i]->position.y = spawn.y;
+        update_character_rect(game->characters[i], &game->characters[i]->position);
     }
 
         
@@ -172,7 +176,6 @@ void initialize_game(Game *game)
     game->gameState = PAUSED;
     game->closeWindow = false;
     game->m = game->lower_volume = game->inc_volume = false;
-    game->w = game->a = game->s = game->d = game->up = game->down = game->left = game->right = false;
     game->space = false;
     game->music = true;
     
@@ -181,7 +184,6 @@ void initialize_game(Game *game)
 void process_input(Game *game)
 {
     SDL_Event event;
-    SDL_RenderClear(game->pRenderer);
     while (SDL_PollEvent(&event))
     {
         switch (event.type)
@@ -203,39 +205,22 @@ void process_input(Game *game)
                 game->space = true;
                 break;
             case SDL_SCANCODE_UP:
-                game->up = true;
                 set_direction(game->characters[0], 'u');
+                game->characters[0]->velocity.y = -game->characters[0]->speed;
                 break;
             case SDL_SCANCODE_LEFT:
-                game->left = true;
                 set_direction(game->characters[0], 'l');
+                game->characters[0]->velocity.x = -game->characters[0]->speed;
                 break;
             case SDL_SCANCODE_DOWN:
-                game->down = true;
                 set_direction(game->characters[0], 'd');
+                game->characters[0]->velocity.y = game->characters[0]->speed;
                 break;
             case SDL_SCANCODE_RIGHT:
-                game->right = true;
+                game->characters[0]->velocity.x = game->characters[0]->speed;
                 set_direction(game->characters[0], 'r');
                 break;
 
-                // WASD
-                //  case SDL_SCANCODE_W:
-                //      game->w = true;
-                //      set_direction(game->characters[0], 'u');
-                //      break;
-                //  case SDL_SCANCODE_A:
-                //      game->a = true;
-                //      set_direction(game->characters[0], 'l');
-                //      break;
-                //  case SDL_SCANCODE_S:
-                //      game->s = true;
-                //      set_direction(game->characters[0], 'd');
-                //      break;
-                //  case SDL_SCANCODE_D:
-                //      game->d = true;
-                //      set_direction(game->characters[0], 'r');
-                //      break;
             }
             break;
         case SDL_KEYUP:
@@ -243,20 +228,20 @@ void process_input(Game *game)
             {
             // ARROWS
             case SDL_SCANCODE_UP:
-                game->up = false;
                 stop_moving(game->characters[0]);
+                game->characters[0]->velocity.y = 0;
                 break;
             case SDL_SCANCODE_LEFT:
-                game->left = false;
                 stop_moving(game->characters[0]);
+                game->characters[0]->velocity.x = 0;
                 break;
             case SDL_SCANCODE_DOWN:
-                game->down = false;
                 stop_moving(game->characters[0]);
+                game->characters[0]->velocity.y = 0;
                 break;
             case SDL_SCANCODE_RIGHT:
-                game->right = false;
                 stop_moving(game->characters[0]);
+                game->characters[0]->velocity.x = 0;
                 break;
 
                 // WASD
@@ -284,10 +269,6 @@ void update_game(Game *game)
     {
     case PAUSED:
         SDL_RenderClear(game->pRenderer);
-        game->down = false;
-        game->up = false;
-        game->left = false;
-        game->right = false;
 
         if (mainMenu(game->pRenderer))
             game->gameState = QUIT;
@@ -296,6 +277,7 @@ void update_game(Game *game)
             SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
         break;
     case PLAYING:
+        SDL_RenderClear(game->pRenderer);
         if (game->space)
         {
             kill_command(game->characters[0], game->characters, game->PLAYERS);
@@ -303,7 +285,7 @@ void update_game(Game *game)
         }
         // Move character
         move_character(game->characters[0], &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,
-                       game->up, game->down, game->left, game->right, game->characters, game->PLAYERS);
+                       game->deltaTime, game->characters, game->PLAYERS);
         follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
         // Draw stage
         tilemap_draw(&game->tilemap);
@@ -314,11 +296,13 @@ void update_game(Game *game)
         }
         
 
-        SDL_FPoint center = {game->characters[0]->rect.x + game->characters[0]->rect.w / 2 , game->characters[0]->rect.y + game->characters[0]->rect.h / 2 };
+        SDL_FPoint center = get_character_center(game->characters[0]);
         drawLimitedVision(&game->lv, center);
         // Render
         SDL_RenderPresent(game->pRenderer);
-        SDL_Delay(1000 / 120); // 60 frames/s
+        game->currentFrameTime = SDL_GetTicks();
+        game->deltaTime = (game->currentFrameTime - game->lastFrameTime) / 1000.0f;
+        game->lastFrameTime = game->currentFrameTime;
         break;
     case QUIT:
         game->closeWindow = true;

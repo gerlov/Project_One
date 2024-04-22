@@ -79,7 +79,7 @@ void apply_powerUp(Character *character, PowerUpType type) {
         case POWERUP_SPEED:
             // adjust powerup effect / speed here
             // OBS adjust also in the move_character upon timer expiration 
-            if (character->speedPowerupTime == 0) character->speed += 20;   
+            if (character->speedPowerupTime == 0) character->speed += 200;   
             // adjust powerup effect time here, now it worx for 10 seconds only
             character->speedPowerupTime = SDL_GetTicks() + 10000;
             play_sound_once(soundSpeed); 

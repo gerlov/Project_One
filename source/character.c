@@ -35,8 +35,9 @@ Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isH
     }
     create_texture(&character->texture, pRenderer, filePath);
     SDL_QueryTexture(character->texture, NULL, NULL, &character->rect.w, &character->rect.h);
-    character->rect.x = 400;
-    character->rect.y = 200;
+    character->position = (SDL_FPoint){0, 0};
+    character->velocity = (SDL_FPoint){0, 0};
+    update_character_rect(character, &character->position);
     character->rect.w /= 4;
     character->rect.h /= 4;
     character->direction='d';
@@ -51,7 +52,7 @@ Character* init_character(SDL_Renderer *pRenderer, const char *filePath, int isH
     character->currentFrame = 0;
     character->frameLastUpdated = SDL_GetTicks(); 
     character -> health = 100; 
-    character -> speed = 5;  // aka 300 / 60 
+    character -> speed = 300;
     character -> visible = 1; 
     // powerup timers init: 
     character -> speedPowerupTime = character -> invisiblePowerupTime = 0;  
@@ -69,16 +70,15 @@ void stop_moving(Character *character){
 
 void move_character(Character *character, TileMap *tilemap, 
                     int WINDOW_WIDTH, int WINDOW_HEIGHT, 
-                    int up, int down, int left, int right, 
+                    float deltaTime, 
                     Character **other_characters, int num_other_characters) { 
 
     if(character->isKilled == 1) return; 
-
     Uint32 currentTicks = SDL_GetTicks(); // for powerup timers  
 
     // 2 st check for powerup timers expiration, resets everything to default values if expired
     if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0) {
-        character->speed -= 20;  // set back to default speed (defined in init)
+        character->speed -= 200;  // set back to default speed (defined in init)
         character->speedPowerupTime = 0;  // reset poerup timer
     } 
 
@@ -87,22 +87,58 @@ void move_character(Character *character, TileMap *tilemap,
         character->invisiblePowerupTime = 0;  //reset powerup timer
     }    
 
-    SDL_Rect nextPosition = character->rect;
-    nextPosition.y += (down - up) * character -> speed;  
-    nextPosition.x += (right - left) * character -> speed; 
+    // Collision detection and movement
+    // inspired by Jonathan Whiting at https://jonathanwhiting.com/tutorial/collision/
 
-    // Check collision with the walls
-    if (collides(&nextPosition, tilemap, TILE_WALL)) {  
-        play_sound_once(wall_sound);
-        return;  
+    SDL_FPoint oldPosition = character->position;
+    SDL_FPoint preNewPosition = character->position;
+    SDL_FPoint newPosition = character->position;
+    bool hasCollided = false;
+
+    // Check the x-axis
+    newPosition.x += character->velocity.x * deltaTime;
+    // Update the character's rect to the new position
+    update_character_rect(character, &newPosition);
+    // Check collision with the walls on the x-axis
+    if (collides(&character->rect, tilemap, TILE_WALL)) {  
+        // Collision with the wall, reset the position
+        newPosition = preNewPosition;
+        hasCollided = true;
+    }
+    // Update the character's rect to the new position
+    update_character_rect(character, &newPosition);
+
+    // Prepare for the next check
+    preNewPosition = newPosition;
+
+    // Check the y-axis
+    newPosition.y += character->velocity.y * deltaTime;
+
+    update_character_rect(character, &newPosition);
+    // Check collision with the walls on the y-axis
+    if (collides(&character->rect, tilemap, TILE_WALL)) {
+        // Collision with the wall, reset the position
+        newPosition = preNewPosition;
+        hasCollided = true;
+    }
+    // Set the new position and update the character's rect
+    character->position = newPosition;
+    update_character_rect(character, &newPosition);
+
+    if (hasCollided) {
+        // Has collided with a wall, play sound and return
+        play_sound_once(wall_sound); 
+        return; 
     }
 
     // collision with other characters (remove if not needed)
     for (int i = 0; i < num_other_characters; i++) {
         if (character != other_characters[i] && 
             other_characters[i]->isKilled == 0 && 
-            SDL_HasIntersection(&nextPosition, &other_characters[i]->rect)) 
+            SDL_HasIntersection(&character->rect, &other_characters[i]->rect)) 
             {
+                character->position = oldPosition;
+                update_character_rect(character, &oldPosition);
                // play_sound_once(oi_sound); // <- diagnostic, remove
                 return; // collision with another character, return 
             }
@@ -116,8 +152,6 @@ void move_character(Character *character, TileMap *tilemap,
         }
     }
 
-    // Update the character's position if no collisions occurred
-    character->rect = nextPosition;
 }
 
 // TODO: Fix so that we just send in one character and checks if any of the other characters are in range to kill
@@ -166,6 +200,22 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
     }
 
 
+    if (abs(character->velocity.x) > abs(character->velocity.y)) {
+        if (character->velocity.x > 0) {
+            character->direction = 'r';
+        } else {
+            character->direction = 'l';
+        }
+    } else if (abs(character->velocity.y) > abs(character->velocity.x)){
+        if (character->velocity.y > 0) {
+            character->direction = 'd';
+        } else {
+            character->direction = 'u';
+        }
+    }
+    else {
+        // 0,0
+    }
     SDL_Rect srcRect;
     srcRect.w = frameWidth;
     srcRect.h = frameHeight;
@@ -177,7 +227,7 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
         case 'l': srcRect.y = 1 * frameHeight; break; 
         case 'r': srcRect.y = 2 * frameHeight; break; 
         case 'u': srcRect.y = 3 * frameHeight; break; 
-        default:  srcRect.y = 0 * frameHeight; break; 
+        default:   
     }
 
 
@@ -188,6 +238,7 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
     // Adjust the destination rectangle based on the tilemap's position
     destRect.x -= camera->x;
     destRect.y -= camera->y;
+    SDL_RenderDrawRect(pRenderer, &destRect);
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
     
     
@@ -206,4 +257,13 @@ void cleanup_character(Character* character) {
 void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT) {
     camera->x = player->x - WINDOW_WIDTH / 2 + player->w / 2;
     camera->y = player->y - WINDOW_HEIGHT / 2 + player->h / 2;
+}
+
+void update_character_rect(Character *character, SDL_FPoint *position) {
+    character->rect.x = (int)position->x;
+    character->rect.y = (int)position->y;
+}
+
+SDL_FPoint get_character_center(Character *character) {
+    return (SDL_FPoint){character->position.x + character->rect.w / 2, character->position.y + character->rect.h / 2};
 }
