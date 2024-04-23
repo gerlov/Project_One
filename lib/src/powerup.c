@@ -11,10 +11,10 @@ Single_sound* soundInvisible;
 
 
 void load_powerup_resources(SDL_Renderer* renderer) {  
-    create_texture(&textureSpeed, renderer, "../lib/resources/testpack/red.png");
-    create_texture(&textureInvisible, renderer, "../lib/resources/testpack/green.png"); 
-    soundSpeed = init_sound_effect("../lib/resources/music/horror3.mp3", 100);
-    soundInvisible = init_sound_effect("../lib/resources/music/horror2.mp3", 100);
+    create_texture(&textureSpeed, renderer, "../lib/assets/testpack/red.png");
+    create_texture(&textureInvisible, renderer, "../lib/assets/testpack/green.png"); 
+    soundSpeed = init_sound_effect("../lib/assets/music/horror3.mp3", 100);
+    soundInvisible = init_sound_effect("../lib/assets/music/horror2.mp3", 100);
 }
 
 

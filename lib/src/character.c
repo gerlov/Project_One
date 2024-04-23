@@ -16,19 +16,19 @@ Single_sound *oi_sound;
 Single_sound *kill_sound;
 
 const char *characterFiles[] = {
-    "../lib/resources/characters/warriorTwo.png",
-    "../lib/resources/characters/femaleOne.png",
-    "../lib/resources/characters/maleOne.png",
-    "../lib/resources/characters/warriorOne.png",
-    "../lib/resources/characters/maleOne.png"};
+    "../lib/assets/characters/warriorTwo.png",
+    "../lib/assets/characters/femaleOne.png",
+    "../lib/assets/characters/maleOne.png",
+    "../lib/assets/characters/warriorOne.png",
+    "../lib/assets/characters/maleOne.png"};
 const char *hunterClothes[] = {
-    "../lib/resources/characters/monster.png"};
+    "../lib/assets/characters/monster.png"};
 
 void init_player_sounds()
 {
-    wall_sound = init_sound_effect("../lib/resources/music/sse2.mp3", 10);
-    oi_sound = init_sound_effect("../lib/resources/music/oi.mp3", 30);
-    kill_sound = init_sound_effect("../lib/resources/music/sse1.mp3", 30);
+    wall_sound = init_sound_effect("../lib/assets/music/sse2.mp3", 10);
+    oi_sound = init_sound_effect("../lib/assets/music/oi.mp3", 30);
+    kill_sound = init_sound_effect("../lib/assets/music/sse1.mp3", 30);
 }
 
 void cleanup_player_sounds()

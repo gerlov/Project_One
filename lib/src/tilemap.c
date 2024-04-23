@@ -306,7 +306,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
 
     tilemap->camera = (SDL_FPoint){0, 0};
 
-    SDL_Surface *surface = IMG_Load("../lib/resources/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
+    SDL_Surface *surface = IMG_Load("../lib/assets/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
 
     if (!surface)
     {
@@ -316,7 +316,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
         return;
     }
     tilemap->pTexture = SDL_CreateTextureFromSurface(renderer, surface);
-    surface = IMG_Load("../lib/resources/tiles/Yellow_Brick_Floor.png");
+    surface = IMG_Load("../lib/assets/tiles/Yellow_Brick_Floor.png");
     if (!surface)
     {
         printf("Error: %s\n", SDL_GetError());

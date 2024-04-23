@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 int init_SDL_window(SDL_Window **window, SDL_Renderer **renderer, int WINDOW_WIDTH, int WINDOW_HEIGHT) {
-    if(SDL_Init(SDL_INIT_VIDEO) != 0) {
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
         printf("Error initializing SDL: %s\n", SDL_GetError());
         return 1;
     }

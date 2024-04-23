@@ -52,11 +52,11 @@ void initialize_game(Game *game)
     init_player_sounds();
 
     char *soundPathbgm[] = {
-        "../lib/resources/music/bgm1.mp3",
-        "../lib/resources/music/bgm2.mp3",
-        "../lib/resources/music/bgm3.mp3",
-        "../lib/resources/music/bgm4.mp3",
-        "../lib/resources/music/PEDRO.mp3"};
+        "../lib/assets/music/bgm1.mp3",
+        "../lib/assets/music/bgm2.mp3",
+        "../lib/assets/music/bgm3.mp3",
+        "../lib/assets/music/bgm4.mp3",
+        "../lib/assets/music/PEDRO.mp3"};
     // Random background;
     int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
     int backgroundIndex = our_rand() % size_of_soundPathbgm;
@@ -80,13 +80,13 @@ void initialize_game(Game *game)
     init_powerUps(game->pRenderer, &game->tilemap, game->TILE_SIZE);
 
     const char *characterFiles[] = {
-        "../lib/resources/characters/warriorTwo.png",
-        "../lib/resources/characters/femaleOne.png",
-        "../lib/resources/characters/maleOne.png",
-        "../lib/resources/characters/warriorOne.png",
-        "../lib/resources/characters/maleOne.png"};
+        "../lib/assets/characters/warriorTwo.png",
+        "../lib/assets/characters/femaleOne.png",
+        "../lib/assets/characters/maleOne.png",
+        "../lib/assets/characters/warriorOne.png",
+        "../lib/assets/characters/maleOne.png"};
     const char *hunterClothes[] = {
-        "../lib/resources/characters/monster.png"};
+        "../lib/assets/characters/monster.png"};
 
     // Initate characters
     // Clear just in case
