@@ -1,75 +1,12 @@
-#include <stdio.h>
-#include <stdbool.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <SDL2/SDL_mixer.h>
-#include "tilemap.h"
-#include "music.h"
+#include "game.h"
 #include "window.h"
 #include "collisions.h"
-#include "powerup.h"
 #include "menu.h"
+#include "our_rand.h"
 #include <stdlib.h> // rand(), srand()
 #include <time.h>   // for seeding srand()
-#include "character.h"
 #include "texture.h"
-#include "limitedvision.h"
 
-#define MAX_PLAYERS 6
-
-// Enum for game states
-typedef enum
-{
-    PAUSED,
-    PLAYING,
-    QUIT
-} GameState;
-
-typedef struct _Game
-{
-    int speed;
-    int TILE_SIZE;
-    int SPEED;
-    int TILE_W_AMOUNT;
-    int TILE_H_AMOUNT;
-    int GAME_W;
-    int GAME_H;
-    int WINDOW_WIDTH;
-    int WINDOW_HEIGHT;
-    int PLAYERS;
-    SDL_Window *pWindow;
-    SDL_Renderer *pRenderer;
-    BackgroundMusic *bgm;
-    Character *characters[MAX_PLAYERS];
-    Character *hunter;
-    TileMap tilemap;
-    GameState gameState;
-    LimitedVision lv;
-
-    PowerUp powerUps[MAX_POWERUPS];
-    int powerUpCount;
-
-    bool space, music, m, lower_volume, inc_volume;
-    bool closeWindow;
-    float deltaTime;
-    Uint64 lastFrameTime;
-    Uint64 currentFrameTime;
-
-    // TODO(THEO): move this to input.h later
-    union 
-    {
-        struct
-        {
-            int up : 1;
-            int down : 1;
-            int left : 1;
-            int right : 1;
-            int space : 1;
-        };
-        int all : 5;
-    } keys;
-
-} Game;
 
 void initialize_game(Game *game);
 void process_input(Game *game);
@@ -98,7 +35,7 @@ int runGame()
 
 void initialize_game(Game *game)
 {
-    srand(time(NULL));
+    our_srand(time(NULL));
     game->PLAYERS = 5;
     game->speed = 300;
     game->TILE_SIZE = 64;
@@ -115,14 +52,14 @@ void initialize_game(Game *game)
     init_player_sounds();
 
     char *soundPathbgm[] = {
-        "resources/music/bgm1.mp3",
-        "resources/music/bgm2.mp3",
-        "resources/music/bgm3.mp3",
-        "resources/music/bgm4.mp3",
-        "resources/music/PEDRO.mp3"};
+        "../lib/resources/music/bgm1.mp3",
+        "../lib/resources/music/bgm2.mp3",
+        "../lib/resources/music/bgm3.mp3",
+        "../lib/resources/music/bgm4.mp3",
+        "../lib/resources/music/PEDRO.mp3"};
     // Random background;
     int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
-    int backgroundIndex = rand() % size_of_soundPathbgm;
+    int backgroundIndex = our_rand() % size_of_soundPathbgm;
 
     // SUPER BACKGROUD MUSIC
     game->bgm = init_background_music(soundPathbgm[backgroundIndex], 100);
@@ -134,9 +71,7 @@ void initialize_game(Game *game)
 
     // Setting up tilemap;
     tilemap_init(&game->tilemap, game->pRenderer);
-    tilemap_load(&game->tilemap, 1);
-    randomize_floor(&game->tilemap, 0);
-    orient_walls(&game->tilemap);
+    tilemap_load(&game->tilemap, 1, time(NULL));
 
     init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 400);
 
@@ -145,13 +80,13 @@ void initialize_game(Game *game)
     init_powerUps(game->pRenderer, &game->tilemap, game->TILE_SIZE);
 
     const char *characterFiles[] = {
-        "resources/characters/warriorTwo.png",
-        "resources/characters/femaleOne.png",
-        "resources/characters/maleOne.png",
-        "resources/characters/warriorOne.png",
-        "resources/characters/maleOne.png"};
+        "../lib/resources/characters/warriorTwo.png",
+        "../lib/resources/characters/femaleOne.png",
+        "../lib/resources/characters/maleOne.png",
+        "../lib/resources/characters/warriorOne.png",
+        "../lib/resources/characters/maleOne.png"};
     const char *hunterClothes[] = {
-        "resources/characters/monster.png"};
+        "../lib/resources/characters/monster.png"};
 
     // Initate characters
     // Clear just in case
@@ -162,7 +97,7 @@ void initialize_game(Game *game)
     }
 
     // ATM if you dont get hunter, you get the same outfit everytime
-    int hunterIndex = rand() % game->PLAYERS;
+    int hunterIndex = our_rand() % game->PLAYERS;
     hunterIndex = 0;
     for (int i = 0; i < game->PLAYERS; i++)
     {
@@ -183,8 +118,8 @@ void initialize_game(Game *game)
         update_character_rect(game->characters[i], &game->characters[i]->position);
     }
 
-    game->GAME_W = game->tilemap.width * game->TILE_SIZE;
-    game->GAME_H = game->tilemap.height * game->TILE_SIZE;
+    game->GAME_WIDTH = game->tilemap.width * game->TILE_SIZE;
+    game->GAME_HEIGHT = game->tilemap.height * game->TILE_SIZE;
 
     // Setting up states
     game->gameState = PAUSED;

@@ -6,10 +6,10 @@
 #include "menu.h"
 #include "music.h"
 
-#define BACKGROUND_IMG_PATH "resources/MenuBackground.png"
-#define START_GAME_IMG_PATH "resources/StartGame.png"
-#define OPTIONS_IMG_PATH "resources/Options.png"
-#define QUIT_GAME_IMG_PATH "resources/QuitGame.png"
+#define BACKGROUND_IMG_PATH "../lib/resources/MenuBackground.png"
+#define START_GAME_IMG_PATH "../lib/resources/StartGame.png"
+#define OPTIONS_IMG_PATH "../lib/resources/Options.png"
+#define QUIT_GAME_IMG_PATH "../lib/resources/QuitGame.png"
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
@@ -45,7 +45,7 @@ void createMenuButton(SDL_Renderer *renderer, char *text, int r, int g, int b, i
 {
     SDL_Color textColor = {0, 0, 0, 255};
 
-    TTF_Font *Font = TTF_OpenFont("resources/Jacquard24-Regular.ttf", 24);
+    TTF_Font *Font = TTF_OpenFont("../lib/resources/Jacquard24-Regular.ttf", 24);
     if (Font == NULL)
     {
         return;
@@ -74,7 +74,7 @@ void drawText(SDL_Renderer *renderer, char *text, int y)
 {
     SDL_Color textColor = {255, 255, 255, 255};
 
-    TTF_Font *Font = TTF_OpenFont("resources/Jacquard24-Regular.ttf", 24);
+    TTF_Font *Font = TTF_OpenFont("../lib/resources/Jacquard24-Regular.ttf", 24);
     if (Font == NULL)
     {
         return;

@@ -1,14 +1,13 @@
 # Makefile for both Windows and Mac
+# This Makefile compiles the server program
 # folder for .c files 
-
-# DO NOT USE
-
-SRCDIR=./source
+SRCDIR=./src
+COMMONSRCDIR=../lib/source
 # folder for .h files
-INCDIR=./include
+INCDIR=../lib/include
 
 # Name of the executable
-TARGET:=Game
+TARGET:=Server
 # Compiler
 CC:=gcc
 
@@ -39,42 +38,45 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 
 # run 'make' to compile the program
 
-$(TARGET): main.o tilemap.o music.o window.o collisions.o powerup.o menu.o character.o texture.o game.o limitedvision.o
+$(TARGET): main.o tilemap.o music.o window.o collisions.o powerup.o menu.o character.o texture.o game.o limitedvision.o our_rand.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 
 main.o: $(SRCDIR)/main.c
 	$(CC) $(CFLAGS) $(SRCDIR)/main.c
 	
-tilemap.o: $(SRCDIR)/tilemap.c
-	$(CC) $(CFLAGS) $(SRCDIR)/tilemap.c
+tilemap.o: $(COMMONSRCDIR)/tilemap.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/tilemap.c
 
-music.o: $(SRCDIR)/music.c
-	$(CC) $(CFLAGS) $(SRCDIR)/music.c
+music.o: $(COMMONSRCDIR)/music.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/music.c
 
-window.o: $(SRCDIR)/window.c
-	$(CC) $(CFLAGS) $(SRCDIR)/window.c  
+window.o: $(COMMONSRCDIR)/window.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/window.c  
 
-collisions.o: $(SRCDIR)/collisions.c
-	$(CC) $(CFLAGS) $(SRCDIR)/collisions.c	
+collisions.o: $(COMMONSRCDIR)/collisions.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/collisions.c	
 
-powerup.o: $(SRCDIR)/powerup.c
-	$(CC) $(CFLAGS) $(SRCDIR)/powerup.c		
+powerup.o: $(COMMONSRCDIR)/powerup.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/powerup.c		
 
-menu.o: $(SRCDIR)/menu.c
-	$(CC) $(CFLAGS) $(SRCDIR)/menu.c
+menu.o: $(COMMONSRCDIR)/menu.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/menu.c
 
-character.o: $(SRCDIR)/character.c
-	$(CC) $(CFLAGS) $(SRCDIR)/character.c
+character.o: $(COMMONSRCDIR)/character.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/character.c
 
-texture.o: $(SRCDIR)/texture.c
-	$(CC) $(CFLAGS) $(SRCDIR)/texture.c
+texture.o: $(COMMONSRCDIR)/texture.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/texture.c
 
-game.o: $(SRCDIR)/game.c
-	$(CC) $(CFLAGS) $(SRCDIR)/game.c
+game.o: $(COMMONSRCDIR)/game.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game.c
 
-limitedvision.o: $(SRCDIR)/limitedvision.c $(INCDIR)/limitedvision.h
-	$(CC) $(CFLAGS) $(SRCDIR)/limitedvision.c
+limitedvision.o: $(COMMONSRCDIR)/limitedvision.c $(INCDIR)/limitedvision.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/limitedvision.c
+
+our_rand.o: $(COMMONSRCDIR)/our_rand.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/our_rand.c
 
 # ----- Run the program -----------------
 # run 'make run' to compile and run the program in one command

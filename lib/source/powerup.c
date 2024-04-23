@@ -1,4 +1,5 @@
 #include "powerup.h"  
+#include "our_rand.h"
 
 PowerUp powerUps[MAX_POWERUPS];
 int powerUpCount = 0; 
@@ -10,10 +11,10 @@ Single_sound* soundInvisible;
 
 
 void load_powerup_resources(SDL_Renderer* renderer) {  
-    create_texture(&textureSpeed, renderer, "resources/testpack/red.png");
-    create_texture(&textureInvisible, renderer, "resources/testpack/green.png"); 
-    soundSpeed = init_sound_effect("resources/music/horror3.mp3", 100);
-    soundInvisible = init_sound_effect("resources/music/horror2.mp3", 100);
+    create_texture(&textureSpeed, renderer, "../lib/resources/testpack/red.png");
+    create_texture(&textureInvisible, renderer, "../lib/resources/testpack/green.png"); 
+    soundSpeed = init_sound_effect("../lib/resources/music/horror3.mp3", 100);
+    soundInvisible = init_sound_effect("../lib/resources/music/horror2.mp3", 100);
 }
 
 
@@ -28,12 +29,12 @@ void cleanup_powerup_resources() {
 void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) {
     int placedCount = 0;
     for (int i = 0; i < MAX_POWERUPS; i++) {
-        int x = rand() % tilemap->width;
-        int y = rand() % tilemap->height;
+        int x = our_rand() % tilemap->width;
+        int y = our_rand() % tilemap->height;
         Tile* tile = get_tile(tilemap, x, y);
 
         if (tile->type == TILE_FLOOR) {
-            int powerUpType = rand() % 2; // rand type of power-up
+            int powerUpType = our_rand() % 2; // rand type of power-up
             PowerUpType type = (powerUpType == 0) ? POWERUP_SPEED : POWERUP_INVISIBLE;
             SDL_Texture* texture = (powerUpType == 0) ? textureSpeed : textureInvisible;
 

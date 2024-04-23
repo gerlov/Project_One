@@ -70,7 +70,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer);
 /// @brief Loads the selected map into the tilemap
 /// @param tilemap  The tilemap to load the data into
 /// @param map_id The id of the map to load
-void tilemap_load(TileMap *tilemap, int map_id);
+void tilemap_load(TileMap *tilemap, int map_id, int seed);
 
 /// @brief Loads a tilemap from a file !UNIMPLEMENTED!
 /// @param tilemap output tilemap
@@ -126,7 +126,7 @@ void recursive_backtrack(int maze[], int visited[], int width, int height, int c
 /// @brief Randomize the floor pattern
 /// @param tilemap pointer to the tilemap
 /// @param seed the seed for the random number generator
-void randomize_floor(TileMap *tilemap, int seed);
+void randomize_floor(TileMap *tilemap);
 
 /// @brief Orients the walls based on the surrounding tiles
 /// @param tilemap the tilemap to orient the walls in
