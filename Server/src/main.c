@@ -18,9 +18,6 @@
 */
 
 
-
-// #include "../lib/include/game.h"
-
 typedef struct _game
 {
     SDL_Window *pWindow;
@@ -56,7 +53,7 @@ void add(IPaddress address, IPaddress *clients, int *nrOfClients)
     clients[*nrOfClients] = address;
     (*nrOfClients)++;
 }
-void init(Game_s *game);
+int init(Game_s *game);
 void setupgame(Game_s *game);
 void close(Game_s *game);
 void playing(Game_s *game);
@@ -68,24 +65,27 @@ int getPlayerIndex(Game_s *game);
 int main(int argc, char *argv[])
 {
     Game_s game = {0};
-    init(&game);
+    if (init(&game) == 1 ) {
+        sprintf(stderr, "Error initializing game\n");
+        exit(1);
+    }
     run(&game);
     close(&game);
     return 0;
 }
 
-void init(Game_s *game)
+int init(Game_s *game)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
-        printf("Error initializing SDL: %s\n", SDL_GetError());
-        exit(1);
+        sprintf(stderr,"Error initializing SDL: %s\n", SDL_GetError());
+        return 1;
     }
 
     if (SDLNet_Init() == -1)
     {
-        printf("Error initializing SDL_net: %s\n", SDLNet_GetError());
-        exit(1);
+        sprintf(stderr,"Error initializing SDL_net: %s\n", SDLNet_GetError());
+        return 1;
     }
 
     game->pWindow = SDL_CreateWindow("Server", 0, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
@@ -93,7 +93,7 @@ void init(Game_s *game)
     {
         fprintf(stderr,"Error creating window: %s\n", SDL_GetError());
         SDL_Quit();
-        exit(1);
+        return 1;
     }
 
     game->pRenderer = SDL_CreateRenderer(game->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
@@ -102,7 +102,7 @@ void init(Game_s *game)
         fprintf(stderr,"Error creating renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(game->pWindow);
         SDL_Quit();
-        exit(1);
+        return 1;
     }
     if (!(game->serverSocket = SDLNet_UDP_Open(2000)))
     {
@@ -110,7 +110,7 @@ void init(Game_s *game)
         SDL_DestroyRenderer(game->pRenderer);
         SDL_DestroyWindow(game->pWindow);
         SDL_Quit();
-        exit(1);
+        return 1;
     }
     if (!(game->packet = SDLNet_AllocPacket(512)))
     {
@@ -119,7 +119,7 @@ void init(Game_s *game)
         SDL_DestroyRenderer(game->pRenderer);
         SDL_DestroyWindow(game->pWindow);
         SDL_Quit();
-        exit(1);
+        return 1;
     }
     tilemap_init(&game->tilemap, game->pRenderer);
     game->gameState = START;
@@ -131,6 +131,7 @@ void init(Game_s *game)
     {
         game->readyPlayes[i] = false;
     }
+    return 0;
 }
 
 

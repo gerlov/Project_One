@@ -69,10 +69,6 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
-    else {
-        printf("Initiated\n");
-        return 0;
-    }
     run(&game);
     close(&game);
     return 0;
