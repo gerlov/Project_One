@@ -1,8 +1,10 @@
 // #include "./inc/client_game.h"
+#define NO_STDIO_REDIRECT
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
 #include <stdbool.h>
+#include <time.h>
 #include "our_rand.h"
 #include "data.h"
 #include "window.h"
@@ -60,12 +62,16 @@ void playing(Game_c *game);
 void updateFromServer(Game_c *game);
 void updateToServer(Game_c *game);
 
-int main()
+int main(int argc, char *argv[])
 {
     Game_c game = {0};
     if (initiate(&game) == 1)
     {
         return 1;
+    }
+    else {
+        printf("Initiated\n");
+        return 0;
     }
     run(&game);
     close(&game);
@@ -74,10 +80,15 @@ int main()
 
 int initiate(Game_c *game)
 {
-    game->WINDOW_WIDTH = 700;
-    game->WINDOW_HEIGHT = 500;
+    game->WINDOW_WIDTH = 1200;
+    game->WINDOW_HEIGHT = 700;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) == 1)
     {
+        return 1;
+    }
+    if (SDLNet_Init() == -1)
+    {
+        fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
         return 1;
     }
     if (!(game->serverSocket = SDLNet_UDP_Open(0)))
@@ -120,6 +131,7 @@ int initiate(Game_c *game)
     game->gameState = START;
     game->ready = false;
     game->oldready = false;
+    return 0;
 }
 
 void start(Game_c *game)
@@ -222,6 +234,7 @@ void startGame(Game_c *game)
 
 void run(Game_c *game)
 {
+    SDL_Event event;
     game->lastFrameTime = SDL_GetPerformanceCounter();
     while (game->gameState != QUIT)
     {

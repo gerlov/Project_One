@@ -1,14 +1,24 @@
 // #include "./inc/server_game.h"
+#define NO_STDIO_REDIRECT
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
 #include <stdbool.h>
+#include <time.h>
 #include "our_rand.h"
 #include "data.h"
 #include "window.h"
 #include "tilemap.h"
 #include "music.h"
 #include "powerup.h"
+
+/* 
+     !IMPORTANT!
+*    If the server doesn't start, make sure that the server is not already running in the background. AKA check the task manager to kill it.
+*/
+
+
+
 // #include "../lib/include/game.h"
 
 typedef struct _game
@@ -55,7 +65,7 @@ void start(Game_s *game);
 int getPlayerIndex(Game_s *game);
 
 
-int main()
+int main(int argc, char *argv[])
 {
     Game_s game = {0};
     init(&game);
@@ -81,7 +91,7 @@ void init(Game_s *game)
     game->pWindow = SDL_CreateWindow("Server", 0, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
     if (!game->pWindow)
     {
-        printf("Error creating window: %s\n", SDL_GetError());
+        fprintf(stderr,"Error creating window: %s\n", SDL_GetError());
         SDL_Quit();
         exit(1);
     }
@@ -89,14 +99,14 @@ void init(Game_s *game)
     game->pRenderer = SDL_CreateRenderer(game->pWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE);
     if (!game->pRenderer)
     {
-        printf("Error creating renderer: %s\n", SDL_GetError());
+        fprintf(stderr,"Error creating renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(game->pWindow);
         SDL_Quit();
         exit(1);
     }
     if (!(game->serverSocket = SDLNet_UDP_Open(2000)))
     {
-        printf("Error opening socket: %s\n", SDLNet_GetError());
+        fprintf(stderr,"Error opening socket: %s\n", SDLNet_GetError());
         SDL_DestroyRenderer(game->pRenderer);
         SDL_DestroyWindow(game->pWindow);
         SDL_Quit();
@@ -104,7 +114,7 @@ void init(Game_s *game)
     }
     if (!(game->packet = SDLNet_AllocPacket(512)))
     {
-        printf("Error allocating packet: %s\n", SDLNet_GetError());
+        fprintf(stderr,"Error allocating packet: %s\n", SDLNet_GetError());
         SDLNet_UDP_Close(game->serverSocket);
         SDL_DestroyRenderer(game->pRenderer);
         SDL_DestroyWindow(game->pWindow);
@@ -337,13 +347,13 @@ void setupgame(Game_s *game)
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
 
     const char *characterFiles[] = {
-        "../lib/resources/characters/warriorTwo.png",
-        "../lib/resources/characters/femaleOne.png",
-        "../lib/resources/characters/maleOne.png",
-        "../lib/resources/characters/warriorOne.png",
-        "../lib/resources/characters/maleOne.png"};
+        "../lib/assets/characters/warriorTwo.png",
+        "../lib/assets/characters/femaleOne.png",
+        "../lib/assets/characters/maleOne.png",
+        "../lib/assets/characters/warriorOne.png",
+        "../lib/assets/characters/maleOne.png"};
     const char *hunterClothes[] = {
-        "../lib/resources/characters/monster.png"};
+        "../lib/assets/characters/monster.png"};
     
     int hunterIndex = game->joinData.hunterindex;
     Character characters[MAX_PLAYERS];

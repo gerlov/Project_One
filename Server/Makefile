@@ -1,10 +1,12 @@
 # Makefile for both Windows and Mac
 # This Makefile compiles the server program
 # folder for .c files 
+BUILD_DIR=./build
+
 SRCDIR=./src
-COMMONSRCDIR=../lib/source
+COMMONSRCDIR=../lib/src
 # folder for .h files
-INCDIR=../lib/include
+INCDIR=../lib/inc
 
 # Name of the executable
 TARGET:=Server
@@ -36,47 +38,46 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 
 # ----- Compile the program -----------------
 
-# run 'make' to compile the program
+all: $(TARGET)
 
-$(TARGET): main.o tilemap.o music.o window.o collisions.o powerup.o menu.o character.o texture.o game.o limitedvision.o our_rand.o
+$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/tilemap.o $(BUILD_DIR)/music.o $(BUILD_DIR)/window.o $(BUILD_DIR)/collisions.o $(BUILD_DIR)/powerup.o $(BUILD_DIR)/menu.o $(BUILD_DIR)/character.o $(BUILD_DIR)/texture.o $(BUILD_DIR)/game.o $(BUILD_DIR)/limitedvision.o $(BUILD_DIR)/our_rand.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-
-main.o: $(SRCDIR)/main.c
-	$(CC) $(CFLAGS) $(SRCDIR)/main.c
+$(BUILD_DIR)/main.o: $(SRCDIR)/main.c
+	$(CC) $(CFLAGS) $(SRCDIR)/main.c -o $@
 	
-tilemap.o: $(COMMONSRCDIR)/tilemap.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/tilemap.c
+$(BUILD_DIR)/tilemap.o: $(COMMONSRCDIR)/tilemap.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/tilemap.c -o $@
 
-music.o: $(COMMONSRCDIR)/music.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/music.c
+$(BUILD_DIR)/music.o: $(COMMONSRCDIR)/music.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/music.c -o $@
 
-window.o: $(COMMONSRCDIR)/window.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/window.c  
+$(BUILD_DIR)/window.o: $(COMMONSRCDIR)/window.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/window.c -o $@
 
-collisions.o: $(COMMONSRCDIR)/collisions.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/collisions.c	
+$(BUILD_DIR)/collisions.o: $(COMMONSRCDIR)/collisions.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/collisions.c -o $@	
 
-powerup.o: $(COMMONSRCDIR)/powerup.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/powerup.c		
+$(BUILD_DIR)/powerup.o: $(COMMONSRCDIR)/powerup.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/powerup.c -o $@
 
-menu.o: $(COMMONSRCDIR)/menu.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/menu.c
+$(BUILD_DIR)/menu.o: $(COMMONSRCDIR)/menu.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/menu.c -o $@
 
-character.o: $(COMMONSRCDIR)/character.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/character.c
+$(BUILD_DIR)/character.o: $(COMMONSRCDIR)/character.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/character.c -o $@
 
-texture.o: $(COMMONSRCDIR)/texture.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/texture.c
+$(BUILD_DIR)/texture.o: $(COMMONSRCDIR)/texture.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/texture.c -o $@
 
-game.o: $(COMMONSRCDIR)/game.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game.c
+$(BUILD_DIR)/game.o: $(COMMONSRCDIR)/game.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/game.c -o $@
 
-limitedvision.o: $(COMMONSRCDIR)/limitedvision.c $(INCDIR)/limitedvision.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/limitedvision.c
+$(BUILD_DIR)/limitedvision.o: $(COMMONSRCDIR)/limitedvision.c $(INCDIR)/limitedvision.h
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/limitedvision.c -o $@
 
-our_rand.o: $(COMMONSRCDIR)/our_rand.c
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/our_rand.c
+$(BUILD_DIR)/our_rand.o: $(COMMONSRCDIR)/our_rand.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/our_rand.c -o $@
 
 # ----- Run the program -----------------
 # run 'make run' to compile and run the program in one command
@@ -85,8 +86,7 @@ run: $(TARGET)
 
 # run 'make clean' to remove the object files and the executable
 clean:
-ifeq ($(OS),Windows_NT)
-	del /Q /F *.o *.exe
-else
-	rm -f *.o $(TARGET)
-endif
+	rm -f *.o $(TARGET) $(BUILD_DIR)/*.o
+
+
+.PHONY: all clean run
