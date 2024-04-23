@@ -11,9 +11,10 @@
 #define MAX_POWERUPS 100
 
 typedef enum {
-    POWERUP_HEALTH,
+   // POWERUP_HEALTH,
     POWERUP_SPEED,
     POWERUP_INVISIBLE,
+    POWERUP_SKULL
     // add other power-up types here
 } PowerUpType;
 
@@ -48,7 +49,10 @@ void draw_powerUps(SDL_Renderer* renderer, TileMap* tilemap);
 ///@brief Applies the effect of a power-up to a character.
 ///@param character Pointer to the Character to receive the power-up effects.
 ///@param type The type of power-up to apply.
-void apply_powerUp(Character *character, PowerUpType type);  
+///@param characters Array of all characters in the game 
+///@param num_characters Total number of characters in the characters array.
+void apply_powerUp(Character *character, PowerUpType type, Character **characters, int num_characters);
+
 
 
 #endif // POWERUP_H
