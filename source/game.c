@@ -118,7 +118,7 @@ void initialize_game(Game *game)
 
     // Setting up tilemap;
     tilemap_init(&game->tilemap, game->pRenderer);
-    tilemap_load(&game->tilemap, 1);
+    tilemap_load(&game->tilemap, 2);        // 2 = random map
     randomize_floor(&game->tilemap, 0);
     orient_walls(&game->tilemap);
 
@@ -302,8 +302,9 @@ void update_game(Game *game)
             game->space = false;
         }
         // Move character
-        move_character(game->characters[0], &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,
-                       game->up, game->down, game->left, game->right, game->characters, game->PLAYERS);
+        move_character(game->characters[0], &game->tilemap,
+                       game->up, game->down, game->left, game->right, 
+                       game->characters, game->PLAYERS);
         follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
         // Draw stage
         tilemap_draw(&game->tilemap);

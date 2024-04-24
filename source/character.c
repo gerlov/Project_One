@@ -68,7 +68,7 @@ void stop_moving(Character *character){
 }
 
 void move_character(Character *character, TileMap *tilemap, 
-                    int WINDOW_WIDTH, int WINDOW_HEIGHT, 
+                   // int WINDOW_WIDTH, int WINDOW_HEIGHT, 
                     int up, int down, int left, int right, 
                     Character **other_characters, int num_other_characters) { 
 
@@ -76,7 +76,7 @@ void move_character(Character *character, TileMap *tilemap,
 
     Uint32 currentTicks = SDL_GetTicks(); // for powerup timers  
 
-    // 2 st check for powerup timers expiration, resets everything to default values if expired
+    //  resets speed and visibility for a character if powerup time has expired
     if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0) {
         character->speed -= 20;  // set back to default speed (defined in init)
         character->speedPowerupTime = 0;  // reset poerup timer
@@ -101,17 +101,16 @@ void move_character(Character *character, TileMap *tilemap,
     for (int i = 0; i < num_other_characters; i++) {
         if (character != other_characters[i] && 
             other_characters[i]->isKilled == 0 && 
-            SDL_HasIntersection(&nextPosition, &other_characters[i]->rect)) 
-            {
-               // play_sound_once(oi_sound); // <- diagnostic, remove
-                return; // collision with another character, return 
-            }
+            SDL_HasIntersection(&nextPosition, &other_characters[i]->rect))  return;  
     }
 
     // powerup tiles intersection 
      for (int i = 0; i < powerUpCount; i++) { 
-        if (powerUps[i].visible && SDL_HasIntersection(&character->rect, &powerUps[i].rect)) {
-            apply_powerUp(character, powerUps[i].type);
+        if (powerUps[i].visible && SDL_HasIntersection(&character->rect, &powerUps[i].rect)) {  
+            if (powerUps[i].type == POWERUP_SKULL && character->isHunter == 0) {
+                continue; // dont apply POWRUP_SKULL and DONT deactivate it if intersected by non-hunter
+            }
+            apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters);
             powerUps[i].visible = 0;  
         }
     }
@@ -139,9 +138,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
                 hunter->rect.x = characters[i]->rect.x;
                 hunter->rect.y = characters[i]->rect.y;
                 // kill sound  
-                play_sound_once(kill_sound);
-                // free_sse(kill_sound);
-               
+                play_sound_once(kill_sound);               
                 break; //Kills one, otherwise more in a small space
             }
         }
@@ -150,7 +147,8 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
 
 void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *camera) {
 
-    if (!character->visible) return; 
+    // only draw characters that are visible and not killed
+    if (!character->visible || character->isKilled) return;
 
     // Needs to be same for all 
     // 128 x 192
