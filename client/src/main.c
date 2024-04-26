@@ -7,10 +7,12 @@
 #include "our_rand.h"
 #include "data.h"
 #include "window.h"
+#include "character.h"
 #include "tilemap.h"
 #include "music.h"
 #include "limitedvision.h"
 #include "powerup.h"
+#include "menu.h"
 
 #define NO_SERVER 0
 
@@ -75,8 +77,8 @@ int main(int argc, char *argv[])
 
 int initiate(Game_c *game)
 {
-    game->WINDOW_WIDTH = 900;
-    game->WINDOW_HEIGHT = 700;
+    game->WINDOW_WIDTH = 1200;
+    game->WINDOW_HEIGHT = 800;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) == 1)
     {
         return 1;
@@ -91,7 +93,7 @@ int initiate(Game_c *game)
         fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
         return 1;
     }
-    
+
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
     if (SDLNet_ResolveHost(&game->serverIP, "127.0.0.1", SOCKET_PORT))
     {
@@ -250,6 +252,7 @@ void run(Game_c *game)
         {
         case START:
             // main menu function goes here
+
             game->gameState = JOINING; // remove this line when main menu is implemented
             break;
 
@@ -262,7 +265,7 @@ void run(Game_c *game)
             break;
 
         case PAUSED:
-            // pause menu function goes here
+            // pause menu? function goes here if we would like to have it
             break;
         case QUIT:
             break;
