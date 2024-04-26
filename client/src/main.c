@@ -12,6 +12,8 @@
 #include "limitedvision.h"
 #include "powerup.h"
 
+#define NO_SERVER 0
+
 typedef struct game
 {
     SDL_Window *pWindow;
@@ -50,6 +52,7 @@ typedef struct game
 } Game_c;
 
 int initiate(Game_c *game);
+void joining(Game_c *game);
 void run(Game_c *game);
 void close(Game_c *game);
 void handleInput(Game_c *game, SDL_Event *event);
@@ -88,6 +91,8 @@ int initiate(Game_c *game)
         fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
         return 1;
     }
+    
+    ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
     if (SDLNet_ResolveHost(&game->serverIP, "127.0.0.1", SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
@@ -123,10 +128,20 @@ int initiate(Game_c *game)
     game->gameState = START;
     game->ready = false;
     game->oldready = false;
+#if NO_SERVER
+
+    game->gameState = PLAYING;
+    game->activePlayer = 0;
+    game->seed = 0;
+    game->PLAYERS = 2;
+    game->hunterIndex = 0;
+    startGame(game);
+
+#endif
     return 0;
 }
 
-void start(Game_c *game)
+void joining(Game_c *game)
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -197,10 +212,9 @@ void startGame(Game_c *game)
         "../lib/assets/characters/maleOne.png"};
     const char *hunterClothes[] = {
         "../lib/assets/characters/monster.png"};
-
     our_srand(game->seed);
     // printf("Seed: %lu\n", get_next());
-    tilemap_load(&game->tilemap, 1, 0);
+    tilemap_load(&game->tilemap, 1, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
 
     for (int i = 0; i < game->PLAYERS; i++)
@@ -221,9 +235,11 @@ void startGame(Game_c *game)
     game->myCharacter = game->characters[game->activePlayer];
     game->lastPos = game->myCharacter->position;
 
+#if !NO_SERVER
     updateToServer(game);
+#endif
 }
-
+// MARK: - Game Loop
 void run(Game_c *game)
 {
     SDL_Event event;
@@ -233,7 +249,12 @@ void run(Game_c *game)
         switch (game->gameState)
         {
         case START:
-            start(game);
+            // main menu function goes here
+            game->gameState = JOINING; // remove this line when main menu is implemented
+            break;
+
+        case JOINING:
+            joining(game);
             break;
 
         case PLAYING:
@@ -241,6 +262,7 @@ void run(Game_c *game)
             break;
 
         case PAUSED:
+            // pause menu function goes here
             break;
         case QUIT:
             break;
@@ -266,21 +288,19 @@ void playing(Game_c *game)
     updateFromServer(game);
 
     /// TODO: Implement kill command functionallity with server
-    // if (game->myCharacter->isHunter && game->space) {
-    //     kill_command(game->myCharacter, game->characters, game->PLAYERS);
-    // }
+    if (game->myCharacter->isHunter && game->space) {
+        kill_command(game->myCharacter, game->characters, game->PLAYERS);
+    }
 
     move_character(game->myCharacter, &game->tilemap,
                    game->deltaTime, game->characters, game->PLAYERS);
-                   
-    follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
 
+    follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
     if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
     {
         updateToServer(game);
         game->lastPos = game->myCharacter->position;
     }
-
     // draw stage
     SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
     SDL_RenderClear(game->pRenderer);
@@ -298,6 +318,7 @@ void playing(Game_c *game)
 
 void updateFromServer(Game_c *game)
 {
+#if !NO_SERVER
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
         // printf("(Client) Packet received\n");
@@ -321,6 +342,7 @@ void updateFromServer(Game_c *game)
         }
         // printServerData(game->serverData);
     }
+#endif
 }
 
 void updateToServer(Game_c *game)
@@ -337,10 +359,12 @@ void updateToServer(Game_c *game)
     game->data.frameLastUpdated = game->myCharacter->frameLastUpdated;
     game->data.gameState = game->gameState;
 
+#if !NO_SERVER
     memcpy(game->packet->data, &game->data, sizeof(CharacterData));
     game->packet->len = sizeof(CharacterData);
     // printf("Sending data to server\n");
     SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
+#endif
 }
 
 void handleInput(Game_c *game, SDL_Event *event)
@@ -392,6 +416,12 @@ void handleInput(Game_c *game, SDL_Event *event)
 
 void close(Game_c *game)
 {
+    cleanup_powerup_resources();
+    for (int i = 0; i < game->PLAYERS; i++)
+    {
+        cleanup_character(game->characters[i]);
+    }
+    tilemap_free(&game->tilemap);
     SDLNet_FreePacket(game->packet);
     SDLNet_UDP_Close(game->serverSocket);
     SDL_DestroyRenderer(game->pRenderer);

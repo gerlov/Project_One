@@ -188,7 +188,7 @@ void start(Game_s *game)
         
         game->joinData.PLAYERS = game->nrOfClients;
         game->joinData.seed = game->seed;
-        game->joinData.gameState = START;
+        game->joinData.gameState = JOINING;
 
         game->packet->len = sizeof(JoinData);
         for (int i = 0; i < game->nrOfClients; i++)
@@ -385,6 +385,12 @@ int getPlayerIndex(Game_s *game) {
 
 void close(Game_s *game)
 {
+    cleanup_powerup_resources();
+    for (int i = 0; i < game->PLAYERS; i++)
+    {
+        cleanup_character(game->characters[i]);
+    }
+    tilemap_free(&game->tilemap);
     SDLNet_FreePacket(game->packet);
     SDLNet_UDP_Close(game->serverSocket);
     SDL_DestroyRenderer(game->pRenderer);

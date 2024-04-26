@@ -18,8 +18,7 @@ ifeq ($(OS),Windows_NT)
 	# # For Windows
 	# INCLUDE=C:\msys64\mingw64\include\ # SDL2 include path
 	# LDFLAGS=-lmingw32 -lSDL2main -lSDL2_image -lSDL2 $(SDL_FLAGS) -mwindows -lm
-	SERVER:=$(SERVER).exe
-	CLIENT:=$(CLIENT).exe
+	EXT:=.exe
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
@@ -31,10 +30,14 @@ else
 		# # and that 'sdl2-config --prefix' returns '/opt/homebrew' in the terminal
 		# INCLUDE=`sdl2-config --prefix`/include/ # SDL2 include path
 		# LDFLAGS=`sdl2-config --cflags --libs ` $(SDL_FLAGS) 
-		SERVER:=$(SERVER).out
-		CLIENT:=$(CLIENT).out
+		EXT:=.out
+		
+		
 	endif
 endif
+
+SERVER:=$(SERVER)$(EXT)
+CLIENT:=$(CLIENT)$(EXT)
 # CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 
 # ----- Compile the program -----------------

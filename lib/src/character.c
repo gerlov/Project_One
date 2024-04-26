@@ -297,10 +297,6 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
             character->direction = 'u';
         }
     }
-    else
-    {
-        character->direction = 'd';
-    }
     SDL_Rect srcRect;
     srcRect.w = frameWidth;
     srcRect.h = frameHeight;
