@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 {
     Game_s game = {0};
     if (init(&game) == 1 ) {
-        sprintf(stderr, "Error initializing game\n");
+        fprintf(stderr, "Error initializing game\n");
         exit(1);
     }
     run(&game);
@@ -78,13 +78,13 @@ int init(Game_s *game)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
-        sprintf(stderr,"Error initializing SDL: %s\n", SDL_GetError());
+        fprintf(stderr,"Error initializing SDL: %s\n", SDL_GetError());
         return 1;
     }
 
     if (SDLNet_Init() == -1)
     {
-        sprintf(stderr,"Error initializing SDL_net: %s\n", SDLNet_GetError());
+        fprintf(stderr,"Error initializing SDL_net: %s\n", SDLNet_GetError());
         return 1;
     }
 
@@ -104,7 +104,7 @@ int init(Game_s *game)
         SDL_Quit();
         return 1;
     }
-    if (!(game->serverSocket = SDLNet_UDP_Open(2000)))
+    if (!(game->serverSocket = SDLNet_UDP_Open(SOCKET_PORT)))
     {
         fprintf(stderr,"Error opening socket: %s\n", SDLNet_GetError());
         SDL_DestroyRenderer(game->pRenderer);

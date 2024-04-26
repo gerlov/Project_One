@@ -92,7 +92,7 @@ int initiate(Game_c *game)
         fprintf(stderr, "SDLNet_UDP_Open: %s\n", SDLNet_GetError());
         return 1;
     }
-    if (SDLNet_ResolveHost(&game->serverIP, "127.0.0.1", 2000))
+    if (SDLNet_ResolveHost(&game->serverIP, "127.0.0.1", SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         return 1;
@@ -107,11 +107,11 @@ int initiate(Game_c *game)
     init_player_sounds();
 
     char *soundPathbgm[] = {
-        "../lib/resources/music/bgm1.mp3",
-        "../lib/resources/music/bgm2.mp3",
-        "../lib/resources/music/bgm3.mp3",
-        "../lib/resources/music/bgm4.mp3",
-        "../lib/resources/music/PEDRO.mp3"};
+        "../lib/assets/music/bgm1.mp3",
+        "../lib/assets/music/bgm2.mp3",
+        "../lib/assets/music/bgm3.mp3",
+        "../lib/assets/music/bgm4.mp3",
+        "../lib/assets/music/PEDRO.mp3"};
     int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
     int backgroundIndex = our_rand() % size_of_soundPathbgm;
 
@@ -194,13 +194,13 @@ void start(Game_c *game)
 void startGame(Game_c *game)
 {
     const char *characterFiles[] = {
-        "../lib/resources/characters/warriorTwo.png",
-        "../lib/resources/characters/femaleOne.png",
-        "../lib/resources/characters/maleOne.png",
-        "../lib/resources/characters/warriorOne.png",
-        "../lib/resources/characters/maleOne.png"};
+        "../lib/assets/characters/warriorTwo.png",
+        "../lib/assets/characters/femaleOne.png",
+        "../lib/assets/characters/maleOne.png",
+        "../lib/assets/characters/warriorOne.png",
+        "../lib/assets/characters/maleOne.png"};
     const char *hunterClothes[] = {
-        "../lib/resources/characters/monster.png"};
+        "../lib/assets/characters/monster.png"};
 
     our_srand(game->seed);
     // printf("Seed: %lu\n", get_next());
@@ -269,12 +269,14 @@ void playing(Game_c *game)
 
     updateFromServer(game);
 
-    if (game->myCharacter->isHunter && game->space) {
-        kill_command(game->myCharacter, game->characters, game->PLAYERS);
-    }
+    // if (game->myCharacter->isHunter && game->space) {
+    //     kill_command(game->myCharacter, game->characters, game->PLAYERS);
+    // }
+
     move_character(game->myCharacter, &game->tilemap,
                    game->WINDOW_WIDTH, game->WINDOW_HEIGHT,
                    game->deltaTime, game->characters, game->PLAYERS);
+                   
     follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
 
     if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
@@ -338,6 +340,7 @@ void updateToServer(Game_c *game)
     game->data.invisiblePowerupTime = game->myCharacter->invisiblePowerupTime;
     game->data.frameLastUpdated = game->myCharacter->frameLastUpdated;
     game->data.gameState = game->gameState;
+
     memcpy(game->packet->data, &game->data, sizeof(CharacterData));
     game->packet->len = sizeof(CharacterData);
     // printf("Sending data to server\n");
