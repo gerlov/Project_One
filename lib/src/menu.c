@@ -6,10 +6,10 @@
 #include "menu.h"
 #include "music.h"
 
-#define BACKGROUND_IMG_PATH "../lib/assets/MenuBackground.png"
-#define START_GAME_IMG_PATH "../lib/assets/StartGame.png"
-#define OPTIONS_IMG_PATH "../lib/assets/Options.png"
-#define QUIT_GAME_IMG_PATH "../lib/assets/QuitGame.png"
+#define BACKGROUND_IMG_PATH "resources/MenuBackground.png"
+#define START_GAME_IMG_PATH "resources/StartGame.png"
+#define OPTIONS_IMG_PATH "resources/Options.png"
+#define QUIT_GAME_IMG_PATH "resources/QuitGame.png"
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
@@ -28,15 +28,15 @@ int prevVolSliderValue; // For slider to sync with mute/unmute button
 bool draggingSlider = false;
 bool musicMuted = false;
 
-bool renderMenuItem(MenuItem item)
+bool renderMenuItem(MenuItem *item)
 {
-    if (item.texture == NULL)
+    if (item->texture == NULL)
     {
         printf("Error loading image: %s\n", IMG_GetError());
         return true;
     }
     // copy the texture to the rendering context
-    SDL_RenderCopy(item.renderer, item.texture, NULL, &item.position);
+    SDL_RenderCopy(item->renderer, item->texture, NULL, &item->position);
 
     return false;
 }
@@ -45,7 +45,7 @@ void createMenuButton(SDL_Renderer *renderer, char *text, int r, int g, int b, i
 {
     SDL_Color textColor = {0, 0, 0, 255};
 
-    TTF_Font *Font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
+    TTF_Font *Font = TTF_OpenFont("resources/Jacquard24-Regular.ttf", 24);
     if (Font == NULL)
     {
         return;
@@ -74,7 +74,7 @@ void drawText(SDL_Renderer *renderer, char *text, int y)
 {
     SDL_Color textColor = {255, 255, 255, 255};
 
-    TTF_Font *Font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
+    TTF_Font *Font = TTF_OpenFont("resources/Jacquard24-Regular.ttf", 24);
     if (Font == NULL)
     {
         return;
@@ -139,7 +139,7 @@ bool optionsMenu(SDL_Renderer *renderer)
         SDL_RenderClear(renderer);
 
         // Render menu items and background
-        if (renderMenuItem(background)) return closeWindow;
+        if (renderMenuItem(&background)) return closeWindow;
 
         drawText(renderer, "Volume Slider", 100);
         float handleX = BUTTONS_X + (float)(SLIDER_WIDTH - 20) * ((float)volSliderValue / 100.0);
@@ -262,7 +262,7 @@ bool mainMenu(SDL_Renderer *renderer)
         SDL_RenderClear(renderer);
 
         // Render background and menu items
-        if (renderMenuItem(background)) return closeWindow;
+        if (renderMenuItem(&background)) return closeWindow;
         createMenuButton(renderer, "Start Game", 1, 50, 32, 100);
         createMenuButton(renderer, "Options", 105, 105, 105, 300);
         createMenuButton(renderer, "Quit Game", 139, 0, 0, 500);

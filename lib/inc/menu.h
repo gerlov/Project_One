@@ -14,7 +14,7 @@ typedef struct MenuItem {
 /// @brief Function for rendering all images displayed
 /// @param item Struct containing the texture, renderer and the position of the image
 /// @return returns true if there is an error loading the image
-bool renderMenuItem(MenuItem item);
+bool renderMenuItem(MenuItem *item);
 
 /// @brief Function for creating a menu button
 /// @param renderer The renderer to draw the button to

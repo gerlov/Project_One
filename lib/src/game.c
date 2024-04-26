@@ -212,7 +212,7 @@ void update_game(Game *game)
             game->keys.space = 0;
         }
         // Move character
-        move_character(game->characters[0], &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,
+        move_character(game->characters[0], &game->tilemap,
                        game->deltaTime, game->characters, game->PLAYERS);
         follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
         // Draw stage

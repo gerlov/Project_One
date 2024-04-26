@@ -89,7 +89,6 @@ void stop_moving(Character *character)
 }
 
 void move_character(Character *character, TileMap *tilemap,
-                    int WINDOW_WIDTH, int WINDOW_HEIGHT,
                     float deltaTime,
                     Character **other_characters, int num_other_characters)
 {
@@ -212,7 +211,11 @@ void move_character(Character *character, TileMap *tilemap,
     {
         if (powerUps[i].visible && SDL_HasIntersection(&character->rect, &powerUps[i].rect))
         {
-            apply_powerUp(character, powerUps[i].type);
+            if (powerUps[i].type == POWERUP_SKULL && character->isHunter == 0)
+            {
+                continue; // dont apply POWRUP_SKULL and DONT deactivate it if intersected by non-hunter
+            }
+            apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters);
             powerUps[i].visible = 0;
         }
     }
@@ -296,7 +299,7 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
     }
     else
     {
-        // 0,0
+        character->direction = 'd';
     }
     SDL_Rect srcRect;
     srcRect.w = frameWidth;

@@ -271,7 +271,6 @@ void playing(Game_c *game)
     // }
 
     move_character(game->myCharacter, &game->tilemap,
-                   game->WINDOW_WIDTH, game->WINDOW_HEIGHT,
                    game->deltaTime, game->characters, game->PLAYERS);
                    
     follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
