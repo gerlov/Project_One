@@ -1,4 +1,3 @@
-// #include "./inc/server_game.h"
 #define NO_STDIO_REDIRECT
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -88,7 +87,7 @@ int init(Game_s *game)
         return 1;
     }
 
-    game->pWindow = SDL_CreateWindow("Server", 0, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+    game->pWindow = SDL_CreateWindow("Server", 0, SDL_WINDOWPOS_CENTERED, 500, 500, SDL_WINDOW_SHOWN);
     if (!game->pWindow)
     {
         fprintf(stderr,"Error creating window: %s\n", SDL_GetError());
@@ -126,7 +125,7 @@ int init(Game_s *game)
     game->nrOfClients = 0;
     our_srand(time(NULL));
     // game->seed = our_rand();
-    game->seed = 0;
+    game->seed = 0; // for testing
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
         game->readyPlayes[i] = false;
@@ -287,18 +286,13 @@ void playing(Game_s *game) {
         }
     }
     int moveX = left- right;
-    int moveY = up - down;
+    int moveY = down - up;
 
     game->tilemap.camera.x += moveX * 10;
     game->tilemap.camera.y += moveY * 10;
-    //
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
-        // int playerIndex = getPlayerIndex(game);
-        // if (playerIndex == -1)
-        // {
-        //     return;
-        // }
+        
         memcpy(&game->recievedData, game->packet->data, sizeof(CharacterData));
         int playerIndex = game->recievedData.playerID;
         printf("(Server) Packet received from %d\n", playerIndex);
@@ -325,7 +319,6 @@ void playing(Game_s *game) {
             printf("(Server) Relay to client %d\n", i);
             SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
         }
-        // printf("(Server) Relay to clients\n");
     }
 
     SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);

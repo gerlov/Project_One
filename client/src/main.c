@@ -1,4 +1,3 @@
-// #include "./inc/client_game.h"
 #define NO_STDIO_REDIRECT
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -12,9 +11,6 @@
 #include "music.h"
 #include "limitedvision.h"
 #include "powerup.h"
-// #include "../lib/include/game.h"
-// #include <SDL2/SDL.h>
-// #include <SDL2/SDL_net.h>
 
 typedef struct game
 {
@@ -76,7 +72,7 @@ int main(int argc, char *argv[])
 
 int initiate(Game_c *game)
 {
-    game->WINDOW_WIDTH = 1200;
+    game->WINDOW_WIDTH = 900;
     game->WINDOW_HEIGHT = 700;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) == 1)
     {
@@ -118,8 +114,8 @@ int initiate(Game_c *game)
     game->bgm = init_background_music(soundPathbgm[backgroundIndex], 100);
     tilemap_init(&game->tilemap, game->pRenderer);
 
-    // play_background_music(game->bgm);
-    // free_bgm(game->bgm);
+    play_background_music(game->bgm);
+    free_bgm(game->bgm);
 
     game->powerUpCount = 0;
     load_powerup_resources(game->pRenderer);
@@ -269,6 +265,7 @@ void playing(Game_c *game)
 
     updateFromServer(game);
 
+    /// TODO: Implement kill command functionallity with server
     // if (game->myCharacter->isHunter && game->space) {
     //     kill_command(game->myCharacter, game->characters, game->PLAYERS);
     // }
@@ -289,13 +286,13 @@ void playing(Game_c *game)
     SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
     SDL_RenderClear(game->pRenderer);
     tilemap_draw(&game->tilemap);
-    // draw_powerUps(game->pRenderer, &game->tilemap);
+    draw_powerUps(game->pRenderer, &game->tilemap);
 
     for (int i = 0; i < game->PLAYERS; i++)
     {
         draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
     }
-    // drawLimitedVision(&game->lv, get_character_center(game->myCharacter));
+    drawLimitedVision(&game->lv, get_character_center(game->myCharacter));
 
     SDL_RenderPresent(game->pRenderer);
 }
