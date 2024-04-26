@@ -43,15 +43,6 @@ typedef struct {
     CharacterData characters[MAX_PLAYERS];
 } ServerData;
 
-typedef struct {
-    int playerINDEX;
-    SDL_FPoint position;
-    SDL_FPoint velocity;
-    int health;
-    int visible;
-    int iskilled;
-} ClientData;
-
 void printJoinData(JoinData data)
 {
     printf("Seed: %d\n", data.seed);
@@ -71,14 +62,5 @@ void printServerData(ServerData data)
     printf("Game state: %d\n", data.characters[0]);
     printf("\n");
 }
-void printClientData(ClientData data)
-{
-    printf("Player index: %d\n", data.playerINDEX);
-    printf("Position: %f %f\n", data.position.x, data.position.y);
-    printf("Velocity: %f %f\n", data.velocity.x, data.velocity.y);
-    printf("Health: %d\n", data.health);
-    printf("Visible: %d\n", data.visible);
-    printf("Is killed: %d\n", data.iskilled);
-    printf("\n");
-}
+
 #endif // DATA_H
