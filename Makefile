@@ -1,3 +1,4 @@
+
 # Makefile for both Windows and Mac
 # folder for .c files 
 SRCDIR=./source
@@ -36,7 +37,7 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 
 # run 'make' to compile the program
 
-$(TARGET): main.o tilemap.o music.o window.o collisions.o powerup.o menu.o character.o texture.o game.o limitedvision.o
+$(TARGET): main.o tilemap.o music.o window.o collisions.o powerup.o mazeview.o menu.o character.o texture.o game.o limitedvision.o
 
 	$(CC) -o $@ $^ $(LDFLAGS)
 
@@ -57,7 +58,10 @@ collisions.o: $(SRCDIR)/collisions.c
 	$(CC) $(CFLAGS) $(SRCDIR)/collisions.c	
 
 powerup.o: $(SRCDIR)/powerup.c
-	$(CC) $(CFLAGS) $(SRCDIR)/powerup.c		
+	$(CC) $(CFLAGS) $(SRCDIR)/powerup.c
+
+mazeview.o: $(SRCDIR)/mazeview.c
+	$(CC) $(CFLAGS) $(SRCDIR)/mazeview.c		
 
 menu.o: $(SRCDIR)/menu.c
 	$(CC) $(CFLAGS) $(SRCDIR)/menu.c

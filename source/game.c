@@ -4,6 +4,7 @@
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include "tilemap.h"
+#include "mazeview.h"
 #include "music.h"
 #include "window.h"
 #include "collisions.h"
@@ -44,6 +45,7 @@ typedef struct _Game
     Character *hunter;
     TileMap tilemap;
     GameState gameState;
+    MazeView mazeView;
     LimitedVision lv;
 
     PowerUp powerUps[MAX_POWERUPS];  
@@ -121,7 +123,7 @@ void initialize_game(Game *game)
     tilemap_load(&game->tilemap, 2);        // 2 = random map
     randomize_floor(&game->tilemap, 0);
     orient_walls(&game->tilemap);
-
+    init_maze_view(&game->mazeView, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
 
     init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT,400);
 
@@ -296,31 +298,42 @@ void update_game(Game *game)
             SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
         break;
     case PLAYING:
-        if (game->space)
-        {
-            kill_command(game->characters[0], game->characters, game->PLAYERS);
-            game->space = false;
-        }
-        // Move character
-        move_character(game->characters[0], &game->tilemap,
-                       game->up, game->down, game->left, game->right, 
-                       game->characters, game->PLAYERS);
-        follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
-        // Draw stage
-        tilemap_draw(&game->tilemap);
-        draw_powerUps(game->pRenderer, &game->tilemap);
-        for (int i = 0; i < game->PLAYERS; i++)
-        {
-            draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
-        }
-        
 
-        SDL_FPoint center = {game->characters[0]->rect.x + game->characters[0]->rect.w / 2 , game->characters[0]->rect.y + game->characters[0]->rect.h / 2 };
-        drawLimitedVision(&game->lv, center);
-        // Render
+        // handling mazeview (map powerup) here: 
+        if (game->mazeView.visible) {
+            set_volume(0);
+            render_maze_view(&game->mazeView, game->pRenderer);
+            for (int i = 0; i < game->PLAYERS; i++) {
+                if (game->characters[i] && !game->characters[i]->isKilled) {
+                    draw_character_on_mazeview(game->characters[i], &game->tilemap, 
+                                            game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 
+                                            &game->mazeView, game->pRenderer);
+                }
+            }
+        }
+     
+        else {
+            set_volume(100);
+            if (game->space) {
+                kill_command(game->characters[0], game->characters, game->PLAYERS);
+                game->space = false;
+            }
+            move_character(game->characters[0], &game->tilemap,
+                        game->up, game->down, game->left, game->right,
+                        game->characters, game->PLAYERS, &game->mazeView);
+            follow_player(&game->tilemap.camera, &game->characters[0]->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
+            tilemap_draw(&game->tilemap);
+            draw_powerUps(game->pRenderer, &game->tilemap);
+            for (int i = 0; i < game->PLAYERS; i++) {
+                draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
+            }
+            SDL_FPoint center = {game->characters[0]->rect.x + game->characters[0]->rect.w / 2, game->characters[0]->rect.y + game->characters[0]->rect.h / 2};
+            drawLimitedVision(&game->lv, center);
+        }
         SDL_RenderPresent(game->pRenderer);
-        SDL_Delay(1000 / 120); // 60 frames/s
+        SDL_Delay(1000 / 120);
         break;
+
     case QUIT:
         game->closeWindow = true;
         break;
@@ -335,5 +348,6 @@ void cleanup_game(Game *game)
     cleanup_powerup_resources();
     cleanup_character(game->characters[0]);
     cleanup_player_sounds();
+    free_maze_view(&game->mazeView);
     cleanup_SDL(game->pWindow, game->pRenderer);
 }

@@ -2,7 +2,8 @@
 #define CHARACTER_H
 
 #include <SDL2/SDL.h>
-#include "tilemap.h"
+#include "tilemap.h"  
+#include "mazeview.h"
 
 ///@struct Character
 ///@brief Represents a game character with a position, size, and texture.
@@ -19,7 +20,7 @@ typedef struct Character{
     Uint32 speedPowerupTime; // speed powerup timer
     Uint32 invisiblePowerupTime; // invisibility powerup timer  
     Uint32 frameLastUpdated;
-} Character;
+} Character; 
 
 
 
@@ -58,7 +59,8 @@ Character* init_character(SDL_Renderer* pRenderer, const char* filePath, int isH
 ///@param num_other_characters Number of characters in the other_characters array to check for collisions against.
 void move_character(Character *character, TileMap *tilemap,  
                     int up, int down, int left, int right, 
-                    Character **other_characters, int num_other_characters);
+                    Character **other_characters, int num_other_characters, 
+                    MazeView *mazeView); 
 
 ///@brief Draws the character on the provided renderer.
 ///@param pRenderer The renderer where the character will be drawn.
@@ -82,6 +84,10 @@ void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int W
 void init_player_sounds();
 
 ///@brief Cleans up player-related sound resources 
-void cleanup_player_sounds();
+void cleanup_player_sounds();  
+
+void draw_character_on_mazeview(Character *character, TileMap* tilemap, 
+                                int window_width, int window_height,
+                                MazeView *mazeView, SDL_Renderer *renderer); 
 
 #endif

@@ -1,7 +1,7 @@
-#include "character.h"
+#include "character.h" 
 #include "texture.h"
 #include "collisions.h"
-#include "tilemap.h" 
+#include "tilemap.h"    
 #include "powerup.h"
 #include <math.h> 
 #include "music.h"
@@ -67,10 +67,10 @@ void stop_moving(Character *character){
     character->isMoving = 0;
 }
 
-void move_character(Character *character, TileMap *tilemap, 
-                   // int WINDOW_WIDTH, int WINDOW_HEIGHT, 
+void move_character(Character *character, TileMap *tilemap,   
                     int up, int down, int left, int right, 
-                    Character **other_characters, int num_other_characters) { 
+                    Character **other_characters, int num_other_characters, 
+                    MazeView *mazeView) { 
 
     if(character->isKilled == 1) return; 
 
@@ -86,6 +86,13 @@ void move_character(Character *character, TileMap *tilemap,
         character->visible = 1;  // visible again
         character->invisiblePowerupTime = 0;  //reset powerup timer
     }    
+
+    if (currentTicks > mazeView->displayTime && 
+        mazeView->displayTime != 0 && 
+        character->invisiblePowerupTime < currentTicks) {
+            character->visible = 1;  
+}
+
 
     SDL_Rect nextPosition = character->rect;
     nextPosition.y += (down - up) * character -> speed;  
@@ -110,7 +117,7 @@ void move_character(Character *character, TileMap *tilemap,
             if (powerUps[i].type == POWERUP_SKULL && character->isHunter == 0) {
                 continue; // dont apply POWRUP_SKULL and DONT deactivate it if intersected by non-hunter
             }
-            apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters);
+            apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters, mazeView);
             powerUps[i].visible = 0;  
         }
     }
@@ -189,7 +196,33 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
     SDL_RenderCopy(pRenderer, character->texture, &srcRect, &destRect);
     
     
+}    
+
+void draw_character_on_mazeview(Character *character, TileMap* tilemap, 
+                                int window_width, int window_height,
+                                MazeView *mazeView, SDL_Renderer *renderer) 
+{
+    // scale factor same as in the mazevie, prbbly need to refactor / DRY 
+    float scale_factor_w = (float)window_width / (tilemap->width * tilemap->tile_size);
+    float scale_factor_h = (float)window_height / (tilemap->height * tilemap->tile_size);
+    float scale_factor = (scale_factor_w < scale_factor_h) ? scale_factor_w : scale_factor_h;
+
+    // apply scale factor to current caracters position
+    int scaled_x = character->rect.x * scale_factor;
+    int scaled_y = character->rect.y * scale_factor;
+
+    // will display on a mazeview as a small red (dot) rectangle
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  
+    SDL_Rect dot = {scaled_x, scaled_y, 10, 10 }; 
+
+    // ensure red dot is drawn relative to the MazeView's position on screen (its centered)
+    dot.x += (window_width - mazeView->viewRect.w) / 2;
+    dot.y += (window_height - mazeView->viewRect.h) / 2;
+
+    SDL_RenderFillRect(renderer, &dot); // render 
 }
+
+
 
 void cleanup_character(Character* character) {
     if (character != NULL) {

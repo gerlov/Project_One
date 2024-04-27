@@ -6,36 +6,47 @@ int powerUpCount = 0;
 SDL_Texture* textureSpeed;
 SDL_Texture* textureInvisible;
 SDL_Texture* textureSkull;
+SDL_Texture* textureMap; 
 Single_sound* soundSpeed;
 Single_sound* soundInvisible;
-Single_sound* soundSkull;
+Single_sound* soundSkull; 
+Single_sound* soundElevator10;
 
 
 
-void load_powerup_resources(SDL_Renderer* renderer) {  
+void load_powerup_resources(SDL_Renderer* renderer) { 
     create_texture(&textureSpeed, renderer, "resources/testpack/red.png");
     create_texture(&textureInvisible, renderer, "resources/testpack/green.png"); 
-    create_texture(&textureSkull, renderer, "resources/testpack/skull.png"); 
+    create_texture(&textureSkull, renderer, "resources/testpack/skull.png");  
+    create_texture(&textureMap, renderer, "resources/testpack/map.png"); 
     soundSpeed = init_sound_effect("resources/music/horror3.mp3", 100);
     soundInvisible = init_sound_effect("resources/music/horror2.mp3", 100); 
     soundSkull = init_sound_effect("resources/music/horror1.mp3", 100);
+    soundElevator10 = init_sound_effect("resources/music/elevator10.mp3", 100);
 }
 
 
 void cleanup_powerup_resources() {
     SDL_DestroyTexture(textureSpeed);
     SDL_DestroyTexture(textureInvisible);
-    SDL_DestroyTexture(textureSkull);
+    SDL_DestroyTexture(textureSkull); 
+    SDL_DestroyTexture(textureMap); 
     free_sse(soundSpeed);
     free_sse(soundInvisible);
     free_sse(soundSkull);
+    free_sse(soundElevator10);
 }
 
 
-void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) {
+void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) 
+{  
+
     int placedCount = 0;
     char powerUpPlacement[tilemap->width][tilemap->height];
     memset(powerUpPlacement, 0, sizeof(powerUpPlacement)); //stk  
+
+    int skullCount = 0;  
+    int maxSkull = 10;  ////////////////////////////// OBS OBS OBS CHANGE HERE
 
 
     for (int i = 0; i < MAX_POWERUPS; i++) {
@@ -45,10 +56,16 @@ void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) {
 
 
         if (tile->type == TILE_FLOOR && powerUpPlacement[x][y] == 0) {
-            int powerUpType = rand() % 3; // rand type of power-up
+            int powerUpType; 
             PowerUpType type;
             SDL_Texture* texture; 
 
+
+            if (skullCount < maxSkull) {
+                powerUpType = 3; // force skull powerup type
+                skullCount++;    
+            } 
+            else powerUpType = rand() % 3; 
 
             switch (powerUpType) {
                 case 0:
@@ -58,11 +75,15 @@ void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) {
                 case 1:
                     type = POWERUP_INVISIBLE;
                     texture = textureInvisible;
-                    break;
-                case 2:
+                    break;  
+                case 2: 
+                    type = POWERUP_MAP;
+                    texture = textureMap;
+                    break;      
+                case 3:
                     type = POWERUP_SKULL;
                     texture = textureSkull;
-                    break;
+                    break;    
             }
 
 
@@ -89,8 +110,14 @@ void draw_powerUps(SDL_Renderer* renderer, TileMap* tilemap) {
     SDL_Rect dstRect = {0, 0, 32, 32};  
 
     for (int i = 0; i < powerUpCount; i++) {
-        if (powerUps[i].visible) { 
-            srcRect.x = (SDL_GetTicks() / 100 % 5) * 16;
+        if (powerUps[i].visible) {
+            if (powerUps[i].texture == textureMap) {
+                //  map (simple 16x16 px icon)
+                srcRect.x = 0;
+            } else {
+                // other textures are spritesheets (5 st 16x16 px frames per sheet)
+                srcRect.x = (SDL_GetTicks() / 100 % 5) * 16;
+            }
             dstRect.x = powerUps[i].rect.x - tilemap->camera.x;
             dstRect.y = powerUps[i].rect.y - tilemap->camera.y;
             SDL_RenderCopy(renderer, powerUps[i].texture, &srcRect, &dstRect);
@@ -99,37 +126,39 @@ void draw_powerUps(SDL_Renderer* renderer, TileMap* tilemap) {
 }
 
 
-void apply_powerUp(Character *character, PowerUpType type, Character **characters, int num_characters) {
+void apply_powerUp(Character *character, PowerUpType type, Character **characters, 
+                   int num_characters, MazeView *mazeView) 
+{
     switch (type) {
-        //case POWERUP_HEALTH:
-            // dont really know what to do with health yet cos we dont apply any damage yet?
-            // we only kill x_x 
-            // character->health += 50;  
-            // TODO  
-           // break;
         case POWERUP_SPEED:
-            // adjust powerup effect / speed here
-            // OBS adjust also in the move_character upon timer expiration 
-            if (character->speedPowerupTime == 0) character->speed += 20;   
-            // adjust powerup effect time here, now it worx for 10 seconds only
+            if (character->speedPowerupTime == 0) character->speed += 20;
             character->speedPowerupTime = SDL_GetTicks() + 10000;
-            play_sound_once(soundSpeed); 
+            play_sound_once(soundSpeed);
             break;
         case POWERUP_INVISIBLE:
             character->visible = 0;
-            character->invisiblePowerupTime = SDL_GetTicks() + 3000; // now invisible for 3 sec only, change here
+            character->invisiblePowerupTime = SDL_GetTicks() + 3000;
             play_sound_once(soundInvisible);
-            break;  
-        case POWERUP_SKULL: 
-            if (character->isHunter) {  
-                play_sound_once(soundSkull); 
+            break;
+        case POWERUP_SKULL:
+            if (character->isHunter) {
+                play_sound_once(soundSkull);
                 for (int i = 0; i < num_characters; i++) {
-                    if (characters[i] != character && characters[i]->visible == 1) { // kills only visible characters
+                    if (characters[i] != character && characters[i]->visible == 1) {
                         characters[i]->isKilled = 1;
                     }
                 }
-            }
-            break;     
+            } 
+            break;
+        case POWERUP_MAP:
+            character->visible = 0;
+            mazeView->visible = 1;
+            mazeView->displayTime = SDL_GetTicks() + 10000; // display maze for 10 sec
+            play_sound_once(soundElevator10);
+            break;
     }
 }  
+
+
+
 
