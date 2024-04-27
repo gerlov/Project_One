@@ -7,7 +7,8 @@
 #include"texture.h"
 
 typedef struct {
-    SDL_Texture* texture;
+    SDL_Texture* texture; // maze texture 
+     SDL_Texture* bgTexture; // background texture 
     SDL_Rect viewRect; 
     int visible;
     Uint32 displayTime;
