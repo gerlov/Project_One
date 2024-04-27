@@ -216,7 +216,7 @@ void draw_character_on_mazeview(Character *character, TileMap* tilemap,
     SDL_Rect dot = {scaled_x, scaled_y, 10, 10 }; 
 
     // ensure red dot is drawn relative to the MazeView's position on screen (its centered)
-    dot.x += (window_width - mazeView->viewRect.w) / 2;
+    dot.x += (window_width - mazeView->viewRect.w) / 2 - 10;
     dot.y += (window_height - mazeView->viewRect.h) / 2;
 
     SDL_RenderFillRect(renderer, &dot); // render 
