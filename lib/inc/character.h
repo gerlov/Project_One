@@ -8,6 +8,8 @@
 ///@brief Represents a game character with a position, size, and texture.
 ///The isHunter == 1 if they are a hunter, 0 otherwise.
 typedef struct Character{
+    SDL_FPoint position;
+    SDL_FPoint velocity;
     SDL_Rect rect;
     SDL_Texture* texture;
     int isHunter;
@@ -50,14 +52,11 @@ Character* init_character(SDL_Renderer* pRenderer, const char* filePath, int isH
 ///@brief Updates the position of the character based on input and checks for collisions with the environment and other characters.
 ///@param character Pointer to the Character that is being moved.
 ///@param tilemap Reference to the TileMap for collision checking against the map's tiles.  
-///@param up Boolean flag indicating upward movement.
-///@param down Boolean flag indicating downward movement.
-///@param left Boolean flag indicating leftward movement.
-///@param right Boolean flag indicating rightward movement.
+///@param deltaTime Time since the last frame in seconds.
 ///@param other_characters Array of pointers to other Character structures in the game for collision detection.
 ///@param num_other_characters Number of characters in the other_characters array to check for collisions against.
-void move_character(Character *character, TileMap *tilemap,  
-                    int up, int down, int left, int right, 
+void move_character(Character *character, TileMap *tilemap, 
+                    float deltaTime, 
                     Character **other_characters, int num_other_characters);
 
 ///@brief Draws the character on the provided renderer.
@@ -77,6 +76,14 @@ void cleanup_character(Character* character);
 /// @param WINDOW_WIDTH the width of the game window
 /// @param WINDOW_HEIGHT the height of the game window
 void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT);  
+
+/// @brief updates the character's rectangle xy based on the character's position
+void update_character_rect(Character *character, SDL_FPoint *position);
+
+
+/// @brief gets the center of the character's rectangle
+/// @return the center of the character's rectangle
+SDL_FPoint get_character_center(Character *character);
 
 ///@brief Initializes player-related sounds 
 void init_player_sounds();

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <SDL2/SDL_image.h>
 #include <time.h>
+#include "our_rand.h"
 
 
 
@@ -43,13 +44,13 @@ void set_spawn_divisions(TileMap *tilemap, int maze[], int width, int height)
 {
     int previous_division = -1;
     // amount of divisions in the maze. Actuall amount of spawn devisions is divisions^2
-    int divisions = 10;
+    int divisions = 12;
     for (int k = 0; k < 2; k++)
     {
         int selected = k;
         if (k == 1)
         {
-            // selected = rand() % (divisions * divisions);
+            // selected = our_rand() % (divisions * divisions);
         }
         previous_division = selected;
 
@@ -98,7 +99,7 @@ SDL_Point get_spawn_point(TileMap *tilemap, int ishunter)
             int index = 0;
             do
             {
-                index = rand() % tilemap->hunter_spawn.num_points;
+                index = our_rand() % tilemap->hunter_spawn.num_points;
                 spawn = tilemap->hunter_spawn.points[index];
             } while (spawn.x == -1);
             tilemap->hunter_spawn.points[index] = (SDL_Point){-1, -1};
@@ -112,7 +113,7 @@ SDL_Point get_spawn_point(TileMap *tilemap, int ishunter)
             int index = 0;
             do
             {
-                index = rand() % tilemap->human_spawn.num_points;
+                index = our_rand() % tilemap->human_spawn.num_points;
                 spawn = tilemap->human_spawn.points[index];
             } while (spawn.x == -1);
             tilemap->human_spawn.points[index] = (SDL_Point){-1, -1};
@@ -207,9 +208,11 @@ void generate_maze(TileMap *tilemap, int width, int height, int seed)
         visited[i] = 0;
     }
 
-    srand(seed);
-    int x = rand() % (lesswidth);
-    int y = rand() % (lessheight);
+    // our_srand(seed);
+    // printf("in maze next: %lu\n", get_next());
+    int x = our_rand() % (lesswidth);
+    int y = our_rand() % (lessheight);
+    
     recursive_backtrack(maze, visited, lesswidth, lessheight, x, y);
 
     set_spawn_divisions(tilemap, maze, lesswidth, lessheight);
@@ -237,7 +240,7 @@ void recursive_backtrack(int maze[], int visited[], int width, int height, int c
     // Shuffle the directions array
     for (int i = 3; i > 0; i--)
     {
-        int j = rand() % (i + 1);
+        int j = our_rand()% (i + 1);
         int temp[2] = {directions[i][0], directions[i][1]};
         directions[i][0] = directions[j][0];
         directions[i][1] = directions[j][1];
@@ -262,7 +265,7 @@ void recursive_backtrack(int maze[], int visited[], int width, int height, int c
         }
     }
 }
-void tilemap_load(TileMap *tilemap, int map_id)
+void tilemap_load(TileMap *tilemap, int map_id, int seed)
 {
     if (map_id == 1)
     {
@@ -270,12 +273,14 @@ void tilemap_load(TileMap *tilemap, int map_id)
     }
     else if (map_id == 2)
     {
-        generate_maze(tilemap, TILEMAP_MAP1_W, TILEMAP_MAP1_H, time(NULL));
+        generate_maze(tilemap, TILEMAP_MAP1_W, TILEMAP_MAP1_H, seed);
     }
     else
     {
         printf("Error: Map not found\n");
     }
+    orient_walls(tilemap);
+    randomize_floor(tilemap);
 }
 
 void tilemap_load_file(TileMap *tilemap, const char *path)
@@ -301,7 +306,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
 
     tilemap->camera = (SDL_FPoint){0, 0};
 
-    SDL_Surface *surface = IMG_Load("resources/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
+    SDL_Surface *surface = IMG_Load("../lib/assets/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
 
     if (!surface)
     {
@@ -311,7 +316,7 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
         return;
     }
     tilemap->pTexture = SDL_CreateTextureFromSurface(renderer, surface);
-    surface = IMG_Load("resources/tiles/Yellow_Brick_Floor.png");
+    surface = IMG_Load("../lib/assets/tiles/Yellow_Brick_Floor.png");
     if (!surface)
     {
         printf("Error: %s\n", SDL_GetError());
@@ -387,9 +392,8 @@ void tilemap_free(TileMap *tilemap)
     tilemap->pRenderer = NULL;
 }
 
-void randomize_floor(TileMap *tilemap, int seed)
+void randomize_floor(TileMap *tilemap)
 {
-    srand(seed);
     for (int y = 0; y < tilemap->height; y++)
     {
         for (int x = 0; x < tilemap->width; x++)
@@ -397,8 +401,8 @@ void randomize_floor(TileMap *tilemap, int seed)
             Tile *tile = get_tile(tilemap, x, y);
             if (tile->type == TILE_FLOOR)
             {
-                int y_rect = rand() % 6;
-                int x_rect = rand() % 4;
+                int y_rect = our_rand() % 6;
+                int x_rect = our_rand() % 4;
                 tile->src_rect = (SDL_Rect){x_rect * T_SIZE, y_rect * T_SIZE, T_SIZE, T_SIZE};
             }
         }
