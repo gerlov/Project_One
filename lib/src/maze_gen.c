@@ -2,8 +2,10 @@
 #include "debug.h"
 #include "our_rand.h"
 
-void maze_init(int maze[], int visited[], int width, int height) {
-    for (int i = 0; i < width * height; i++) {
+void maze_init(int maze[], int visited[], int width, int height)
+{
+    for (int i = 0; i < width * height; i++)
+    {
         maze[i] = 1;
         visited[i] = 0;
     }
@@ -21,7 +23,7 @@ void recursive_backtrack(int maze[], int visited[], int width, int height, int c
     // Shuffle the directions array
     for (int i = 3; i > 0; i--)
     {
-        int j = our_rand()% (i + 1);
+        int j = our_rand() % (i + 1);
         int temp[2] = {directions[i][0], directions[i][1]};
         directions[i][0] = directions[j][0];
         directions[i][1] = directions[j][1];
@@ -38,9 +40,9 @@ void recursive_backtrack(int maze[], int visited[], int width, int height, int c
         {
 
             // neighbor is not visited
-            maze[new_y * width + new_x] = 0;
+            maze[new_y * width + new_x] = MAZE_FLOOR;
             // Remove the wall between the current cell and the new cell
-            maze[(current_y + directions[i][1]) * width + (current_x + directions[i][0])] = 0;
+            maze[(current_y + directions[i][1]) * width + (current_x + directions[i][0])] = MAZE_FLOOR;
             // Recursively call the function with the new cell
             recursive_backtrack(maze, visited, width, height, new_x, new_y);
         }
@@ -50,26 +52,35 @@ void tilemap_new_paths(int maze[], int width, int height)
 {
     DEBUG_PRINT2("Creating new paths\n");
     int inset = 1;
-    for (int i = 0; i < (width)*(height);i++)
+    for (int i = 0; i < (width) * (height); i++)
     {
-       // find two floors that are separated by a wall
-        if (maze[i] == 1)
+        // find two floors that are separated by a wall
+        if (maze[i] == MAZE_FLOOR)
         {
             int x = i % width;
             int y = i / width;
             if (y > inset && y < height - inset && x > inset && x < width - inset)
             {
-                if (tilemap_is_valid_new_path(maze,width,height,x,y) && our_rand() % 100 < T_NEW_PATH_PERCENT)
+
+                if (tilemap_is_valid_new_path_y(maze, width, height, x, y) && !tilemap_is_valid_new_path_corner(maze, width, height, x, y))
                 {
-                    DEBUG_PRINT3("New Path at tile %d,%d\n", x, y);
-                    maze[get_index(x, y, width)] = 0;
+                    if (rand() % 20 < T_NEW_PIT_PERCENT)
+                    {
+                        DEBUG_PRINT3("New Pit at tile %d,%d\n", x, y);
+                        maze[get_index(x, y, width)] = MAZE_PIT;
+                    }
+                }
+                if (tilemap_is_valid_new_path(maze, width, height, x, y)) {
+                     if (our_rand() % 100 < T_NEW_PATH_PERCENT)
+                    {
+                        DEBUG_PRINT3("New Path at tile %d,%d\n", x, y);
+                        maze[get_index(x, y, width)] = MAZE_FLOOR;
+                    }
                 }
                 
             }
-            
         }
     }
-
 }
 
 static bool is_valid(int maze[], int width, int height, int x, int y)
@@ -80,21 +91,30 @@ static bool is_valid(int maze[], int width, int height, int x, int y)
     }
     return true;
 }
+bool tilemap_is_valid_new_path_x(int maze[], int width, int height, int x, int y)
+{
+    return maze[get_index(x + 1, y, width)] == MAZE_FLOOR && maze[get_index(x - 1, y, width)] == MAZE_FLOOR && maze[get_index(x, y + 1, width)] == MAZE_WALL && maze[get_index(x, y - 1, width)] == MAZE_WALL;
+}
+bool tilemap_is_valid_new_path_y(int maze[], int width, int height, int x, int y)
+{
+    return maze[get_index(x, y + 1, width)] == MAZE_FLOOR && maze[get_index(x, y - 1, width)] == MAZE_FLOOR && maze[get_index(x + 1, y, width)] == MAZE_WALL && maze[get_index(x - 1, y, width)] == MAZE_WALL;
+}
+bool tilemap_is_valid_new_path_corner(int maze[], int width, int height, int x, int y)
+{
+    return maze[get_index(x + 1, y + 1, width)] == MAZE_FLOOR || maze[get_index(x - 1, y + 1, width)] == MAZE_FLOOR || maze[get_index(x + 1, y - 1, width)] == MAZE_FLOOR || maze[get_index(x - 1, y - 1, width)] == MAZE_FLOOR;
+}
+bool tilemap_is_valid_new_path(int maze[], int width, int height, int x, int y)
+{
 
-bool tilemap_is_valid_new_path(int maze[],int width, int height, int x, int y) {
-    
     // check if the wall has a floor on the top and bottom
-    bool top_bottom = maze[get_index(x,y+1,width)] == 0 && maze[get_index(x,y-1,width)] == 0 && maze[get_index(x+1,y,width)] == 1 && maze[get_index(x-1,y,width)] == 1;
+    bool top_bottom = tilemap_is_valid_new_path_y(maze, width, height, x, y);
     // check if the wall has a floor on the left and right
-    bool left_right = maze[get_index(x+1,y,width)] == 0 && maze[get_index(x-1,y,width)] == 0 && maze[get_index(x,y+1,width)] == 1 && maze[get_index(x,y-1,width)] == 1;
+    bool left_right = tilemap_is_valid_new_path_x(maze, width, height, x, y);
     // check if the corners are floors
-    bool corner = maze[get_index(x+1,y+1,width)] == 0 && maze[get_index(x-1,y+1,width)] == 0 && maze[get_index(x+1,y-1,width)] == 0 && maze[get_index(x-1,y-1,width)] == 0;
- 
+    bool corner = tilemap_is_valid_new_path_corner(maze, width, height, x, y);
+
     return (top_bottom || left_right) && !corner;
 }
-
-
-
 
 int get_index(int x, int y, int width)
 {

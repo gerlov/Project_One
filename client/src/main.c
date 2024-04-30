@@ -1,4 +1,5 @@
 #define NO_STDIO_REDIRECT
+#include "debug.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_net.h>
@@ -314,7 +315,9 @@ void playing(Game_c *game)
     {
         draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
     }
-    drawLimitedVision(&game->lv, get_character_center(game->myCharacter));
+    DEBUG_PRINT2("Camera x: %f, y: %f\n", game->tilemap.camera.x, game->tilemap.camera.y);
+    DEBUG_PRINT2("Character x: %f, y: %f\n", game->myCharacter->position.x, game->myCharacter->position.y);
+    drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);
 
     SDL_RenderPresent(game->pRenderer);
 }

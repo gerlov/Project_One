@@ -12,8 +12,7 @@ typedef enum TileType {
     TILE_EMPTY,
     TILE_WALL,
     TILE_FLOOR,
-    TILE_DECOR,
-    TILE_WIN
+    TILE_PIT
 } TileType;
 
 /// @brief Enum that represents a direction. Used for the orientation of the walls as a hash
@@ -48,10 +47,9 @@ typedef struct Tile
 typedef struct TileMap
 {
     SDL_Renderer *pRenderer; // renderer to load the textures with
-    SDL_Texture *pTexture;   // texture of the tilemap
+    SDL_Texture *pWallTexture;   // texture of the tilemap
     SDL_Texture *pFloorTexture; // texture of the floor
-    // int x;                   // x position of the tilemap
-    // int y;                   // y position of the tilemap
+    SDL_Texture *pPitTexture;
     SDL_FPoint camera;       // camera position
     int width;               // in tiles
     int height;              // in tiles

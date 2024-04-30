@@ -318,7 +318,6 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
         break;
     default:
     }
-
     SDL_Rect destRect = character->rect;
     destRect.w = character->rect.w;
     destRect.h = character->rect.h;
