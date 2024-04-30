@@ -8,7 +8,6 @@
 #define MAZE_SCALEUP_FACTOR 3
 #define T_SIZE 32
 #define T_DISPLAY_SIZE 64
-#define T_NEW_PATH_PERCENT 15
 typedef enum TileType {
     TILE_EMPTY,
     TILE_WALL,
@@ -115,14 +114,6 @@ void tilemap_free(TileMap *tilemap);
 /// @param seed the seed to use for the random number generator
 void generate_maze(TileMap *tilemap, int width, int height, int seed);
 
-/// @brief A recursive backtracking algorithm to generate a maze
-/// @param maze maze array
-/// @param visited visited array
-/// @param width the width of the maze
-/// @param height height of the maze
-/// @param current_x current x position (chosen at random when started)
-/// @param current_y current y position (chosen at random when started)
-void recursive_backtrack(int maze[], int visited[], int width, int height, int current_x, int current_y);
 
 /// @brief Randomize the floor pattern
 /// @param tilemap pointer to the tilemap
@@ -133,12 +124,6 @@ void randomize_floor(TileMap *tilemap);
 /// @param tilemap the tilemap to orient the walls in
 void orient_walls(TileMap *tilemap);
 
-/// @brief helper function for a 2d array disguesed as a 1d array
-/// @param x 
-/// @param y 
-/// @param width width of the 2d array
-/// @return converted index
-int get_index(int x, int y, int width);
 
 /// @brief Get the type of the neighbouring tiles
 /// @param tilemap 
@@ -151,8 +136,6 @@ TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
 void set_spawn_divisions(TileMap *tilemap, int *maze, int width, int height);
 
 SDL_Point get_spawn_point(TileMap *tilemap, int ishunter);
-
-void tilemap_new_paths(int maze[], int width, int height);
 
 
 #endif // TILEMAP_H
