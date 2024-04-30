@@ -8,6 +8,7 @@
 #define MAZE_SCALEUP_FACTOR 3
 #define T_SIZE 32
 #define T_DISPLAY_SIZE 64
+#define T_NEW_PATH_PERCENT 15
 typedef enum TileType {
     TILE_EMPTY,
     TILE_WALL,
@@ -150,5 +151,8 @@ TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
 void set_spawn_divisions(TileMap *tilemap, int *maze, int width, int height);
 
 SDL_Point get_spawn_point(TileMap *tilemap, int ishunter);
+
+void tilemap_new_paths(int maze[], int width, int height);
+
 
 #endif // TILEMAP_H

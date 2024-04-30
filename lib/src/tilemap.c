@@ -3,8 +3,7 @@
 #include <SDL2/SDL_image.h>
 #include <time.h>
 #include "our_rand.h"
-
-
+#include "debug.h"
 
 
 
@@ -214,9 +213,11 @@ void generate_maze(TileMap *tilemap, int width, int height, int seed)
     int y = our_rand() % (lessheight);
     
     recursive_backtrack(maze, visited, lesswidth, lessheight, x, y);
-
+    tilemap_new_paths(maze, lesswidth, lessheight);
     set_spawn_divisions(tilemap, maze, lesswidth, lessheight);
     apply_maze(tilemap, maze, lesswidth, lessheight);
+    free(maze);
+    free(visited);
 }
 /// @brief used to validate posistion in the maze generation
 static bool is_valid(int maze[], int width, int height, int x, int y)
@@ -387,7 +388,10 @@ Tile *get_tile(TileMap *tilemap, int x, int y)
 
 void tilemap_free(TileMap *tilemap)
 {
+    free(tilemap->human_spawn.points);
+    free(tilemap->hunter_spawn.points);
     SDL_DestroyTexture(tilemap->pTexture);
+    SDL_DestroyTexture(tilemap->pFloorTexture);
     tilemap->pTexture = NULL;
     tilemap->pRenderer = NULL;
 }
@@ -489,4 +493,47 @@ void orient_walls(TileMap *tilemap)
             tile->src_rect = walls[dir];
         }
     }
+}
+bool tilemap_is_valid_new_path(int maze[],int width, int height, int x, int y) {
+    
+    // check if the wall has a floor on the top and bottom
+    int top_bottom = maze[get_index(x,y+1,width)] == 0 && maze[get_index(x,y-1,width)] == 0 && maze[get_index(x+1,y,width)] == 1 && maze[get_index(x-1,y,width)] == 1;
+    // check if the wall has a floor on the left and right
+    int left_right = maze[get_index(x+1,y,width)] == 0 && maze[get_index(x-1,y,width)] == 0 && maze[get_index(x,y+1,width)] == 1 && maze[get_index(x,y-1,width)] == 1;
+    // check if the corners are walls
+    int corner = maze[get_index(x+1,y+1,width)] == 1 && maze[get_index(x-1,y+1,width)] == 1 && maze[get_index(x+1,y-1,width)] == 1 && maze[get_index(x-1,y-1,width)] == 1;
+
+    int random = our_rand() % 100 <= T_NEW_PATH_PERCENT;
+
+    if ((top_bottom || left_right) && random)
+    {
+        return true;
+    }
+    return false;
+}
+
+void tilemap_new_paths(int maze[], int width, int height)
+{
+    DEBUG_PRINT2("Creating new paths\n");
+    int inset = 2;
+    for (int i = 0; i < (width)*(height);i++)
+    {
+       // find two floors that are separated by a wall
+        if (maze[i] == 1)
+        {
+            int x = i % width;
+            int y = i / width;
+            if (y > inset && y < height - inset && x > inset && x < width - inset)
+            {
+                if (tilemap_is_valid_new_path(maze,width,height,x,y))
+                {
+                    DEBUG_PRINT3("Found a floor at %d %d\n", x, y);
+                    maze[get_index(x, y, width)] = 0;
+                }
+                
+            }
+            
+        }
+    }
+
 }
