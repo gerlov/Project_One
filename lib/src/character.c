@@ -337,6 +337,7 @@ void cleanup_character(Character *character)
             character->texture = NULL;
         }
     }
+    free(character);
 }
 
 void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT)

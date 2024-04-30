@@ -128,7 +128,7 @@ void orient_walls(TileMap *tilemap);
 /// @param x 
 /// @param y 
 /// @return array of that contains the type of the neighbouring tiles in the order of up, right, down, left, top right, bottom right, bottom left, top left
-TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
+TileType* get_neighbour_tiles_type(TileMap *tilemap, int x, int y);
 
 
 void set_spawn_divisions(TileMap *tilemap, int *maze, int width, int height);
