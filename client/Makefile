@@ -41,7 +41,7 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 all: $(TARGET)
 
 # run 'make' to compile the program
-$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/tilemap.o $(BUILD_DIR)/music.o $(BUILD_DIR)/window.o $(BUILD_DIR)/collisions.o $(BUILD_DIR)/powerup.o $(BUILD_DIR)/menu.o $(BUILD_DIR)/character.o $(BUILD_DIR)/texture.o $(BUILD_DIR)/game.o $(BUILD_DIR)/limitedvision.o $(BUILD_DIR)/our_rand.o
+$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/tilemap.o $(BUILD_DIR)/music.o $(BUILD_DIR)/window.o $(BUILD_DIR)/collisions.o $(BUILD_DIR)/powerup.o $(BUILD_DIR)/menu.o $(BUILD_DIR)/character.o $(BUILD_DIR)/texture.o $(BUILD_DIR)/game.o $(BUILD_DIR)/limitedvision.o $(BUILD_DIR)/our_rand.o $(BUILD_DIR)/maze_gen.o
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 
@@ -80,6 +80,9 @@ $(BUILD_DIR)/limitedvision.o: $(COMMONSRCDIR)/limitedvision.c $(INCDIR)/limitedv
 
 $(BUILD_DIR)/our_rand.o: $(COMMONSRCDIR)/our_rand.c
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/our_rand.c -o $@
+
+$(BUILD_DIR)/maze_gen.o: $(COMMONSRCDIR)/maze_gen.c
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/maze_gen.c -o $@
 
 
 # ----- Run the program -----------------
