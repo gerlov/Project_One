@@ -365,7 +365,7 @@ void randomize_floor(TileMap *tilemap)
     }
 }
 
-TileType *get_neighbur_tiles_type(TileMap *tilemap, int x, int y)
+TileType *get_neighbour_tiles_type(TileMap *tilemap, int x, int y)
 {
     TileType *neighbours = malloc(sizeof(int) * 8);
     Tile *tile = NULL;
@@ -396,7 +396,7 @@ void orient_walls(TileMap *tilemap)
         for (int x = 0; x < tilemap->width; x++)
         {
             Tile *tile = get_tile(tilemap, x, y);
-            TileType *neighbours = get_neighbur_tiles_type(tilemap, x, y);
+            TileType *neighbours = get_neighbour_tiles_type(tilemap, x, y);
             if (tile->type == TILE_PIT)
             {
                 if (neighbours[0] == TILE_WALL)
@@ -408,8 +408,10 @@ void orient_walls(TileMap *tilemap)
                     tile->src_rect = pits[0];
                 }
             }
-            if (tile->type != TILE_WALL)
+            if (tile->type != TILE_WALL) {
+                free(neighbours);
                 continue;
+            }
 
             // this makes a 4 bit number that represents the walls around the tile
             int dir = NONE;
@@ -455,6 +457,7 @@ void orient_walls(TileMap *tilemap)
             }
             // walls is a array of SDL_Rect that is ordered in a way that it behaves a kind of hash map
             tile->src_rect = walls[dir];
+            free(neighbours);
         }
     }
 }

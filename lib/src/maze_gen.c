@@ -64,7 +64,7 @@ void tilemap_new_paths(int maze[], int width, int height)
 
                 if (tilemap_is_valid_new_path_y(maze, width, height, x, y) && !tilemap_is_valid_new_path_corner(maze, width, height, x, y))
                 {
-                    if (rand() % 20 < T_NEW_PIT_PERCENT)
+                    if (our_rand() % 20 < T_NEW_PIT_PERCENT)
                     {
                         DEBUG_PRINT3("New Pit at tile %d,%d\n", x, y);
                         maze[get_index(x, y, width)] = MAZE_PIT;
