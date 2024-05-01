@@ -5,7 +5,7 @@
 #include "character.h"
 
 #define MAX_PLAYERS 6
-#define SOCKET_PORT 2001 
+#define SOCKET_PORT 2000 
 
 typedef enum {
     START,

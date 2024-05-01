@@ -124,7 +124,7 @@ int init(Game_s *game)
     game->gameState = START;
     game->nrOfClients = 0;
     our_srand(time(NULL));
-    // game->seed = our_rand();
+    game->seed = our_rand();
     game->seed = 0; // for testing
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
