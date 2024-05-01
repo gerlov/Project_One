@@ -204,11 +204,12 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
 
 void generate_maze(TileMap *tilemap, int width, int height, int seed)
 {
+    our_srand(seed);
     int lesswidth = width - 2;
     int lessheight = height - 2;
     int *maze = malloc(sizeof(int) * lesswidth * lessheight);
     int *visited = malloc(sizeof(int) * lesswidth * lessheight);
-    for (int i = 0; i < width * height; i++)
+    for (int i = 0; i < lesswidth * lessheight; i++)
     {
         maze[i] = MAZE_WALL;
         visited[i] = 0;
