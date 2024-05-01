@@ -15,7 +15,7 @@
 #include "powerup.h"
 #include "menu.h"
 
-#define NO_SERVER 1
+#define NO_SERVER 0
 
 typedef struct game
 {
@@ -122,9 +122,6 @@ int initiate(Game_c *game)
     game->bgm = init_background_music(soundPathbgm[backgroundIndex], 30);
     tilemap_init(&game->tilemap, game->pRenderer);
 
-    play_background_music(game->bgm);
-    free_bgm(game->bgm);
-
     game->powerUpCount = 0;
     load_powerup_resources(game->pRenderer);
     init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 400);
@@ -171,7 +168,7 @@ void joining(Game_c *game)
     // Receive server data
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
-        printf("(Client) Packet received\n");
+        DEBUG_PRINT2("(Client) Packet received\n");
         memcpy(&game->joinData, game->packet->data, sizeof(JoinData));
         game->activePlayer = game->joinData.playerINDEX;
         game->seed = game->joinData.seed;
@@ -215,10 +212,13 @@ void startGame(Game_c *game)
         "../lib/assets/characters/maleOne.png"};
     const char *hunterClothes[] = {
         "../lib/assets/characters/monster.png"};
+    DEBUG_PRINT("Seed: %d\n", game->seed);
     our_srand(game->seed);
-    // printf("Seed: %lu\n", get_next());
-    tilemap_load(&game->tilemap, 1, game->seed);
+    tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
+
+    play_background_music(game->bgm);
+    free_bgm(game->bgm);
 
     for (int i = 0; i < game->PLAYERS; i++)
     {
@@ -326,7 +326,7 @@ void updateFromServer(Game_c *game)
 #if !NO_SERVER
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
-        // printf("(Client) Packet received\n");
+        DEBUG_PRINT3("(Client) Packet received\n");
         memcpy(&game->serverData, game->packet->data, sizeof(ServerData));
         for (int i = 0; i < game->PLAYERS; i++)
         {
@@ -345,7 +345,6 @@ void updateFromServer(Game_c *game)
             game->characters[i]->frameLastUpdated = game->serverData.characters[i].frameLastUpdated;
             update_character_rect(game->characters[i], &game->characters[i]->position);
         }
-        // printServerData(game->serverData);
     }
 #endif
 }
@@ -367,7 +366,7 @@ void updateToServer(Game_c *game)
 #if !NO_SERVER
     memcpy(game->packet->data, &game->data, sizeof(CharacterData));
     game->packet->len = sizeof(CharacterData);
-    // printf("Sending data to server\n");
+    DEBUG_PRINT3("(Client) Sending packet\n");
     SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
 #endif
 }
@@ -381,15 +380,19 @@ void handleInput(Game_c *game, SDL_Event *event)
         switch (event->key.keysym.sym)
         {
         case SDLK_UP:
+        case SDLK_w:
             up = true;
             break;
         case SDLK_DOWN:
+        case SDLK_s:
             down = true;
             break;
         case SDLK_LEFT:
+        case SDLK_a:
             left = true;
             break;
         case SDLK_RIGHT:
+        case SDLK_d:
             right = true;
             break;
         case SDLK_SPACE:
@@ -401,15 +404,19 @@ void handleInput(Game_c *game, SDL_Event *event)
         switch (event->key.keysym.sym)
         {
         case SDLK_UP:
+        case SDLK_w:
             up = false;
             break;
         case SDLK_DOWN:
+        case SDLK_s:
             down = false;
             break;
         case SDLK_LEFT:
+        case SDLK_a:
             left = false;
             break;
         case SDLK_RIGHT:
+        case SDLK_d:
             right = false;
             break;
         }
