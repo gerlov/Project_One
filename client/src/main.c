@@ -33,6 +33,7 @@ typedef struct game
     UDPsocket serverSocket;
     IPaddress serverIP;
     UDPpacket *packet;
+    char hostAddress[MAX_ADDRESS_LENGTH];
 
     Character *characters[MAX_PLAYERS];
     Character *myCharacter;
@@ -94,8 +95,10 @@ int initiate(Game_c *game)
         return 1;
     }
 
+    if(lobby(game->pRenderer, game->hostAddress) == true) close(game);
+
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
-    if (SDLNet_ResolveHost(&game->serverIP, "127.0.0.1", SOCKET_PORT))
+    if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         return 1;

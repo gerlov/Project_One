@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_net.h>
 #include "menu.h"
 #include "music.h"
 
@@ -19,6 +21,8 @@
 #define SLIDER_WIDTH 349
 #define SLIDER_HEIGHT 20
 #define SLIDER_Y 250
+
+#define MAX_IP_LENGTH 16
 
 int volSliderValue = 100; // Initial volume value
 int prevVolSliderValue; // For slider to sync with mute/unmute button
@@ -242,7 +246,122 @@ bool optionsMenu(SDL_Renderer *renderer)
     return closeWindow;
 }
 
-bool mainMenu(SDL_Renderer *renderer)
+bool lobby(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
+{
+    bool lobby = true;
+    bool closeWindow = false;
+
+    if (TTF_Init() == -1) {
+        fprintf(stderr, "TTF could not initialize! TTF Error: %s\n", TTF_GetError());
+        return 1;
+    }
+    
+    int fontSize = 45;
+    char inputText[MAX_IP_LENGTH] = "";
+    int textLength = 0;
+    TTF_Font * font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", fontSize);
+    SDL_Color textColor = {0, 0, 0, 255}; // Black text
+
+    // Load background texture
+    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+
+    // Lobby loop
+    while (lobby)
+    {
+        // Clear the screen
+        SDL_RenderClear(renderer);
+
+        // Render background & menu button
+        if (renderMenuItem(&background)) return closeWindow;
+        createMenuButton(renderer, "", 255, 255, 255, 100);
+        createMenuButton(renderer, "Join Game", 1, 50, 32, 300);
+        
+
+        if (textLength > 0)
+        {
+            // Render the input text
+            SDL_Surface* textSurface = TTF_RenderText_Solid(font, inputText, textColor);
+            if (textSurface == NULL) {
+                fprintf(stderr, "Text surface could not be created! TTF Error: %s\n", TTF_GetError());
+                // Handle error appropriately
+            } else {
+                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+                if (textTexture == NULL) {
+                    fprintf(stderr, "Text texture could not be created! SDL Error: %s\n", SDL_GetError());
+                } else {
+                    // Get the dimensions of the text texture
+                    int textW, textH;
+                    SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
+
+                    // Set the position of the text (adjust as needed)
+                    SDL_Rect textRect = {BUTTONS_X+8, 158, textW, textH};
+
+                    // Render the text texture
+                    SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+                    // Free texture and surface resources
+                    SDL_DestroyTexture(textTexture);
+                }
+                SDL_FreeSurface(textSurface);
+            }
+        }
+
+        SDL_RenderPresent(renderer);
+
+        // Event handling
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                closeWindow = true; // Closes the application
+                lobby = false;
+                break;
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.scancode)
+                {
+                case SDL_SCANCODE_ESCAPE:
+                    lobby = false; // Returns to the menu
+                    break;
+                case SDL_SCANCODE_BACKSPACE:
+                    if (textLength > 0) {
+                        inputText[textLength - 1] = '\0';
+                        textLength--;
+                    }
+                    break;
+                }
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                int mouseX, mouseY;
+                SDL_GetMouseState(&mouseX, &mouseY); // Get mouse location
+
+                if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
+                    mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
+                {
+                    // Start the game
+                    hostAddress = inputText;
+                    return closeWindow;
+                }
+                break;
+            case SDL_TEXTINPUT:
+                // Handle text input
+                if (textLength < sizeof(inputText) - 1) { // Leave room for null terminator
+                    strcat(inputText, event.text.text);
+                    textLength = strlen(inputText);
+                } else {
+                    // Handle maximum length reached (e.g., display a warning)
+                }
+                break;
+            }
+        }
+    }
+    TTF_CloseFont(font);
+    TTF_Quit();
+    return closeWindow;
+}
+
+bool mainMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
 {
     bool menu = true;
     bool closeWindow = false;
@@ -260,7 +379,7 @@ bool mainMenu(SDL_Renderer *renderer)
 
         // Render background and menu items
         if (renderMenuItem(&background)) return closeWindow;
-        createMenuButton(renderer, "Start Game", 1, 50, 32, 100);
+        createMenuButton(renderer, "Resume Game", 1, 50, 32, 100);
         createMenuButton(renderer, "Options", 105, 105, 105, 300);
         createMenuButton(renderer, "Quit Game", 139, 0, 0, 500);
 
@@ -291,7 +410,7 @@ bool mainMenu(SDL_Renderer *renderer)
                 if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
                     mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT)
                 {
-                    menu = false;
+                    lobby(renderer, hostAddress);
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
                          mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)

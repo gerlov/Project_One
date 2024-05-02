@@ -1,6 +1,8 @@
 #ifndef MENU_H
 #define MENU_H
 
+#define MAX_ADDRESS_LENGTH 16
+
 /// @brief Struct for the menu items
 /// @param texture The texture of the image
 /// @param renderer The renderer to draw the item to
@@ -44,9 +46,15 @@ void toggle_music_logic(void);
 /// @return returns true if window should be closed
 bool optionsMenu(SDL_Renderer* renderer);
 
+/// @brief Lobby function for connecting to a server
+/// @param renderer The renderer to draw the lobby to
+/// @param hostAddress The address of the server to connect to
+/// @return returns true if window should be closed
+bool lobby(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]);
+
 /// @brief Main code for the menu
 /// @param renderer The renderer to draw the menu to
 /// @return returns true if window should be closed
-bool mainMenu(SDL_Renderer* renderer);
+bool mainMenu(SDL_Renderer* renderer, char hostAddress[MAX_ADDRESS_LENGTH]);
 
 #endif // MENU_H
