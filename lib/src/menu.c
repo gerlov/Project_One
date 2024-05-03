@@ -7,6 +7,7 @@
 #include <SDL2/SDL_net.h>
 #include "menu.h"
 #include "music.h"
+#include "game.h"
 
 #define BACKGROUND_IMG_PATH "../lib/assets/menu/MenuBackground.png"
 
@@ -24,6 +25,7 @@
 
 #define PLAYER_TEXT_OFFSET 25
 #define PLAYER_TEXT_HEIGHT 100
+#define PLAYER_TEXT_INBETWEEN_SPAPCE 115
 
 int volSliderValue = 100; // Initial volume value
 int prevVolSliderValue;   // For slider to sync with mute/unmute button
@@ -253,7 +255,7 @@ bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool
     }
 
     int fontSize = 45;
-    char inputText[MAX_IP_LENGTH] = "";
+    char inputText[MAX_ADDRESS_LENGTH] = "";
     int textLength = 0;
     TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", fontSize);
     SDL_Color textColor = {0, 0, 0, 255}; // Black text
@@ -463,7 +465,7 @@ bool pauseMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], boo
     return closeWindow;
 }
 
-void drawLobby(SDL_Renderer *renderer, int readyPlayers[6], int players)
+void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int players)
 {
     TTF_Init();
     TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", 24);
@@ -478,8 +480,6 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[6], int players)
         char *text = "Player ";
         char playerNum[2];
         sprintf(playerNum, "%d", i+1);
-
-        renderMenuItem(&background);
         
         // Calculate total length including null terminator
         size_t totalLength = strlen(text) + strlen(playerNum) + 1;
@@ -507,9 +507,9 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[6], int players)
         {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         }
-        SDL_Rect rect = {230, PLAYER_TEXT_OFFSET + i * 115, PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
+        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 5, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPAPCE, PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
         SDL_RenderFillRect(renderer, &rect);
-        drawText(renderer, color, font, result, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + i * 115, 200, PLAYER_TEXT_HEIGHT);
+        drawText(renderer, color, font, result, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPAPCE, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
     }
     SDL_RenderPresent(renderer);
 }
