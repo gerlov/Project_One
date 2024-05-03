@@ -25,7 +25,7 @@
 
 #define PLAYER_TEXT_OFFSET 25
 #define PLAYER_TEXT_HEIGHT 100
-#define PLAYER_TEXT_INBETWEEN_SPAPCE 115
+#define PLAYER_TEXT_INBETWEEN_SPACE 115
 
 int volSliderValue = 100; // Initial volume value
 int prevVolSliderValue;   // For slider to sync with mute/unmute button
@@ -507,9 +507,9 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int player
         {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         }
-        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 5, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPAPCE, PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
+        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 5, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE, PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
         SDL_RenderFillRect(renderer, &rect);
-        drawText(renderer, color, font, result, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPAPCE, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
+        drawText(renderer, color, font, result, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
     }
     SDL_RenderPresent(renderer);
 }
