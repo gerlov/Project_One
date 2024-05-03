@@ -22,8 +22,6 @@
 #define SLIDER_HEIGHT 20
 #define SLIDER_Y 250
 
-#define MAX_IP_LENGTH 16
-
 #define PLAYER_TEXT_OFFSET 25
 #define PLAYER_TEXT_HEIGHT 100
 
