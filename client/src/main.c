@@ -14,7 +14,7 @@
 #include "powerup.h"
 #include "menu.h"
 
-#define NO_SERVER 0
+#define NO_SERVER 1
 
 typedef struct game
 {
@@ -118,7 +118,7 @@ int initiate(Game_c *game)
     int size_of_soundPathbgm = sizeof(soundPathbgm) / sizeof(soundPathbgm[0]);
     int backgroundIndex = our_rand() % size_of_soundPathbgm;
 
-    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 100);
+    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 30);
     tilemap_init(&game->tilemap, game->pRenderer);
 
     play_background_music(game->bgm);

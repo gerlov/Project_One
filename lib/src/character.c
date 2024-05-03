@@ -26,9 +26,9 @@ const char *hunterClothes[] = {
 
 void init_player_sounds()
 {
-    wall_sound = init_sound_effect("../lib/assets/music/sse2.mp3", 10);
-    oi_sound = init_sound_effect("../lib/assets/music/oi.mp3", 30);
-    kill_sound = init_sound_effect("../lib/assets/music/sse1.mp3", 30);
+    wall_sound = init_sound_effect("../lib/assets/music/sse2.mp3");
+    oi_sound = init_sound_effect("../lib/assets/music/oi.mp3");
+    kill_sound = init_sound_effect("../lib/assets/music/sse1.mp3");
 }
 
 void cleanup_player_sounds()
@@ -188,7 +188,7 @@ void move_character(Character *character, TileMap *tilemap,
     if (hasCollided)
     {
         // Has collided with a wall, play sound and return
-        play_sound_once(wall_sound);
+        play_sound_once(wall_sound, 2);
         return;
     }
 
@@ -247,7 +247,7 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
                 hunter->rect.x = characters[i]->rect.x;
                 hunter->rect.y = characters[i]->rect.y;
                 // kill sound
-                play_sound_once(kill_sound);
+                play_sound_once(kill_sound, 5);
                 // free_sse(kill_sound);
 
                 break; // Kills one, otherwise more in a small space
