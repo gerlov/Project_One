@@ -95,7 +95,7 @@ int initiate(Game_c *game)
         return 1;
     }
 
-    if(lobby(game->pRenderer, game->hostAddress) == true) close(game);
+    // if(lobby(game->pRenderer, game->hostAddress) == true) close(game);
 
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
     if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
@@ -189,22 +189,7 @@ void joining(Game_c *game)
     }
     game->oldready = game->ready;
     SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
-    SDL_RenderClear(game->pRenderer);
-    for (int i = 0; i < game->PLAYERS; i++)
-    {
-        SDL_Rect rect = {10 + i * 60, 0, 50, 50};
-        if (game->joinData.readyPlayers[i])
-        {
-            SDL_SetRenderDrawColor(game->pRenderer, 0, 255, 0, 255);
-        }
-        else
-        {
-            SDL_SetRenderDrawColor(game->pRenderer, 255, 0, 0, 255);
-        }
-        SDL_RenderFillRect(game->pRenderer, &rect);
-        SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
-    }
-    SDL_RenderPresent(game->pRenderer);
+    drawLobby(game->pRenderer, game->joinData.readyPlayers, game->PLAYERS);
 }
 
 void startGame(Game_c *game)
@@ -255,8 +240,14 @@ void run(Game_c *game)
         {
         case START:
             // main menu function goes here
-
-            game->gameState = JOINING; // remove this line when main menu is implemented
+            if(pauseMenu(game->pRenderer, game->hostAddress, false))
+            {
+                game->gameState = QUIT;
+            }
+            else
+            {
+                game->gameState = JOINING;
+            }
             break;
 
         case JOINING:
@@ -269,6 +260,14 @@ void run(Game_c *game)
 
         case PAUSED:
             // pause menu? function goes here if we would like to have it
+            if(pauseMenu(game->pRenderer, game->hostAddress, true))
+            {
+                game->gameState = QUIT;
+            }
+            else
+            {
+                game->gameState = PLAYING;
+            }
             break;
         case QUIT:
             break;
@@ -395,6 +394,9 @@ void handleInput(Game_c *game, SDL_Event *event)
             break;
         case SDLK_SPACE:
             game->space = true;
+            break;
+        case SDLK_ESCAPE:
+            game->gameState = PAUSED;
             break;
         }
         break;

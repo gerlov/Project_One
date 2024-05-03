@@ -24,8 +24,11 @@
 
 #define MAX_IP_LENGTH 16
 
+#define PLAYER_TEXT_OFFSET 25
+#define PLAYER_TEXT_HEIGHT 100
+
 int volSliderValue = 100; // Initial volume value
-int prevVolSliderValue; // For slider to sync with mute/unmute button
+int prevVolSliderValue;   // For slider to sync with mute/unmute button
 bool draggingSlider = false;
 bool musicMuted = false;
 
@@ -71,19 +74,11 @@ void createMenuButton(SDL_Renderer *renderer, char *text, int r, int g, int b, i
     SDL_DestroyTexture(Message);
 }
 
-void drawText(SDL_Renderer *renderer, char *text, int y)
+void drawText(SDL_Renderer *renderer, SDL_Color color, TTF_Font *font, char *text, int x, int y, int w, int h)
 {
-    SDL_Color textColor = {255, 255, 255, 255};
-
-    TTF_Font *Font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
-    if (Font == NULL)
-    {
-        return;
-    }
-
-    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(Font, text, textColor);
+    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(font, text, color);
     SDL_Texture *Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-    SDL_Rect Message_rect = {BUTTONS_X + 25, y + 25, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50};
+    SDL_Rect Message_rect = {x, y, w, h};
     SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
     SDL_FreeSurface(surfaceMessage);
     SDL_DestroyTexture(Message);
@@ -106,9 +101,9 @@ void toggle_music_logic(void)
 {
     toggle_music();
     musicMuted = !musicMuted;
-    if(musicMuted)
+    if (musicMuted)
     {
-        if(!volSliderValue)
+        if (!volSliderValue)
         {
             prevVolSliderValue = 1;
         }
@@ -140,9 +135,10 @@ bool optionsMenu(SDL_Renderer *renderer)
         SDL_RenderClear(renderer);
 
         // Render menu items and background
-        if (renderMenuItem(&background)) return closeWindow;
-
-        drawText(renderer, "Volume Slider", 100);
+        if (renderMenuItem(&background))
+            return closeWindow;
+        TTF_Font *font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
+        drawText(renderer, (SDL_Color){255, 255, 255, 255}, font, "Volume Slider", BUTTONS_X + 25, 125, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
         float handleX = BUTTONS_X + (float)(SLIDER_WIDTH - 20) * ((float)volSliderValue / 100.0);
         renderSlider(renderer, handleX);
 
@@ -238,63 +234,71 @@ bool optionsMenu(SDL_Renderer *renderer)
                 }
                 break;
             }
-            
-            if(!volSliderValue && !musicMuted || volSliderValue && musicMuted) toggle_music_logic();
+
+            if (!volSliderValue && !musicMuted || volSliderValue && musicMuted)
+                toggle_music_logic();
         }
     }
 
     return closeWindow;
 }
 
-bool lobby(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
+bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool *joinGame)
 {
-    bool lobby = true;
+    bool findGame = true;
     bool closeWindow = false;
 
-    if (TTF_Init() == -1) {
+    if (TTF_Init() == -1)
+    {
         fprintf(stderr, "TTF could not initialize! TTF Error: %s\n", TTF_GetError());
         return 1;
     }
-    
+
     int fontSize = 45;
     char inputText[MAX_IP_LENGTH] = "";
     int textLength = 0;
-    TTF_Font * font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", fontSize);
+    TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", fontSize);
     SDL_Color textColor = {0, 0, 0, 255}; // Black text
 
     // Load background texture
     MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
 
-    // Lobby loop
-    while (lobby)
+    // Find game loop
+    while (findGame)
     {
         // Clear the screen
         SDL_RenderClear(renderer);
 
         // Render background & menu button
-        if (renderMenuItem(&background)) return closeWindow;
+        if (renderMenuItem(&background))
+            return closeWindow;
         createMenuButton(renderer, "", 255, 255, 255, 100);
         createMenuButton(renderer, "Join Game", 1, 50, 32, 300);
-        
 
         if (textLength > 0)
         {
             // Render the input text
-            SDL_Surface* textSurface = TTF_RenderText_Solid(font, inputText, textColor);
-            if (textSurface == NULL) {
+            SDL_Surface *textSurface = TTF_RenderText_Solid(font, inputText, textColor);
+            if (textSurface == NULL)
+            {
                 fprintf(stderr, "Text surface could not be created! TTF Error: %s\n", TTF_GetError());
                 // Handle error appropriately
-            } else {
-                SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-                if (textTexture == NULL) {
+            }
+            else
+            {
+                SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+                if (textTexture == NULL)
+                {
                     fprintf(stderr, "Text texture could not be created! SDL Error: %s\n", SDL_GetError());
-                } else {
+                }
+                else
+                {
                     // Get the dimensions of the text texture
                     int textW, textH;
                     SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
 
                     // Set the position of the text (adjust as needed)
-                    SDL_Rect textRect = {BUTTONS_X+8, 158, textW, textH};
+                    SDL_Rect textRect = {BUTTONS_X + 8, 158, textW, textH};
 
                     // Render the text texture
                     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
@@ -316,16 +320,17 @@ bool lobby(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
             {
             case SDL_QUIT:
                 closeWindow = true; // Closes the application
-                lobby = false;
+                findGame = false;
                 break;
             case SDL_KEYDOWN:
                 switch (event.key.keysym.scancode)
                 {
                 case SDL_SCANCODE_ESCAPE:
-                    lobby = false; // Returns to the menu
+                    findGame = false; // Returns to the menu
                     break;
                 case SDL_SCANCODE_BACKSPACE:
-                    if (textLength > 0) {
+                    if (textLength > 0)
+                    {
                         inputText[textLength - 1] = '\0';
                         textLength--;
                     }
@@ -341,16 +346,16 @@ bool lobby(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
                 {
                     // Start the game
                     hostAddress = inputText;
+                    *joinGame = true;
                     return closeWindow;
                 }
                 break;
             case SDL_TEXTINPUT:
                 // Handle text input
-                if (textLength < sizeof(inputText) - 1) { // Leave room for null terminator
+                if (textLength < sizeof(inputText) - 1)
+                { // Leave room for null terminator
                     strcat(inputText, event.text.text);
                     textLength = strlen(inputText);
-                } else {
-                    // Handle maximum length reached (e.g., display a warning)
                 }
                 break;
             }
@@ -361,10 +366,11 @@ bool lobby(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
     return closeWindow;
 }
 
-bool mainMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
+bool pauseMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inGame)
 {
     bool menu = true;
     bool closeWindow = false;
+    bool joinGame = false;
 
     TTF_Init(); // Initialize TTF
 
@@ -378,10 +384,19 @@ bool mainMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
         SDL_RenderClear(renderer);
 
         // Render background and menu items
-        if (renderMenuItem(&background)) return closeWindow;
-        createMenuButton(renderer, "Resume Game", 1, 50, 32, 100);
+        if (renderMenuItem(&background))
+            return closeWindow;
+        if (inGame)
+        {
+            createMenuButton(renderer, "Resume Game", 1, 50, 32, 100);
+            createMenuButton(renderer, "Leave Game", 139, 0, 0, 500);
+        }
+        else
+        {
+            createMenuButton(renderer, "Join Game", 1, 50, 32, 100);
+            createMenuButton(renderer, "Quit Game", 139, 0, 0, 500);
+        }
         createMenuButton(renderer, "Options", 105, 105, 105, 300);
-        createMenuButton(renderer, "Quit Game", 139, 0, 0, 500);
 
         SDL_RenderPresent(renderer);
 
@@ -399,7 +414,8 @@ bool mainMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
                 switch (event.key.keysym.scancode)
                 {
                 case SDL_SCANCODE_ESCAPE:
-                    menu = false; // Returns to the game
+                    if (inGame)
+                        menu = false; // Returns to the game
                     break;
                 }
                 break;
@@ -410,7 +426,22 @@ bool mainMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
                 if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
                     mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT)
                 {
-                    lobby(renderer, hostAddress);
+                    if (inGame)
+                    {
+                        menu = false;
+                    }
+                    else
+                    {
+                        if (findGame(renderer, hostAddress, &joinGame) == true)
+                        {
+                            closeWindow = true;
+                            menu = false;
+                        }
+                        if(joinGame == true)
+                        {
+                            return closeWindow;
+                        }
+                    }
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
                          mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
@@ -432,4 +463,55 @@ bool mainMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH])
         }
     }
     return closeWindow;
+}
+
+void drawLobby(SDL_Renderer *renderer, int readyPlayers[6], int players)
+{
+    TTF_Init();
+    TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", 24);
+    SDL_Color color = {255, 255, 255, 255};
+    SDL_RenderClear(renderer);
+
+    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    renderMenuItem(&background);
+    
+    for (int i = 0; i < players; i++)
+    {
+        char *text = "Player ";
+        char playerNum[2];
+        sprintf(playerNum, "%d", i+1);
+
+        renderMenuItem(&background);
+        
+        // Calculate total length including null terminator
+        size_t totalLength = strlen(text) + strlen(playerNum) + 1;
+        
+        // Allocate memory for the concatenated string
+        char *result = (char *)malloc(totalLength);
+        
+        // Check if memory allocation succeeded
+        if (result != NULL) {
+            // Copy the strings into the result buffer
+            strcpy(result, text);
+            strcat(result, playerNum);
+
+            // Free the dynamically allocated memory
+            free(result);
+        } else {
+            printf("Memory allocation failed!\n");
+        }
+
+        if (readyPlayers[i])
+        {
+            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+        }
+        else
+        {
+            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        }
+        SDL_Rect rect = {230, PLAYER_TEXT_OFFSET + i * 115, PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
+        SDL_RenderFillRect(renderer, &rect);
+        drawText(renderer, color, font, result, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + i * 115, 200, PLAYER_TEXT_HEIGHT);
+    }
+    SDL_RenderPresent(renderer);
 }
