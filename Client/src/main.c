@@ -15,7 +15,7 @@
 #include "powerup.h"
 #include "menu.h"
 
-#define NO_SERVER 0
+#define NO_SERVER 1
 
 typedef struct game
 {
@@ -316,7 +316,7 @@ void playing(Game_c *game)
     {
         draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
     }
-    drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);
+    // drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);
 
     SDL_RenderPresent(game->pRenderer);
 }

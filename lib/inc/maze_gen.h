@@ -12,8 +12,8 @@ typedef enum
     MAZE_CASM_FLOOR = 5
 } Maze_tile_type;
 
-#define T_NEW_PATH_PERCENT 10
-#define T_NEW_PIT_PERCENT 5
+#define T_NEW_PATH_PERCENT 1
+#define T_NEW_PIT_PERCENT 10
 
 void maze_init(int maze[], int visited[],int width, int height);
 
