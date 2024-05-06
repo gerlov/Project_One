@@ -79,8 +79,33 @@ Character *init_character(SDL_Renderer *pRenderer, const char *filePath, int isH
 
 void set_direction(Character *character, char direction)
 {
-    character->direction = direction;
-    character->isMoving = 1;
+    if (fabsf(character->velocity.x) > fabsf(character->velocity.y))
+    {
+        if (character->velocity.x > 0)
+        {
+            character->direction = 'r';
+        }
+        else
+        {
+            character->direction = 'l';
+        }
+        character->isMoving = 1;
+    }
+    else if (fabsf(character->velocity.x) < fabsf(character->velocity.y))
+    {
+        if (character->velocity.y > 0)
+        {
+            character->direction = 'd';
+        }
+        else
+        {
+            character->direction = 'u';
+        }
+        character->isMoving = 1;
+    }
+    else {
+        character->isMoving = 0;
+    }
 }
 
 void stop_moving(Character *character)
@@ -119,32 +144,7 @@ void move_character(Character *character, TileMap *tilemap,
         character->velocity.y *= character->speed;
     }
 
-    if (fabsf(character->velocity.x) > fabsf(character->velocity.y))
-    {
-        if (character->velocity.x > 0)
-        {
-            set_direction(character, 'r');
-        }
-        else
-        {
-            set_direction(character, 'l');
-        }
-    }
-    else if (fabsf(character->velocity.x) < fabsf(character->velocity.y))
-    {
-        if (character->velocity.y > 0)
-        {
-            set_direction(character, 'd');
-        }
-        else
-        {
-            set_direction(character, 'u');
-        }
-    }
-    else
-    {
-        stop_moving(character);
-    }
+    // set_direction(character, character->direction);
     // Collision detection and movement
     // inspired by Jonathan Whiting at https://jonathanwhiting.com/tutorial/collision/
 
@@ -242,10 +242,10 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
             if (y_distance <= killDistance && x_distance <= killDistance)
             {
                 characters[i]->isKilled = 1; // Change target to kille
-                cleanup_character(characters[i]);
+                //cleanup_character(characters[i]);
                 // Teleport to the target
-                hunter->rect.x = characters[i]->rect.x;
-                hunter->rect.y = characters[i]->rect.y;
+                hunter->position.x = characters[i]->position.x;
+                hunter->position.y = characters[i]->position.y;
                 // kill sound
                 play_sound_once(kill_sound);
                 // free_sse(kill_sound);
@@ -256,12 +256,27 @@ void kill_command(Character *hunter, Character **characters, int num_characters)
     }
 }
 
-void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *camera)
+void draw_character(SDL_Renderer *pRenderer, Character *character, bool isMainCharacter, SDL_FPoint *camera)
 {
-
-    if (!character->visible)
+    if (character->isKilled)
+    {
+        SDL_SetTextureColorMod(character->texture, 255, 128, 128);
+    }
+    else {
+        set_direction(character, character->direction);
+    }
+    if (character->visible) {
+        SDL_SetTextureAlphaMod(character->texture, 255);
+    }
+    else if (isMainCharacter && !character->visible) {
+        SDL_SetTextureAlphaMod(character->texture, 128);
+    }
+    else if (!character->visible)
+    {
         return;
-
+    }
+    set_direction(character, character->direction);
+    
     // Needs to be same for all
     // 128 x 192
     const int frameWidth = 32;  // Sprite sheet width / frames per column
@@ -275,28 +290,6 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
         character->frameLastUpdated = SDL_GetTicks();
     }
 
-    if (abs(character->velocity.x) > abs(character->velocity.y))
-    {
-        if (character->velocity.x > 0)
-        {
-            character->direction = 'r';
-        }
-        else
-        {
-            character->direction = 'l';
-        }
-    }
-    else if (abs(character->velocity.y) > abs(character->velocity.x))
-    {
-        if (character->velocity.y > 0)
-        {
-            character->direction = 'd';
-        }
-        else
-        {
-            character->direction = 'u';
-        }
-    }
     SDL_Rect srcRect;
     srcRect.w = frameWidth;
     srcRect.h = frameHeight;
@@ -318,7 +311,6 @@ void draw_character(SDL_Renderer *pRenderer, Character *character, SDL_FPoint *c
         break;
     default:
     }
-
     SDL_Rect destRect = character->rect;
     destRect.w = character->rect.w;
     destRect.h = character->rect.h;
@@ -338,6 +330,7 @@ void cleanup_character(Character *character)
             character->texture = NULL;
         }
     }
+    free(character);
 }
 
 void follow_player(SDL_FPoint *camera, SDL_Rect *player, int WINDOW_WIDTH, int WINDOW_HEIGHT)

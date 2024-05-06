@@ -5,7 +5,7 @@
 #include "character.h"
 
 #define MAX_PLAYERS 6
-#define SOCKET_PORT 2001 
+#define SOCKET_PORT 2000 
 
 typedef enum {
     START,
@@ -24,13 +24,24 @@ typedef struct JoinData {
     GameState gameState;
 } JoinData;
 
+typedef struct 
+{
+    bool ready;
+    bool start;
+    bool quit;
+} ReadyData;
+
 typedef struct {
     int playerID;
+    bool disconnect;
     SDL_FPoint position;
     SDL_FPoint velocity;
     int health;
     int visible;
     int iskilled;
+    bool isHunter;
+    bool hasKilledindex[MAX_PLAYERS];
+    bool isMoving;
     int currentFrame;
     Uint32 speedPowerupTime;
     Uint32 invisiblePowerupTime;
@@ -41,6 +52,7 @@ typedef struct {
 
 typedef struct {
     CharacterData characters[MAX_PLAYERS];
+    bool isKilled[MAX_PLAYERS]; // 1 if player at index is killed
 } ServerData;
 
 void printJoinData(JoinData data)

@@ -3,16 +3,15 @@
 #include <SDL2/SDL_image.h>
 #include <time.h>
 #include "our_rand.h"
-
-
-
-
+#include "maze_gen.h"
+#include "debug.h"
 
 static Tile tiles_types[] = {
     //  TYPE,   {SRC_X, SRC_Y, SRC_W, SRC_H}
     {TILE_EMPTY, {0 * T_SIZE, 4 * T_SIZE, T_SIZE, T_SIZE}}, // TILE_EMPTY
     {TILE_WALL, {4 * T_SIZE, 0 * T_SIZE, T_SIZE, T_SIZE}},  // TILE_WALL
     {TILE_FLOOR, {1 * T_SIZE, 1 * T_SIZE, T_SIZE, T_SIZE}}, // TILE_FLOOR
+    {TILE_PIT, {4 * T_SIZE, 0 * T_SIZE, T_SIZE, T_SIZE}},   // TILE_PIT
 };
 
 /// @brief the walls clip rect. Used to determine which sprite to use for a wall tile
@@ -38,6 +37,11 @@ static SDL_Rect walls[] = {
     {0 * T_SIZE, 0 * T_SIZE, T_SIZE, T_SIZE}, // corner down right 16
     {2 * T_SIZE, 0 * T_SIZE, T_SIZE, T_SIZE}, // corner down left 18
     {2 * T_SIZE, 2 * T_SIZE, T_SIZE, T_SIZE}  // corner top left 19
+};
+
+static SDL_Rect pits[] = {
+    {5 * T_SIZE, 1 * T_SIZE, T_SIZE, T_SIZE}, // PIT EMPTY
+    {4 * T_SIZE, 0 * T_SIZE, T_SIZE, T_SIZE}, // PIT
 };
 
 void set_spawn_divisions(TileMap *tilemap, int maze[], int width, int height)
@@ -152,15 +156,26 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
         for (int x = 0; x < width; x++)
         {
             int type = maze[get_index(x, y, width)];
-            if (type != 1)
+            if (type == MAZE_PIT)
+            {
+                Tile tile = tiles_types[TILE_PIT];
+                for (int i = 0; i < MAZE_SCALEUP_FACTOR; i++)
+                {
+                    for (int j = 0; j < MAZE_SCALEUP_FACTOR; j++)
+                    {
+                        tilemap_set_tile(tilemap, (x + 1) * MAZE_SCALEUP_FACTOR + i, (y + 1) * MAZE_SCALEUP_FACTOR + j, &tile);
+                    }
+                }
+            }
+            if (type != MAZE_WALL)
             {
 
                 Tile tile = tiles_types[TILE_FLOOR];
-                if (type == 2)
+                if (type == MAZE_HUMAN_SPAWNABLE)
                 {
                     tile.human_spawnable = 1;
                 }
-                else if (type == 3)
+                else if (type == MAZE_HUNTER_SPAWNABLE)
                 {
                     tile.hunter_spawnable = 1;
                 }
@@ -187,36 +202,27 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
     }
 }
 
-int get_index(int x, int y, int width)
-{
-    return y * width + x;
-}
-
 void generate_maze(TileMap *tilemap, int width, int height, int seed)
 {
+    our_srand(seed);
     int lesswidth = width - 2;
     int lessheight = height - 2;
-    int *maze = malloc(sizeof(int) * (lesswidth) * (lessheight));
-    int *visited = malloc(sizeof(int) * (lesswidth) * (lessheight));
-    for (int i = 0; i < (lesswidth) * (lessheight); i++)
+    int *maze = malloc(sizeof(int) * lesswidth * lessheight);
+    int *visited = malloc(sizeof(int) * lesswidth * lessheight);
+    for (int i = 0; i < lesswidth * lessheight; i++)
     {
-        // Initialize all cells as walls
-        maze[i] = 1;
-        // Initialize all cells as not visited
-
-        // Initialize all cells as not visited
+        maze[i] = MAZE_WALL;
         visited[i] = 0;
     }
-
-    // our_srand(seed);
-    // printf("in maze next: %lu\n", get_next());
     int x = our_rand() % (lesswidth);
     int y = our_rand() % (lessheight);
-    
-    recursive_backtrack(maze, visited, lesswidth, lessheight, x, y);
 
+    recursive_backtrack(maze, visited, lesswidth, lessheight, x, y);
+    tilemap_new_paths(maze, lesswidth, lessheight);
     set_spawn_divisions(tilemap, maze, lesswidth, lessheight);
     apply_maze(tilemap, maze, lesswidth, lessheight);
+    free(maze);
+    free(visited);
 }
 /// @brief used to validate posistion in the maze generation
 static bool is_valid(int maze[], int width, int height, int x, int y)
@@ -227,44 +233,7 @@ static bool is_valid(int maze[], int width, int height, int x, int y)
     }
     return true;
 }
-void recursive_backtrack(int maze[], int visited[], int width, int height, int current_x, int current_y)
-{
-    visited[current_y * width + current_x] = 1;
 
-    int directions[4][2] = {
-        {0, -1},
-        {0, 1},
-        {-1, 0},
-        {1, 0},
-    };
-    // Shuffle the directions array
-    for (int i = 3; i > 0; i--)
-    {
-        int j = our_rand()% (i + 1);
-        int temp[2] = {directions[i][0], directions[i][1]};
-        directions[i][0] = directions[j][0];
-        directions[i][1] = directions[j][1];
-        directions[j][0] = temp[0];
-        directions[j][1] = temp[1];
-    }
-    // Loop through the directions array
-    for (int i = 0; i < 4; i++)
-    {
-        // Check if the next cell is within the bounds of the maze
-        int new_x = current_x + directions[i][0] * 2;
-        int new_y = current_y + directions[i][1] * 2;
-        if (is_valid(maze, width, height, new_x, new_y) && !visited[new_y * width + new_x])
-        {
-
-            // neighbor is not visited
-            maze[new_y * width + new_x] = 0;
-            // Remove the wall between the current cell and the new cell
-            maze[(current_y + directions[i][1]) * width + (current_x + directions[i][0])] = 0;
-            // Recursively call the function with the new cell
-            recursive_backtrack(maze, visited, width, height, new_x, new_y);
-        }
-    }
-}
 void tilemap_load(TileMap *tilemap, int map_id, int seed)
 {
     if (map_id == 1)
@@ -303,30 +272,11 @@ void tilemap_init(TileMap *tilemap, SDL_Renderer *renderer)
 
     tilemap->human_spawn = (SpawnArea){NULL, 0};
     tilemap->hunter_spawn = (SpawnArea){NULL, 0};
-
     tilemap->camera = (SDL_FPoint){0, 0};
 
-    SDL_Surface *surface = IMG_Load("../lib/assets/tiles/Yellow_Dungeon_Tileset.png"); // Temporary tilemap image
-
-    if (!surface)
-    {
-        printf("Error: %s\n", SDL_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_Quit();
-        return;
-    }
-    tilemap->pTexture = SDL_CreateTextureFromSurface(renderer, surface);
-    surface = IMG_Load("../lib/assets/tiles/Yellow_Brick_Floor.png");
-    if (!surface)
-    {
-        printf("Error: %s\n", SDL_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_Quit();
-        return;
-    }
-    tilemap->pFloorTexture = SDL_CreateTextureFromSurface(renderer, surface);
-
-    SDL_FreeSurface(surface);
+    tilemap->pWallTexture = IMG_LoadTexture(renderer, "../lib/assets/tiles/Yellow_Dungeon_Tileset.png");
+    tilemap->pFloorTexture = IMG_LoadTexture(renderer, "../lib/assets/tiles/Yellow_Brick_Floor.png");
+    tilemap->pPitTexture = IMG_LoadTexture(renderer, "../lib/assets/tiles/Yellow_Brick_Pits.png");
 }
 
 void tilemap_set_tile(TileMap *tilemap, int x, int y, Tile *tile)
@@ -353,24 +303,28 @@ void tilemap_draw(TileMap *tilemap)
 
             possition.x = x * tilemap->tile_size - tilemap->camera.x;
             possition.y = y * tilemap->tile_size - tilemap->camera.y;
+            SDL_Texture *used_texture = tilemap->pWallTexture;
+
             if (tile->type == TILE_FLOOR)
             {
                 //? This is a temporary solution to show the spawnable tiles
+                used_texture = tilemap->pFloorTexture;
                 if (tile->human_spawnable)
                 {
-                    SDL_SetTextureColorMod(tilemap->pFloorTexture, 0, 255, 0);
+                    SDL_SetTextureColorMod(used_texture, 0, 255, 0);
                 }
                 else if (tile->hunter_spawnable)
                 {
-                    SDL_SetTextureColorMod(tilemap->pFloorTexture, 255, 0, 0);
+                    SDL_SetTextureColorMod(used_texture, 255, 0, 0);
                 }
-                SDL_RenderCopyEx(tilemap->pRenderer, tilemap->pFloorTexture, &tile->src_rect, &possition, 0, NULL, SDL_FLIP_NONE);
-                SDL_SetTextureColorMod(tilemap->pFloorTexture, 255, 255, 255);
             }
-            else
+            else if (tile->type == TILE_PIT)
             {
-                SDL_RenderCopyEx(tilemap->pRenderer, tilemap->pTexture, &tile->src_rect, &possition, 0, NULL, SDL_FLIP_NONE);
+                 used_texture = tilemap->pPitTexture;
             }
+
+            SDL_RenderCopyEx(tilemap->pRenderer, used_texture, &tile->src_rect, &possition, 0, NULL, SDL_FLIP_NONE);
+            SDL_SetTextureColorMod(used_texture, 255, 255, 255);
         }
     }
 }
@@ -384,11 +338,14 @@ Tile *get_tile(TileMap *tilemap, int x, int y)
     return &tilemap->tiles[y][x];
 }
 
-
 void tilemap_free(TileMap *tilemap)
 {
-    SDL_DestroyTexture(tilemap->pTexture);
-    tilemap->pTexture = NULL;
+    free(tilemap->human_spawn.points);
+    free(tilemap->hunter_spawn.points);
+    SDL_DestroyTexture(tilemap->pWallTexture);
+    SDL_DestroyTexture(tilemap->pFloorTexture);
+    SDL_DestroyTexture(tilemap->pPitTexture);
+    tilemap->pWallTexture = NULL;
     tilemap->pRenderer = NULL;
 }
 
@@ -409,7 +366,7 @@ void randomize_floor(TileMap *tilemap)
     }
 }
 
-TileType *get_neighbur_tiles_type(TileMap *tilemap, int x, int y)
+TileType *get_neighbour_tiles_type(TileMap *tilemap, int x, int y)
 {
     TileType *neighbours = malloc(sizeof(int) * 8);
     Tile *tile = NULL;
@@ -440,53 +397,68 @@ void orient_walls(TileMap *tilemap)
         for (int x = 0; x < tilemap->width; x++)
         {
             Tile *tile = get_tile(tilemap, x, y);
-            if (tile->type != TILE_WALL)
+            TileType *neighbours = get_neighbour_tiles_type(tilemap, x, y);
+            if (tile->type == TILE_PIT)
+            {
+                if (neighbours[0] == TILE_WALL)
+                {
+                    tile->src_rect = pits[1];
+                }
+                else
+                {
+                    tile->src_rect = pits[0];
+                }
+            }
+            if (tile->type != TILE_WALL) {
+                free(neighbours);
                 continue;
-            TileType *neighbours = get_neighbur_tiles_type(tilemap, x, y);
+            }
 
             // this makes a 4 bit number that represents the walls around the tile
             int dir = NONE;
-            if (neighbours[0] == TILE_FLOOR)
+            if (neighbours[0] == TILE_FLOOR || neighbours[0] == TILE_PIT)
             {
                 dir = dir | UP;
             }
-            if (neighbours[1] == TILE_FLOOR)
+            if (neighbours[1] == TILE_FLOOR|| neighbours[1] == TILE_PIT)
             {
                 dir = dir | RIGHT;
             }
-            if (neighbours[2] == TILE_FLOOR)
+            if (neighbours[2] == TILE_FLOOR|| neighbours[2] == TILE_PIT)
             {
                 dir = dir | DOWN;
             }
-            if (neighbours[3] == TILE_FLOOR)
+            if (neighbours[3] == TILE_FLOOR|| neighbours[3] == TILE_PIT)
             {
                 dir = dir | LEFT;
             }
             if (dir == NONE)
             {
                 // special case for corners
-                if (neighbours[4] == TILE_FLOOR)
+                if (neighbours[4] == TILE_FLOOR|| neighbours[4] == TILE_PIT)
                 {
                     dir = dir | TOP_RIGHT;
                 }
-                else if (neighbours[5] == TILE_FLOOR)
+                else if (neighbours[5] == TILE_FLOOR|| neighbours[5] == TILE_PIT)
                 {
                     dir = dir | BOTTOM_RIGHT;
                 }
-                else if (neighbours[6] == TILE_FLOOR)
+                else if (neighbours[6] == TILE_FLOOR|| neighbours[6] == TILE_PIT)
                 {
                     dir = dir | BOTTOM_LEFT;
                 }
-                else if (neighbours[7] == TILE_FLOOR)
+                else if (neighbours[7] == TILE_FLOOR|| neighbours[7] == TILE_PIT)
                 {
                     dir = dir | TOP_LEFT;
                 }
-                else {
+                else
+                {
                     tile->type = TILE_EMPTY;
                 }
             }
             // walls is a array of SDL_Rect that is ordered in a way that it behaves a kind of hash map
             tile->src_rect = walls[dir];
+            free(neighbours);
         }
     }
 }

@@ -62,7 +62,7 @@ void drawtobuffer(LimitedVision *lv, SDL_FPoint center, SDL_Vertex *v, int verte
     SDL_SetRenderDrawColor(lv->renderer, 0, 0, 0, 255);
 }
 
-void drawLimitedVision(LimitedVision *lv, SDL_FPoint center)
+void drawLimitedVision(LimitedVision *lv, SDL_FPoint center, SDL_FPoint camera)
 {
     static SDL_Color centerColor = {255, 255, 255, 255};
     static SDL_Color edgeColor = {0, 0, 0, 255};
@@ -87,8 +87,8 @@ void drawLimitedVision(LimitedVision *lv, SDL_FPoint center)
             255};
         // Calculate the end point of the ray
         SDL_FPoint dir = {
-            center.x + cos(TO_RADIANS(angle)) * distance - lv->tilemap->camera.x,
-            center.y + sin(TO_RADIANS(angle)) * distance - lv->tilemap->camera.y};
+            center.x + cos(TO_RADIANS(angle)) * distance - camera.x,
+            center.y + sin(TO_RADIANS(angle)) * distance - camera.y};
         v[i].position = dir;
         v[i].color = interpolatedColor;
     }

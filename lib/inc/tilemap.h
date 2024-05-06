@@ -12,8 +12,7 @@ typedef enum TileType {
     TILE_EMPTY,
     TILE_WALL,
     TILE_FLOOR,
-    TILE_DECOR,
-    TILE_WIN
+    TILE_PIT
 } TileType;
 
 /// @brief Enum that represents a direction. Used for the orientation of the walls as a hash
@@ -48,10 +47,9 @@ typedef struct Tile
 typedef struct TileMap
 {
     SDL_Renderer *pRenderer; // renderer to load the textures with
-    SDL_Texture *pTexture;   // texture of the tilemap
+    SDL_Texture *pWallTexture;   // texture of the tilemap
     SDL_Texture *pFloorTexture; // texture of the floor
-    // int x;                   // x position of the tilemap
-    // int y;                   // y position of the tilemap
+    SDL_Texture *pPitTexture;
     SDL_FPoint camera;       // camera position
     int width;               // in tiles
     int height;              // in tiles
@@ -114,14 +112,6 @@ void tilemap_free(TileMap *tilemap);
 /// @param seed the seed to use for the random number generator
 void generate_maze(TileMap *tilemap, int width, int height, int seed);
 
-/// @brief A recursive backtracking algorithm to generate a maze
-/// @param maze maze array
-/// @param visited visited array
-/// @param width the width of the maze
-/// @param height height of the maze
-/// @param current_x current x position (chosen at random when started)
-/// @param current_y current y position (chosen at random when started)
-void recursive_backtrack(int maze[], int visited[], int width, int height, int current_x, int current_y);
 
 /// @brief Randomize the floor pattern
 /// @param tilemap pointer to the tilemap
@@ -132,23 +122,18 @@ void randomize_floor(TileMap *tilemap);
 /// @param tilemap the tilemap to orient the walls in
 void orient_walls(TileMap *tilemap);
 
-/// @brief helper function for a 2d array disguesed as a 1d array
-/// @param x 
-/// @param y 
-/// @param width width of the 2d array
-/// @return converted index
-int get_index(int x, int y, int width);
 
 /// @brief Get the type of the neighbouring tiles
 /// @param tilemap 
 /// @param x 
 /// @param y 
 /// @return array of that contains the type of the neighbouring tiles in the order of up, right, down, left, top right, bottom right, bottom left, top left
-TileType* get_neighbur_tiles_type(TileMap *tilemap, int x, int y);
+TileType* get_neighbour_tiles_type(TileMap *tilemap, int x, int y);
 
 
 void set_spawn_divisions(TileMap *tilemap, int *maze, int width, int height);
 
 SDL_Point get_spawn_point(TileMap *tilemap, int ishunter);
+
 
 #endif // TILEMAP_H

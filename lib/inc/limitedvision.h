@@ -41,7 +41,7 @@ void drawtobuffer(LimitedVision *lv, SDL_FPoint center, SDL_Vertex *v, int numRa
 /// @brief draws the limited vision to the screen
 /// @param lv the limited vision to draw
 /// @param center the center of the limited vision
-void drawLimitedVision(LimitedVision *lv, SDL_FPoint center);
+void drawLimitedVision(LimitedVision *lv, SDL_FPoint center, SDL_FPoint camera);
 
 /// @brief set the radius of the limited vision
 /// @param lv the limited vision to set the radius of
