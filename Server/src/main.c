@@ -17,6 +17,7 @@
 *    If the server doesn't start, make sure that the server is not already running in the background. AKA check the task manager to kill it.
 */
 
+#define SHOW_WINDOW 0
 typedef struct _game
 {
     SDL_Window *pWindow;
@@ -40,7 +41,7 @@ typedef struct _game
     bool readyPlayes[MAX_PLAYERS];
 } Game_s;
 
-void add(IPaddress address, IPaddress *clients, int *nrOfClients)
+void Add_Client(IPaddress address, IPaddress *clients, int *nrOfClients)
 {
     for (int i = 0; i < *nrOfClients; i++)
     {
@@ -51,6 +52,23 @@ void add(IPaddress address, IPaddress *clients, int *nrOfClients)
     }
     clients[*nrOfClients] = address;
     (*nrOfClients)++;
+}
+void Remove_Client(IPaddress address, IPaddress *clients, int *nrOfClients)
+{
+    for (int i = 0; i < *nrOfClients; i++)
+    {
+        if (address.host == clients[i].host && address.port == clients[i].port)
+        {
+            DEBUG_PRINT2("Removing client %d\n", i);
+            for (int j = i; j < *nrOfClients - 1; j++)
+            {
+                clients[j] = clients[j + 1];
+            }
+            (*nrOfClients)--;
+            return;
+        }
+    }
+    DEBUG_PRINT2("Client not found\n");
 }
 int init(Game_s *game);
 void setupgame(Game_s *game);
@@ -86,7 +104,7 @@ int init(Game_s *game)
         fprintf(stderr, "Error initializing SDL_net: %s\n", SDLNet_GetError());
         return 1;
     }
-
+#if SHOW_WINDOW
     game->pWindow = SDL_CreateWindow("Server", 0, SDL_WINDOWPOS_CENTERED, 500, 500, SDL_WINDOW_SHOWN);
     if (!game->pWindow)
     {
@@ -103,6 +121,7 @@ int init(Game_s *game)
         SDL_Quit();
         return 1;
     }
+#endif
     if (!(game->serverSocket = SDLNet_UDP_Open(SOCKET_PORT)))
     {
         fprintf(stderr, "Error opening socket: %s\n", SDLNet_GetError());
@@ -125,11 +144,11 @@ int init(Game_s *game)
     game->nrOfClients = 0;
     our_srand(time(NULL));
     game->seed = our_rand();
-    game->seed = 0; // for testing
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
         game->readyPlayes[i] = false;
     }
+
     return 0;
 }
 
@@ -173,22 +192,45 @@ void start(Game_s *game)
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
         DEBUG_PRINT3("(Server) Packet received\n");
-        add(game->packet->address, game->clients, &game->nrOfClients);
-        bool ready;
-        memcpy(&ready, game->packet->data, sizeof(bool));
+        Add_Client(game->packet->address, game->clients, &game->nrOfClients);
+        ReadyData ready;
+        memcpy(&ready, game->packet->data, sizeof(ReadyData));
+        DEBUG_PRINT2("quit?: %d\n", ready.quit);
+        if (ready.quit)
+        {
+            DEBUG_PRINT("Client disconnected\n");
+            Remove_Client(game->packet->address, game->clients, &game->nrOfClients);
+            DEBUG_PRINT("Clients left: %d\n", game->nrOfClients);
+            if (game->nrOfClients == 0)
+            {
+                game->gameState = QUIT;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < game->nrOfClients; i++)
+            {
+                if (game->clients[i].host == game->packet->address.host && game->clients[i].port == game->packet->address.port)
+                {
+                    game->readyPlayes[i] = ready.ready;
+                    if (i == 0 && ready.start)
+                    {
+                        start_pressed = true;
+                    }
+                }
+                game->joinData.readyPlayers[i] = game->readyPlayes[i];
+            }
+        }
         for (int i = 0; i < game->nrOfClients; i++)
         {
-            if (game->clients[i].host == game->packet->address.host && game->clients[i].port == game->packet->address.port)
-            {
-                game->readyPlayes[i] = ready;
-            }
-            game->joinData.readyPlayers[i] = game->readyPlayes[i];
+            // printIPaddress of client
+            DEBUG_PRINT2("Client %d: %d.%d.%d.%d:%d\n", i, game->clients[i].host >> 24 & 0xFF, game->clients[i].host >> 16 & 0xFF, game->clients[i].host >> 8 & 0xFF, game->clients[i].host & 0xFF, game->clients[i].port);
         }
-
+        
         game->joinData.PLAYERS = game->nrOfClients;
+        DEBUG_PRINT("Nr of clients: %d\n", game->joinData.PLAYERS);
         game->joinData.seed = game->seed;
         game->joinData.gameState = JOINING;
-
         game->packet->len = sizeof(JoinData);
         for (int i = 0; i < game->nrOfClients; i++)
         {
@@ -200,32 +242,34 @@ void start(Game_s *game)
         }
         DEBUG_PRINT3("(Server) Sent to clients\n");
     }
-    if (game->nrOfClients > 0)
+    int readyCount = 0;
+    for (int i = 0; i < game->nrOfClients; i++)
     {
-        int readyCount = 0;
+        readyCount += game->readyPlayes[i];
+    }
+    if (readyCount == game->nrOfClients && start_pressed && game->nrOfClients > 0)
+    {
+        game->gameState = PLAYING;
+        game->joinData.gameState = PLAYING;
+        game->joinData.PLAYERS = game->nrOfClients;
+        
+        game->joinData.seed = game->seed;
+        game->joinData.hunterindex = our_rand() % game->nrOfClients;
+
         for (int i = 0; i < game->nrOfClients; i++)
         {
-            readyCount += game->readyPlayes[i];
-        }
-        if (readyCount == game->nrOfClients && start_pressed)
-        {
-            game->gameState = PLAYING;
-            game->joinData.gameState = PLAYING;
-            game->joinData.PLAYERS = game->nrOfClients;
-            game->joinData.seed = game->seed;
-            game->joinData.hunterindex = our_rand() % game->nrOfClients;
+            game->joinData.playerINDEX = i;
 
-            for (int i = 0; i < game->nrOfClients; i++)
-            {
-                game->joinData.playerINDEX = i;
-
-                game->packet->address = game->clients[i];
-                game->packet->len = sizeof(JoinData);
-                memcpy(game->packet->data, &game->joinData, sizeof(JoinData));
-                SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
-            }
-            setupgame(game);
+            game->packet->address = game->clients[i];
+            game->packet->len = sizeof(JoinData);
+            memcpy(game->packet->data, &game->joinData, sizeof(JoinData));
+            SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
         }
+        setupgame(game);
+    }
+    else
+    {
+        start_pressed = false;
     }
 }
 
@@ -240,6 +284,7 @@ void playing(Game_s *game)
         case SDL_QUIT:
             game->gameState = QUIT;
             break;
+#if SHOW_WINDOW
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym)
             {
@@ -282,13 +327,15 @@ void playing(Game_s *game)
                 break;
             }
             break;
+#endif
         }
     }
+#if SHOW_WINDOW
     int moveX = left - right;
     int moveY = down - up;
-
     game->tilemap.camera.x += moveX * 10;
     game->tilemap.camera.y += moveY * 10;
+#endif
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
 
@@ -296,8 +343,13 @@ void playing(Game_s *game)
         int playerIndex = game->recievedData.playerID;
         DEBUG_PRINT3("(Server) Packet received from %d\n", playerIndex);
         game->clientsData[playerIndex] = game->recievedData;
+        if (game->recievedData.disconnect)
+        {
+            DEBUG_PRINT("Player %d disconnected\n", playerIndex);
+        }
         for (int i = 0; i < game->nrOfClients; i++)
         {
+#if SHOW_WINDOW
             game->characters[i]->position = game->clientsData[i].position;
             game->characters[i]->velocity = game->clientsData[i].velocity;
             game->characters[i]->health = game->clientsData[i].health;
@@ -307,9 +359,16 @@ void playing(Game_s *game)
             game->characters[i]->speedPowerupTime = game->clientsData[i].speedPowerupTime;
             game->characters[i]->invisiblePowerupTime = game->clientsData[i].invisiblePowerupTime;
             game->characters[i]->frameLastUpdated = game->clientsData[i].frameLastUpdated;
+            game->characters[i]->isMoving = game->clientsData[i].isMoving;
             update_character_rect(game->characters[i], &game->characters[i]->position);
+#endif
             game->serverData.characters[i] = game->clientsData[i];
+            if (game->clientsData[i].isHunter)
+            {
+                memcpy(&game->serverData.isKilled, &game->clientsData[i].hasKilledindex, sizeof(bool) * MAX_PLAYERS);
+            }
         }
+
         for (int i = 0; i < game->nrOfClients; i++)
         {
             game->packet->address = game->clients[i];
@@ -319,7 +378,21 @@ void playing(Game_s *game)
         }
         DEBUG_PRINT3("(Server) Relay to client\n");
     }
+    game->PLAYERS = game->nrOfClients;
+    for (int i = 0; i < game->nrOfClients; i++)
+    {
+        if (game->clientsData[i].disconnect)
+        {
+            game->PLAYERS--;
+        }
+    }
+    // DEBUG_PRINT2("PLAYERS: %d\n", game->PLAYERS);
+    if (game->PLAYERS == 0)
+    {
+        game->gameState = QUIT;
+    }
 
+#if SHOW_WINDOW
     SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
     SDL_RenderClear(game->pRenderer);
 
@@ -327,14 +400,16 @@ void playing(Game_s *game)
 
     for (int i = 0; i < game->nrOfClients; i++)
     {
-        draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
+        draw_character(game->pRenderer, game->characters[i], true, &game->tilemap.camera);
     }
 
     SDL_RenderPresent(game->pRenderer);
+#endif
 }
 void setupgame(Game_s *game)
 {
     our_srand(game->seed);
+#if SHOW_WINDOW
     tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
 
@@ -365,8 +440,8 @@ void setupgame(Game_s *game)
         game->characters[i]->position.y = spawn.y;
         update_character_rect(game->characters[i], &game->characters[i]->position);
     }
-
     DEBUG_PRINT("Game setup\n");
+#endif
 }
 
 int getPlayerIndex(Game_s *game)
@@ -385,15 +460,17 @@ void close(Game_s *game)
 {
     DEBUG_PRINT("Cleaning up\n");
     cleanup_powerup_resources();
-    for (int i = 0; i < game->PLAYERS; i++)
-    {
-        cleanup_character(game->characters[i]);
-    }
     tilemap_free(&game->tilemap);
     SDLNet_FreePacket(game->packet);
     SDLNet_UDP_Close(game->serverSocket);
-    SDL_DestroyRenderer(game->pRenderer);
+    #if SHOW_WINDOW
+    for (int i = 0; i < game->nrOfClients; i++)
+    {
+        cleanup_character(game->characters[i]);
+    }
     SDL_DestroyWindow(game->pWindow);
+    SDL_DestroyRenderer(game->pRenderer);
+    #endif
     SDLNet_Quit();
     SDL_Quit();
 }
