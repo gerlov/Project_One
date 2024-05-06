@@ -20,7 +20,7 @@
 #define SLIDER_HEIGHT 20
 #define SLIDER_Y 250
 
-int volSliderValue = 100; // Initial volume value
+int volSliderValue = 5; // Initial volume value
 int prevVolSliderValue; // For slider to sync with mute/unmute button
 bool draggingSlider = false;
 bool musicMuted = false;

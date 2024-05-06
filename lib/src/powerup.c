@@ -13,8 +13,8 @@ void load_powerup_resources(SDL_Renderer* renderer) {
     // create_texture(&textureSpeed, renderer, "../lib/assets/testpack/red.png");
     create_texture(&textureSpeed, renderer, "../lib/assets/testpack/red.png");
     create_texture(&textureInvisible, renderer, "../lib/assets/testpack/green.png"); 
-    soundSpeed = init_sound_effect("../lib/assets/music/horror3.mp3", 100);
-    soundInvisible = init_sound_effect("../lib/assets/music/horror2.mp3", 100);
+    soundSpeed = init_sound_effect("../lib/assets/music/horror3.mp3");
+    soundInvisible = init_sound_effect("../lib/assets/music/horror2.mp3");
 }
 
 
@@ -83,12 +83,12 @@ void apply_powerUp(Character *character, PowerUpType type, Character **character
             if (character->speedPowerupTime == 0) character->speed += 200;   
             // adjust powerup effect time here, now it worx for 10 seconds only
             character->speedPowerupTime = SDL_GetTicks() + 10000;
-            play_sound_once(soundSpeed); 
+            play_sound_once(soundSpeed, 5); 
             break;
         case POWERUP_INVISIBLE:
             character->visible = 0;
             character->invisiblePowerupTime = SDL_GetTicks() + 3000; // now invisible for 3 sec only, change here
-            play_sound_once(soundInvisible);
+            play_sound_once(soundInvisible, 5);
             break;  
     }
 }  
