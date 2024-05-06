@@ -15,7 +15,7 @@
 #include "powerup.h"
 #include "menu.h"
 
-#define NO_SERVER 1
+#define NO_SERVER 0
 
 typedef struct game
 {
@@ -41,8 +41,9 @@ typedef struct game
     CharacterData data;
     ServerData serverData;
     JoinData joinData;
-    bool oldready;
-    bool ready;
+    ReadyData oldready;
+    ReadyData ready;
+
     PowerUp powerUps[MAX_POWERUPS];
     int powerUpCount;
     GameState gameState;
@@ -78,8 +79,8 @@ int main(int argc, char *argv[])
 
 int initiate(Game_c *game)
 {
-    game->WINDOW_WIDTH = 1200;
-    game->WINDOW_HEIGHT = 800;
+    game->WINDOW_WIDTH = 500;
+    game->WINDOW_HEIGHT = 500;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) == 1)
     {
         return 1;
@@ -126,8 +127,12 @@ int initiate(Game_c *game)
     load_powerup_resources(game->pRenderer);
     init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 400);
     game->gameState = START;
-    game->ready = false;
-    game->oldready = false;
+    game->oldready.ready = false;
+    game->oldready.start = false;
+    game->oldready.quit = false;
+    game->ready.ready = false;
+    game->ready.start = false;
+    game->ready.quit = false;
 #if NO_SERVER
 
     game->gameState = PLAYING;
@@ -137,6 +142,11 @@ int initiate(Game_c *game)
     game->hunterIndex = 0;
     startGame(game);
 
+#else
+    // Send initial packet to server to establish connection
+    memcpy(game->packet->data, &game->ready, sizeof(ReadyData) + 1);
+    game->packet->len = sizeof(ReadyData) + 1;
+    SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
 #endif
     return 0;
 }
@@ -149,23 +159,39 @@ void joining(Game_c *game)
         if (event.type == SDL_QUIT)
         {
             game->gameState = QUIT;
+            game->ready.quit = true;
         }
         if (event.type == SDL_KEYDOWN)
         {
             if (event.key.keysym.sym == SDLK_SPACE)
             {
-                game->ready = !game->ready;
+                game->ready.ready = !game->ready.ready;
+            }
+            if (event.key.keysym.sym == SDLK_RETURN)
+            {
+                game->ready.start = true;
+            }
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                game->ready.quit = true;
             }
         }
     }
     // Send ready to server
-    if (game->ready != game->oldready)
+    if (game->ready.ready != game->oldready.ready || game->ready.start != game->oldready.start || game->ready.quit != game->oldready.quit)
     {
-        memcpy(game->packet->data, &game->ready, sizeof(bool) + 1);
-        game->packet->len = sizeof(bool) + 1;
+        if (game->ready.quit)
+        {
+            DEBUG_PRINT("Quitting\n");
+        }
+        memcpy(game->packet->data, &game->ready, sizeof(ReadyData) + 1);
+        game->packet->len = sizeof(ReadyData) + 1;
         SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
+        game->ready.start = false;
     }
-    // Receive server data
+
+
+
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
         DEBUG_PRINT2("(Client) Packet received\n");
@@ -200,6 +226,11 @@ void joining(Game_c *game)
         SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
     }
     SDL_RenderPresent(game->pRenderer);
+    if (game->ready.quit)
+    {
+        game->gameState = QUIT;
+        return;
+    }
 }
 
 void startGame(Game_c *game)
@@ -275,6 +306,7 @@ void run(Game_c *game)
         game->deltaTime = (float)((game->currentFrameTime - game->lastFrameTime) / (float)SDL_GetPerformanceFrequency());
         game->lastFrameTime = game->currentFrameTime;
     }
+    
 }
 
 void playing(Game_c *game)
@@ -285,6 +317,12 @@ void playing(Game_c *game)
         if (event.type == SDL_QUIT)
         {
             game->gameState = QUIT;
+            game->data.disconnect = true;
+            game->data.iskilled = true;
+            memcpy(game->packet->data, &game->data, sizeof(CharacterData));
+            game->packet->len = sizeof(CharacterData);
+            SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
+            SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
         }
         handleInput(game, &event);
     }
@@ -314,8 +352,10 @@ void playing(Game_c *game)
 
     for (int i = 0; i < game->PLAYERS; i++)
     {
-        draw_character(game->pRenderer, game->characters[i], &game->tilemap.camera);
+        if (game->characters[i] != game->myCharacter)
+            draw_character(game->pRenderer, game->characters[i], i == game->activePlayer, &game->tilemap.camera);
     }
+    draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
     // drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);
 
     SDL_RenderPresent(game->pRenderer);
@@ -330,12 +370,12 @@ void updateFromServer(Game_c *game)
         memcpy(&game->serverData, game->packet->data, sizeof(ServerData));
         for (int i = 0; i < game->PLAYERS; i++)
         {
-            if (i == game->activePlayer)
+            if (i != game->activePlayer)
             {
-                continue;
+                game->characters[i]->position = game->serverData.characters[i].position;
+                game->characters[i]->velocity = game->serverData.characters[i].velocity;
+                update_character_rect(game->characters[i], &game->characters[i]->position);
             }
-            game->characters[i]->position = game->serverData.characters[i].position;
-            game->characters[i]->velocity = game->serverData.characters[i].velocity;
             game->characters[i]->health = game->serverData.characters[i].health;
             game->characters[i]->visible = game->serverData.characters[i].visible;
             game->characters[i]->isKilled = game->serverData.characters[i].iskilled;
@@ -343,7 +383,13 @@ void updateFromServer(Game_c *game)
             game->characters[i]->speedPowerupTime = game->serverData.characters[i].speedPowerupTime;
             game->characters[i]->invisiblePowerupTime = game->serverData.characters[i].invisiblePowerupTime;
             game->characters[i]->frameLastUpdated = game->serverData.characters[i].frameLastUpdated;
-            update_character_rect(game->characters[i], &game->characters[i]->position);
+        }
+        for (int i = 0; i < game->PLAYERS; i++)
+        {
+            if (game->serverData.isKilled[i])
+            {
+                game->characters[i]->isKilled = true;
+            }
         }
     }
 #endif
@@ -353,6 +399,7 @@ void updateToServer(Game_c *game)
 {
     game->data.playerID = game->activePlayer;
     game->data.iskilled = game->myCharacter->isKilled;
+    game->data.isHunter = game->myCharacter->isHunter;
     game->data.visible = game->myCharacter->visible;
     game->data.health = game->myCharacter->health;
     game->data.position = game->myCharacter->position;
@@ -362,7 +409,11 @@ void updateToServer(Game_c *game)
     game->data.invisiblePowerupTime = game->myCharacter->invisiblePowerupTime;
     game->data.frameLastUpdated = game->myCharacter->frameLastUpdated;
     game->data.gameState = game->gameState;
-
+    game->data.disconnect = false;
+    for (int i = 0; i < game->PLAYERS; i++)
+    {
+        game->data.hasKilledindex[i] = game->characters[i]->isKilled;
+    }
 #if !NO_SERVER
     memcpy(game->packet->data, &game->data, sizeof(CharacterData));
     game->packet->len = sizeof(CharacterData);

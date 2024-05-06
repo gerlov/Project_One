@@ -63,7 +63,7 @@ void move_character(Character *character, TileMap *tilemap,
 ///@param pRenderer The renderer where the character will be drawn.
 ///@param character Pointer to the Character to be drawn.
 ///@param camera The camera to adjust for.
-void draw_character(SDL_Renderer* pRenderer, Character* character, SDL_FPoint *camera);
+void draw_character(SDL_Renderer* pRenderer, Character* character, bool isMainCharacter, SDL_FPoint *camera);
 
 
 ///@brief Frees the resources associated with a character.
