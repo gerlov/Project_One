@@ -121,6 +121,7 @@ int initiate(Game_c *game)
     int backgroundIndex = our_rand() % size_of_soundPathbgm;
 
     game->bgm = init_background_music(soundPathbgm[backgroundIndex], 30);
+
     tilemap_init(&game->tilemap, game->pRenderer);
 
     game->powerUpCount = 0;
