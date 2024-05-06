@@ -53,10 +53,7 @@ void play_background_music(BackgroundMusic *bgm);
 
 /// @brief Plays a sound effect once.
 /// @param sound Pointer to the Single_sound structure containing the sound effect.
-<<<<<<< HEAD
 /// @param volume Sets that sound volume.
-=======
->>>>>>> 017391d (Lowered the volume and fix SSeffects)
 void play_sound_once(Single_sound *sound, int volume);
 
 /// @brief Toggles the playback state of the background music between paused and playing.
