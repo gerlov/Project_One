@@ -15,7 +15,7 @@
 #include "powerup.h"
 #include "menu.h"
 
-#define NO_SERVER 0
+#define NO_SERVER 1
 
 typedef struct game
 {
