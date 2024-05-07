@@ -7,7 +7,6 @@
 #include <SDL2/SDL_net.h>
 #include "menu.h"
 #include "music.h"
-#include "game.h"
 
 #define BACKGROUND_IMG_PATH "../lib/assets/menu/MenuBackground.png"
 
@@ -27,10 +26,16 @@
 #define PLAYER_TEXT_HEIGHT 100
 #define PLAYER_TEXT_INBETWEEN_SPACE 115
 
-int volSliderValue = 100; // Initial volume value
-int prevVolSliderValue;   // For slider to sync with mute/unmute button
+int volSliderValue = 5; // Initial volume value
+int prevVolSliderValue; // For slider to sync with mute/unmute button
 bool draggingSlider = false;
 bool musicMuted = false;
+
+typedef struct MenuItem {
+    SDL_Texture* texture;
+    SDL_Renderer* renderer;
+    SDL_Rect position;
+} MenuItem;
 
 bool renderMenuItem(MenuItem *item)
 {
@@ -243,10 +248,11 @@ bool optionsMenu(SDL_Renderer *renderer)
     return closeWindow;
 }
 
-bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool *joinGame)
+bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool *joinGame)
 {
     bool findGame = true;
     bool closeWindow = false;
+    bool textBoxSelected = false;
 
     if (TTF_Init() == -1)
     {
@@ -274,6 +280,7 @@ bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool
             return closeWindow;
         createMenuButton(renderer, "", 255, 255, 255, 100);
         createMenuButton(renderer, "Join Game", 1, 50, 32, 300);
+        createMenuButton(renderer, "Back to Menu", 139, 0, 0, 500);
 
         if (textLength > 0)
         {
@@ -282,7 +289,6 @@ bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool
             if (textSurface == NULL)
             {
                 fprintf(stderr, "Text surface could not be created! TTF Error: %s\n", TTF_GetError());
-                // Handle error appropriately
             }
             else
             {
@@ -293,17 +299,10 @@ bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool
                 }
                 else
                 {
-                    // Get the dimensions of the text texture
                     int textW, textH;
                     SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
-
-                    // Set the position of the text (adjust as needed)
                     SDL_Rect textRect = {BUTTONS_X + 8, 158, textW, textH};
-
-                    // Render the text texture
                     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-
-                    // Free texture and surface resources
                     SDL_DestroyTexture(textTexture);
                 }
                 SDL_FreeSurface(textSurface);
@@ -340,19 +339,33 @@ bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool
             case SDL_MOUSEBUTTONDOWN:
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY); // Get mouse location
-
                 if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                    mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
+                    mouseY >= 100       && mouseY <= 100 + BUTTON_HEIGHT)
+                {
+                    textBoxSelected = true;
+                }
+                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
+                         mouseY >= 300       && mouseY <= 300 + BUTTON_HEIGHT)
                 {
                     // Start the game
                     hostAddress = inputText;
                     *joinGame = true;
                     return closeWindow;
                 }
+                else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
+                         mouseY >= 500       && mouseY <= 500 + BUTTON_HEIGHT)
+                {
+                    findGame = false;
+                    return closeWindow;
+                }
+                else
+                {
+                    textBoxSelected = false;
+                }
                 break;
             case SDL_TEXTINPUT:
                 // Handle text input
-                if (textLength < sizeof(inputText) - 1)
+                if (textLength < sizeof(inputText) - 1 && textBoxSelected)
                 { // Leave room for null terminator
                     strcat(inputText, event.text.text);
                     textLength = strlen(inputText);
@@ -366,7 +379,7 @@ bool findGame(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool
     return closeWindow;
 }
 
-bool pauseMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inGame)
+bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inGame)
 {
     bool menu = true;
     bool closeWindow = false;
@@ -432,7 +445,7 @@ bool pauseMenu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], boo
                     }
                     else
                     {
-                        if (findGame(renderer, hostAddress, &joinGame) == true)
+                        if (findGameScreen(renderer, hostAddress, &joinGame) == true)
                         {
                             closeWindow = true;
                             menu = false;

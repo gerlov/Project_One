@@ -34,8 +34,7 @@ BackgroundMusic* init_background_music(char *soundPath, int start_volume);
 
 /// @brief Initializes a sound effect with specified parameters.
 /// @param soundPath Path to the sound file.
-/// @param volume Initial volume setting.
-Single_sound* init_sound_effect(char *soundPath, int volume);
+Single_sound* init_sound_effect(char *soundPath);
 
 /// @brief Frees a Single_sound structure and any associated resources.
 /// @param sse Pointer to the Single_sound structure to be freed.
@@ -54,7 +53,8 @@ void play_background_music(BackgroundMusic *bgm);
 
 /// @brief Plays a sound effect once.
 /// @param sound Pointer to the Single_sound structure containing the sound effect.
-void play_sound_once(Single_sound *sound);
+/// @param volume Sets that sound volume.
+void play_sound_once(Single_sound *sound, int volume);
 
 /// @brief Toggles the playback state of the background music between paused and playing.
 void toggle_music(void);

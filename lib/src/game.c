@@ -62,9 +62,8 @@ void initialize_game(Game *game)
     int backgroundIndex = our_rand() % size_of_soundPathbgm;
 
     // SUPER BACKGROUD MUSIC
-    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 100);
+    game->bgm = init_background_music(soundPathbgm[backgroundIndex], 10);
 
-    // game->bgm = init_background_music(soundPathbgm[backgroundIndex], 20);
 
     play_background_music(game->bgm);
     free_bgm(game->bgm);
@@ -198,7 +197,7 @@ void update_game(Game *game)
     case PAUSED:
         SDL_RenderClear(game->pRenderer);
         char tmp[MAX_ADDRESS_LENGTH] = "";
-        if (pauseMenu(game->pRenderer, tmp, false))
+        if (menu(game->pRenderer, tmp, false))
             game->gameState = QUIT;
         else
             game->gameState = PLAYING;

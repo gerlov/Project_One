@@ -6,29 +6,32 @@
 #include "music.h"
 
 bool musicPaused = false;
-static int volume = MIX_MAX_VOLUME / 2; 
-
+int volume = 0; 
 
 BackgroundMusic* init_background_music(char *soundPath, int start_volume) {
-    BackgroundMusic *bgm = malloc(sizeof(BackgroundMusic));
+
+    BackgroundMusic *bgm = (BackgroundMusic *) malloc(sizeof(BackgroundMusic));
     if (bgm == NULL) {
         fprintf(stderr, "Failed to allocate memory for background music.\n");
         return NULL;
     }
-    if(start_volume < 0){
-        volume = 0;
+
+    if (start_volume < 0) {
+        bgm->volume = 0;
+    } else if (start_volume > 100) {
+        bgm->volume = 100;
+    } else {
+        bgm->volume = start_volume;
     }
-    if(start_volume > MIX_MAX_VOLUME){
-        volume = MIX_MAX_VOLUME;
-    }
+    volume = start_volume;
     bgm->soundPath = soundPath;
-    bgm->volume = start_volume;
-    bgm->paused = true;
-    Mix_VolumeMusic(volume);
+    bgm->paused = false;
+    Mix_VolumeMusic(start_volume);
+
     return bgm;
 }
 
-Single_sound* init_sound_effect(char *soundPath, int volume) {
+Single_sound* init_sound_effect(char *soundPath) {
     Single_sound *sse = malloc(sizeof(Single_sound));
     if (sse == NULL) {
         fprintf(stderr, "Failed to allocate memory for sound effect.\n");
@@ -71,17 +74,18 @@ void play_background_music(BackgroundMusic *bgm){
     Mix_PlayMusic(backgroundMusic, -1);
 }
 
-void play_sound_once(Single_sound *sse) {
+void play_sound_once(Single_sound *sse, int ss_volume) {
     Mix_Chunk* sound = Mix_LoadWAV(sse->soundPath);
     if (!sound) {
         printf("Failed to load sound effect! SDL_mixer Error: %s\n", Mix_GetError());
         return;
     }
-    int s_volume = sse->volume;
-    if(s_volume < 0) { s_volume = 0; }
-    if(s_volume > MIX_MAX_VOLUME) { s_volume = MIX_MAX_VOLUME; }
-    Mix_VolumeChunk(sound, s_volume);
+    if(ss_volume < 0) { ss_volume = 0; }
+    if(ss_volume > MIX_MAX_VOLUME) { ss_volume = MIX_MAX_VOLUME; }
+    // Mix_VolumeMusic(ss_volume);
+    Mix_VolumeChunk(sound, ss_volume);
     Mix_PlayChannel(-1, sound, 0); // Play the sound once
+    // Mix_VolumeMusic(volume);
 }
 
 
