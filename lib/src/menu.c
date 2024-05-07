@@ -10,23 +10,32 @@
 
 #define BACKGROUND_IMG_PATH "../lib/assets/menu/MenuBackground.png"
 
-#define WINDOW_WIDTH 1200
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 500
+#define WINDOW_HEIGHT 500
 
-#define BUTTON_WIDTH 349
-#define BUTTON_HEIGHT 162
-#define BUTTONS_X 425
+#define BUTTON_WIDTH WINDOW_WIDTH / 3
+#define BUTTON_HEIGHT WINDOW_HEIGHT / 4
+#define BUTTONS_X WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2
+#define BUTTONS_Y (WINDOW_HEIGHT - BUTTON_HEIGHT * 3) / 2
+#define BUTTON_SPACE_BETWEEN 25
+#define TOP_BUTTON_Y BUTTONS_Y - BUTTON_SPACE_BETWEEN
+#define MIDDLE_BUTTON_Y BUTTONS_Y * 3
+#define BOTTOM_BUTTON_Y BUTTONS_Y * 5 + BUTTON_SPACE_BETWEEN
 #define OUTLINE_WIDTH 8
 
-#define SLIDER_WIDTH 349
+#define SLIDER_WIDTH BUTTON_WIDTH + OUTLINE_WIDTH
 #define SLIDER_HEIGHT 20
-#define SLIDER_Y 250
+#define SLIDER_Y TOP_BUTTON_Y + BUTTON_HEIGHT - BUTTON_SPACE_BETWEEN + OUTLINE_WIDTH
+#define SLIDER_X BUTTONS_X - OUTLINE_WIDTH / 2
+#define HANDLE_WIDTH 20
 
-#define PLAYER_TEXT_OFFSET 25
-#define PLAYER_TEXT_HEIGHT 100
-#define PLAYER_TEXT_INBETWEEN_SPACE 115
+#define PLAYER_TEXT_OFFSET WINDOW_WIDTH / 20
+#define PLAYER_TEXT_HEIGHT WINDOW_WIDTH / 5
+#define PLAYER_TEXT_INBETWEEN_SPACE WINDOW_WIDTH / 4
 
-int volSliderValue = 5; // Initial volume value
+#define INPUT_FONT_SIZE WINDOW_HEIGHT / 20
+
+int volSliderValue = 30; // Initial volume value
 int prevVolSliderValue; // For slider to sync with mute/unmute button
 bool draggingSlider = false;
 bool musicMuted = false;
@@ -93,14 +102,15 @@ void renderSlider(SDL_Renderer *renderer, float handleX)
 {
     // Volume slider background
     SDL_SetRenderDrawColor(renderer, 100, 100, 100, SDL_ALPHA_OPAQUE);
-    SDL_Rect sliderBackground = {BUTTONS_X, SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT};
+    SDL_Rect sliderBackground = {SLIDER_X, SLIDER_Y, SLIDER_WIDTH, SLIDER_HEIGHT};
     SDL_RenderFillRect(renderer, &sliderBackground);
 
     // Volume slider handle
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    SDL_Rect sliderHandle = {handleX, SLIDER_Y, 20, SLIDER_HEIGHT};
+    SDL_Rect sliderHandle = {handleX, SLIDER_Y, HANDLE_WIDTH, SLIDER_HEIGHT};
     SDL_RenderFillRect(renderer, &sliderHandle);
 }
+
 
 void toggle_music_logic(void)
 {
@@ -108,27 +118,26 @@ void toggle_music_logic(void)
     musicMuted = !musicMuted;
     if (musicMuted)
     {
-        if (!volSliderValue)
-        {
-            prevVolSliderValue = 1;
-        }
-        else
+        if (volSliderValue != 0)
         {
             prevVolSliderValue = volSliderValue;
+            volSliderValue = 0;
         }
-        volSliderValue = 0;
     }
     else
     {
-        volSliderValue = prevVolSliderValue;
+        volSliderValue = (prevVolSliderValue != 0) ? prevVolSliderValue : 50; // Set to default if prevVolSliderValue is zero
+        set_volume(volSliderValue);
     }
 }
+
 
 bool optionsMenu(SDL_Renderer *renderer)
 {
     bool options = true;
     bool closeWindow = false;
     int mouseX, mouseY;
+    float handleX;
 
     // Load background texture
     MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
@@ -143,19 +152,20 @@ bool optionsMenu(SDL_Renderer *renderer)
         if (renderMenuItem(&background))
             return closeWindow;
         TTF_Font *font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
-        drawText(renderer, (SDL_Color){255, 255, 255, 255}, font, "Volume Slider", BUTTONS_X + 25, 125, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
-        float handleX = BUTTONS_X + (float)(SLIDER_WIDTH - 20) * ((float)volSliderValue / 100.0);
+        drawText(renderer, (SDL_Color){255, 255, 255, 255}, font, "Volume Slider", BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
+        handleX = (float)SLIDER_X + (float)(SLIDER_WIDTH - HANDLE_WIDTH) * ((float)volSliderValue / 100.0);
+        
         renderSlider(renderer, handleX);
 
         if (musicMuted)
         {
-            createMenuButton(renderer, "Music OFF", 139, 0, 0, 300);
+            createMenuButton(renderer, "Music OFF", 139, 0, 0, MIDDLE_BUTTON_Y);
         }
         else
         {
-            createMenuButton(renderer, "Music ON", 1, 50, 32, 300);
+            createMenuButton(renderer, "Music ON", 1, 50, 32, MIDDLE_BUTTON_Y);
         }
-        createMenuButton(renderer, "Exit Options", 105, 105, 105, 500);
+        createMenuButton(renderer, "Exit Options", 105, 105, 105, BOTTOM_BUTTON_Y);
 
         SDL_RenderPresent(renderer);
 
@@ -186,28 +196,28 @@ bool optionsMenu(SDL_Renderer *renderer)
                         mouseY >= SLIDER_Y && mouseY <= SLIDER_Y + SLIDER_HEIGHT)
                     {
                         draggingSlider = true;
-                        float newHandleX = mouseX - 10; // Center the handle under the mouse
+                        float newHandleX = mouseX - (HANDLE_WIDTH / 2); // Center the handle under the mouse
                         // Make sure the slider does not go "out of bounds"
-                        if (newHandleX < BUTTONS_X)
+                        if (newHandleX < SLIDER_X)
                         {
-                            newHandleX = BUTTONS_X;
+                            newHandleX = SLIDER_X;
                         }
-                        else if (newHandleX > BUTTONS_X + SLIDER_WIDTH - 20)
+                        else if (newHandleX > SLIDER_X + SLIDER_WIDTH - HANDLE_WIDTH)
                         {
-                            newHandleX = BUTTONS_X + SLIDER_WIDTH - 20;
+                            newHandleX = SLIDER_X + SLIDER_WIDTH - HANDLE_WIDTH;
                         }
                         // Update the volume value based on the slider position
-                        volSliderValue = (float)(newHandleX - BUTTONS_X) / (SLIDER_WIDTH - 20) * 100;
+                        volSliderValue = (float)(newHandleX - (SLIDER_X)) / ((SLIDER_WIDTH) - (HANDLE_WIDTH)) * 100;
                         // Set volume to new value
                         set_volume(volSliderValue);
                     }
                     else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                             mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT) // If the mute/unmute music button is clicked
+                             mouseY >= MIDDLE_BUTTON_Y && mouseY <= MIDDLE_BUTTON_Y + BUTTON_HEIGHT) // If the mute/unmute music button is clicked
                     {
                         toggle_music_logic();
                     }
                     else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                             mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT) // If the exit button is clicked
+                             mouseY >= BOTTOM_BUTTON_Y && mouseY <= BOTTOM_BUTTON_Y + BUTTON_HEIGHT) // If the exit button is clicked
                     {
                         options = false;
                     }
@@ -222,18 +232,18 @@ bool optionsMenu(SDL_Renderer *renderer)
             case SDL_MOUSEMOTION:
                 if (draggingSlider)
                 {
-                    float newHandleX = event.motion.x - 10; // Center the handle under the mouse
+                    float newHandleX = event.motion.x - HANDLE_WIDTH / 2; // Center the handle under the mouse
                     // Make sure the slider does not go "out of bounds"
-                    if (newHandleX < BUTTONS_X)
+                    if (newHandleX < SLIDER_X)
                     {
-                        newHandleX = BUTTONS_X;
+                        newHandleX = SLIDER_X;
                     }
-                    else if (newHandleX > BUTTONS_X + SLIDER_WIDTH - 20)
+                    else if (newHandleX > SLIDER_X + SLIDER_WIDTH - HANDLE_WIDTH)
                     {
-                        newHandleX = BUTTONS_X + SLIDER_WIDTH - 20;
+                        newHandleX = SLIDER_X + SLIDER_WIDTH - HANDLE_WIDTH;
                     }
                     // Update the volume value based on the slider position
-                    volSliderValue = (float)(newHandleX - BUTTONS_X) / (SLIDER_WIDTH - 20) * 100;
+                    volSliderValue = (float)(newHandleX - (SLIDER_X)) / ((SLIDER_WIDTH) - (HANDLE_WIDTH)) * 100;
                     // Adjust the volume based on the new value
                     set_volume(volSliderValue);
                 }
@@ -260,10 +270,9 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
         return 1;
     }
 
-    int fontSize = 45;
     char inputText[MAX_ADDRESS_LENGTH] = "";
     int textLength = 0;
-    TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", fontSize);
+    TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", INPUT_FONT_SIZE);
     SDL_Color textColor = {0, 0, 0, 255}; // Black text
 
     // Load background texture
@@ -278,9 +287,9 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
         // Render background & menu button
         if (renderMenuItem(&background))
             return closeWindow;
-        createMenuButton(renderer, "", 255, 255, 255, 100);
-        createMenuButton(renderer, "Join Game", 1, 50, 32, 300);
-        createMenuButton(renderer, "Back to Menu", 139, 0, 0, 500);
+        createMenuButton(renderer, "", 255, 255, 255, TOP_BUTTON_Y);
+        createMenuButton(renderer, "Join Game", 1, 50, 32, MIDDLE_BUTTON_Y);
+        createMenuButton(renderer, "Back to Menu", 139, 0, 0, BOTTOM_BUTTON_Y);
 
         if (textLength > 0)
         {
@@ -301,7 +310,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 {
                     int textW, textH;
                     SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
-                    SDL_Rect textRect = {BUTTONS_X + 8, 158, textW, textH};
+                    SDL_Rect textRect = {BUTTONS_X + 8, TOP_BUTTON_Y + BUTTON_HEIGHT / 2 - INPUT_FONT_SIZE / 2, textW, textH};
                     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
                     SDL_DestroyTexture(textTexture);
                 }
@@ -340,12 +349,12 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 int mouseX, mouseY;
                 SDL_GetMouseState(&mouseX, &mouseY); // Get mouse location
                 if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                    mouseY >= 100       && mouseY <= 100 + BUTTON_HEIGHT)
+                    mouseY >= TOP_BUTTON_Y && mouseY <= TOP_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     textBoxSelected = true;
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                         mouseY >= 300       && mouseY <= 300 + BUTTON_HEIGHT)
+                         mouseY >= MIDDLE_BUTTON_Y && mouseY <= MIDDLE_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     // Start the game
                     hostAddress = inputText;
@@ -353,7 +362,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                     return closeWindow;
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                         mouseY >= 500       && mouseY <= 500 + BUTTON_HEIGHT)
+                         mouseY >= BOTTOM_BUTTON_Y && mouseY <= BOTTOM_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     findGame = false;
                     return closeWindow;
@@ -401,15 +410,15 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
             return closeWindow;
         if (inGame)
         {
-            createMenuButton(renderer, "Resume Game", 1, 50, 32, 100);
-            createMenuButton(renderer, "Leave Game", 139, 0, 0, 500);
+            createMenuButton(renderer, "Resume Game", 1, 50, 32, TOP_BUTTON_Y);
+            createMenuButton(renderer, "Leave Game", 139, 0, 0, BOTTOM_BUTTON_Y);
         }
         else
         {
-            createMenuButton(renderer, "Join Game", 1, 50, 32, 100);
-            createMenuButton(renderer, "Quit Game", 139, 0, 0, 500);
+            createMenuButton(renderer, "Join Game", 1, 50, 32, TOP_BUTTON_Y);
+            createMenuButton(renderer, "Quit Game", 139, 0, 0, BOTTOM_BUTTON_Y);
         }
-        createMenuButton(renderer, "Options", 105, 105, 105, 300);
+        createMenuButton(renderer, "Options", 105, 105, 105, MIDDLE_BUTTON_Y);
 
         SDL_RenderPresent(renderer);
 
@@ -437,7 +446,7 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
                 SDL_GetMouseState(&mouseX, &mouseY); // Get mouse location
 
                 if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                    mouseY >= 100 && mouseY <= 100 + BUTTON_HEIGHT)
+                    mouseY >= TOP_BUTTON_Y && mouseY <= TOP_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     if (inGame)
                     {
@@ -457,7 +466,7 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
                     }
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                         mouseY >= 300 && mouseY <= 300 + BUTTON_HEIGHT)
+                         mouseY >= MIDDLE_BUTTON_Y && mouseY <= MIDDLE_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     if (optionsMenu(renderer) == true)
                     {
@@ -466,7 +475,7 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
                     }
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
-                         mouseY >= 500 && mouseY <= 500 + BUTTON_HEIGHT)
+                         mouseY >= BOTTOM_BUTTON_Y && mouseY <= BOTTOM_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     closeWindow = true;
                     menu = false;
