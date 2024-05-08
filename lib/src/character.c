@@ -125,7 +125,7 @@ void move_character(Character *character, TileMap *tilemap,
     // 2 st check for powerup timers expiration, resets everything to default values if expired
     if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0)
     {
-        character->speed -= 200;         // set back to default speed (defined in init)
+        character->speed -= 600;         // set back to default speed (defined in init)
         character->speedPowerupTime = 0; // reset poerup timer
     }
 
