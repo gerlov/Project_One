@@ -49,8 +49,11 @@ client:
 server:
 	$(MAKE) -C Server/ $(SERVER)
 
-
+## had to add this (1st line)  to remove old buld files 
+## from main project directory (win os env): del /Q /F *.o *.exe  
+## also, added clean rules for win os into client and server makefiles respectively 
 clean:
+	del /Q /F *.o *.exe          
 	$(MAKE) -C Client/ clean
 	$(MAKE) -C Server/ clean
 
@@ -61,55 +64,3 @@ runclient:
 	$(MAKE) -C Client/ run
 	
 .PHONY: All client server clean runServer runClient
-
-# run 'make' to compile the program
-
-# $(TARGET): main.o tilemap.o music.o window.o collisions.o powerup.o menu.o character.o texture.o game.o limitedvision.o
-# 	$(CC) -o $@ $^ $(LDFLAGS)
-
-
-# main.o: $(SRCDIR)/main.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/main.c
-	
-# tilemap.o: $(SRCDIR)/tilemap.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/tilemap.c
-
-# music.o: $(SRCDIR)/music.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/music.c
-
-# window.o: $(SRCDIR)/window.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/window.c  
-
-# collisions.o: $(SRCDIR)/collisions.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/collisions.c	
-
-# powerup.o: $(SRCDIR)/powerup.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/powerup.c		
-
-# menu.o: $(SRCDIR)/menu.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/menu.c
-
-# character.o: $(SRCDIR)/character.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/character.c
-
-# texture.o: $(SRCDIR)/texture.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/texture.c
-
-# game.o: $(SRCDIR)/game.c
-# 	$(CC) $(CFLAGS) $(SRCDIR)/game.c
-
-# limitedvision.o: $(SRCDIR)/limitedvision.c $(INCDIR)/limitedvision.h
-# 	$(CC) $(CFLAGS) $(SRCDIR)/limitedvision.c
-
-# # ----- Run the program -----------------
-# # run 'make run' to compile and run the program in one command
-# run: $(TARGET)
-# 	./$(TARGET)
-
-# # run 'make clean' to remove the object files and the executable
-# clean:
-# ifeq ($(OS),Windows_NT)
-# 	del /Q /F *.o *.exe
-# else
-# 	rm -f *.o $(TARGET)
-# endif
