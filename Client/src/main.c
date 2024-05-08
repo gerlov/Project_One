@@ -98,6 +98,7 @@ int initiate(Game_c *game)
     }
 
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
+    if(menu(game->pRenderer, game->hostAddress, false)) return 1; // This function can get the IP Address from the user in the future
     if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
@@ -128,7 +129,7 @@ int initiate(Game_c *game)
     game->powerUpCount = 0;
     load_powerup_resources(game->pRenderer);
     init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 400);
-    game->gameState = START;
+    game->gameState = JOINING;
     game->oldready.ready = false;
     game->oldready.start = false;
     game->oldready.quit = false;
@@ -269,17 +270,6 @@ void run(Game_c *game)
     {
         switch (game->gameState)
         {
-        case START:
-            if(menu(game->pRenderer, game->hostAddress, false))
-            {
-                game->gameState = QUIT;
-            }
-            else
-            {
-                game->gameState = JOINING;
-            }
-            break;
-
         case JOINING:
             joining(game);
             break;
