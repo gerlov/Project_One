@@ -2,16 +2,16 @@
 #define POWERUP_H
 
 #include "tilemap.h"
+#include "our_rand.h"
 #include "character.h"
 #include "texture.h"
 #include "music.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#define MAX_POWERUPS 100
+#define MAX_POWERUPS 200 // increase temporarily, for testning
 
 typedef enum {
-   // POWERUP_HEALTH,
     POWERUP_SPEED,
     POWERUP_INVISIBLE,
     POWERUP_SKULL
