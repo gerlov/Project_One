@@ -10,7 +10,6 @@ Single_sound* soundInvisible;
 
 
 void load_powerup_resources(SDL_Renderer* renderer) {  
-    // create_texture(&textureSpeed, renderer, "../lib/assets/testpack/red.png");
     create_texture(&textureSpeed, renderer, "../lib/assets/testpack/red.png");
     create_texture(&textureInvisible, renderer, "../lib/assets/testpack/green.png"); 
     soundSpeed = init_sound_effect("../lib/assets/music/horror3.mp3");
@@ -29,12 +28,12 @@ void cleanup_powerup_resources() {
 void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) {
     int placedCount = 0;
     for (int i = 0; i < MAX_POWERUPS; i++) {
-        int x = rand() % tilemap->width;
-        int y = rand() % tilemap->height;
+        int x = our_rand() % tilemap->width;
+        int y = our_rand() % tilemap->height;
         Tile* tile = get_tile(tilemap, x, y);
 
         if (tile->type == TILE_FLOOR) {
-            int powerUpType = rand() % 2; // rand type of power-up
+            int powerUpType = our_rand() % 2; // rand type of power-up
             PowerUpType type = (powerUpType == 0) ? POWERUP_SPEED : POWERUP_INVISIBLE;
             SDL_Texture* texture = (powerUpType == 0) ? textureSpeed : textureInvisible;
 
@@ -71,16 +70,10 @@ void draw_powerUps(SDL_Renderer* renderer, TileMap* tilemap) {
 
 void apply_powerUp(Character *character, PowerUpType type, Character **characters, int num_characters) {
     switch (type) {
-        // case POWERUP_HEALTH:
-            // dont really know what to do with health yet cos we dont apply any damage yet?
-            // we only kill x_x 
-            // character->health += 50;  
-            // TODO  
-            // break;
         case POWERUP_SPEED:
             // adjust powerup effect / speed here
             // OBS adjust also in the move_character upon timer expiration 
-            if (character->speedPowerupTime == 0) character->speed += 200;   
+            if (character->speedPowerupTime == 0) character->speed += 600;   
             // adjust powerup effect time here, now it worx for 10 seconds only
             character->speedPowerupTime = SDL_GetTicks() + 10000;
             play_sound_once(soundSpeed, 5); 
