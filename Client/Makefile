@@ -89,6 +89,10 @@ run: $(TARGET)
 
 # run 'make clean' to remove the object files and the executable
 clean:
-	rm -f *.o $(TARGET) $(BUILD_DIR)/*.o
+ifeq ($(OS),Windows_NT)
+	del /Q /F "$(BUILD_DIR)\*.o" "$(BUILD_DIR)\*.exe"
+else
+	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/$(TARGET)
+endif
 
 .PHONY: all clean run
