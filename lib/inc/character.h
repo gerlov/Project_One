@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 #include "tilemap.h"
+#include "data.h"
 
 ///@struct Character
 ///@brief Represents a game character with a position, size, and texture.
@@ -21,6 +22,7 @@ typedef struct Character{
     Uint32 speedPowerupTime; // speed powerup timer
     Uint32 invisiblePowerupTime; // invisibility powerup timer  
     Uint32 frameLastUpdated;
+    int lastPowerupCollected;
 } Character;
 
 
@@ -55,9 +57,10 @@ Character* init_character(SDL_Renderer* pRenderer, const char* filePath, int isH
 ///@param deltaTime Time since the last frame in seconds.
 ///@param other_characters Array of pointers to other Character structures in the game for collision detection.
 ///@param num_other_characters Number of characters in the other_characters array to check for collisions against.
-void move_character(Character *character, TileMap *tilemap, 
-                    float deltaTime, 
-                    Character **other_characters, int num_other_characters);
+///
+void move_character(Character *character, TileMap *tilemap,
+                    float deltaTime, Character **other_characters, 
+                    int num_other_characters);
 
 ///@brief Draws the character on the provided renderer.
 ///@param pRenderer The renderer where the character will be drawn.
