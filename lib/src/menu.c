@@ -357,7 +357,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                          mouseY >= MIDDLE_BUTTON_Y && mouseY <= MIDDLE_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     // Start the game
-                    hostAddress = inputText;
+                    strcpy(hostAddress, inputText);
                     *joinGame = true;
                     return closeWindow;
                 }
