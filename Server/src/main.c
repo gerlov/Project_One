@@ -9,6 +9,7 @@
 #include "data.h"
 #include "window.h"
 #include "tilemap.h"
+#include "mazeview.h"
 #include "music.h"
 #include "powerup.h"
 
@@ -24,6 +25,7 @@ typedef struct _game
     SDL_Renderer *pRenderer;
     Character *characters[MAX_PLAYERS];
     TileMap tilemap;
+    MazeView mazeview; 
 
     UDPsocket serverSocket;
     UDPpacket *packet;
