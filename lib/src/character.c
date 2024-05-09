@@ -209,14 +209,15 @@ void move_character(Character *character, TileMap *tilemap,
     // powerup tiles intersection
     for (int i = 0; i < powerUpCount; i++)
     {
-        if (powerUps[i].visible && SDL_HasIntersection(&character->rect, &powerUps[i].rect))
+        if (powerUps[i].active && SDL_HasIntersection(&character->rect, &powerUps[i].rect))
         {
             if (powerUps[i].type == POWERUP_SKULL && character->isHunter == 0)
             {
                 continue; // dont apply POWRUP_SKULL and DONT deactivate it if intersected by non-hunter
             }
             apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters);
-            powerUps[i].visible = 0;
+            powerUps[i].active = 0;
+            character->lastPowerupCollected = powerUps[i].powerupid;
         }
     }
 }
