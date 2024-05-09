@@ -98,7 +98,7 @@ int initiate(Game_c *game)
     }
 
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
-    if(menu(game->pRenderer, game->hostAddress, false)) return 1; // This function can get the IP Address from the user in the future
+    if(menu(game->pRenderer, game->hostAddress, false)) return 1; // This function can get the Host Address from the user in the future
     if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
