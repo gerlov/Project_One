@@ -19,9 +19,10 @@ typedef enum {
 } PowerUpType;
 
 typedef struct PowerUp {
+    int powerupid;
     SDL_Rect rect;          
     PowerUpType type;       
-    int visible;  // AKA POWERUP STATE: COLLECTED = NOT VISIBLE ANYMORE          
+    int active;  // AKA POWERUP STATE: COLLECTED = NOT VISIBLE ANYMORE          
     SDL_Texture* texture;   
 } PowerUp;   
 
