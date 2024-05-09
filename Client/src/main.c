@@ -202,7 +202,7 @@ void joining(Game_c *game)
         game->PLAYERS = game->joinData.PLAYERS;
         game->gameState = game->joinData.gameState;
         game->hunterIndex = game->joinData.hunterindex;
-        printJoinData(game->joinData);
+       // printJoinData(game->joinData);
         if (game->gameState == PLAYING)
         {
             startGame(game);
@@ -383,6 +383,13 @@ void updateFromServer(Game_c *game)
             game->characters[i]->speedPowerupTime = game->serverData.characters[i].speedPowerupTime;
             game->characters[i]->invisiblePowerupTime = game->serverData.characters[i].invisiblePowerupTime;
             game->characters[i]->frameLastUpdated = game->serverData.characters[i].frameLastUpdated;
+            int receivedPowerupId = game->serverData.characters[i].lastPowerupCollected;
+            for (int i = 0; i < powerUpCount; i++) {
+                if (powerUps[i].powerupid == receivedPowerupId) {
+                    powerUps[i].active = 0;
+                    break;
+                }
+            }
         }
         for (int i = 0; i < game->PLAYERS; i++)
         {
@@ -409,6 +416,7 @@ void updateToServer(Game_c *game)
     game->data.invisiblePowerupTime = game->myCharacter->invisiblePowerupTime;
     game->data.frameLastUpdated = game->myCharacter->frameLastUpdated;
     game->data.gameState = game->gameState;
+    game->data.lastPowerupCollected = game->myCharacter->lastPowerupCollected;
     game->data.disconnect = false;
     for (int i = 0; i < game->PLAYERS; i++)
     {
