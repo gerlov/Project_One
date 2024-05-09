@@ -38,8 +38,9 @@ void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size) {
             SDL_Texture* texture = (powerUpType == 0) ? textureSpeed : textureInvisible;
 
             powerUps[placedCount] = (PowerUp){
+                .powerupid = i,
                 .rect = {x * tile_size, y * tile_size, tile_size, tile_size},
-                .visible = 1,
+                .active = 1,
                 .texture = texture,
                 .type = type
             };
@@ -58,7 +59,7 @@ void draw_powerUps(SDL_Renderer* renderer, TileMap* tilemap) {
     SDL_Rect dstRect = {0, 0, 32, 32};  
 
     for (int i = 0; i < powerUpCount; i++) {
-        if (powerUps[i].visible) { 
+        if (powerUps[i].active) { 
             srcRect.x = (SDL_GetTicks() / 100 % 5) * 16;
             dstRect.x = powerUps[i].rect.x - tilemap->camera.x;
             dstRect.y = powerUps[i].rect.y - tilemap->camera.y;
@@ -85,4 +86,5 @@ void apply_powerUp(Character *character, PowerUpType type, Character **character
             break;  
     }
 }  
+
 
