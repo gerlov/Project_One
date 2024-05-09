@@ -10,7 +10,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#define MAX_POWERUPS 200 // increased temporarily, for testning, change!
+#define MAX_POWERUPS 100 // increased temporarily, for testning, change!
 
 typedef enum {
     POWERUP_SPEED,
