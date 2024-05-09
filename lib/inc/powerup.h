@@ -3,19 +3,20 @@
 
 #include "tilemap.h"
 #include "our_rand.h"
+#include "mazeview.h"
 #include "character.h"
 #include "texture.h"
 #include "music.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#define MAX_POWERUPS 200 // increase temporarily, for testning
+#define MAX_POWERUPS 200 // increased temporarily, for testning, change!
 
 typedef enum {
     POWERUP_SPEED,
     POWERUP_INVISIBLE,
+    POWERUP_MAP, 
     POWERUP_SKULL
-    // add other power-up types here
 } PowerUpType;
 
 typedef struct PowerUp {
@@ -52,7 +53,11 @@ void draw_powerUps(SDL_Renderer* renderer, TileMap* tilemap);
 ///@param type The type of power-up to apply.
 ///@param characters Array of all characters in the game 
 ///@param num_characters Total number of characters in the characters array.
-void apply_powerUp(Character *character, PowerUpType type, Character **characters, int num_characters);
+/// 
+void apply_powerUp(Character *character, PowerUpType type, Character **characters, 
+                   int num_characters, MazeView *mazeView); 
+
+
 
 
 
