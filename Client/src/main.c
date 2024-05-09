@@ -204,7 +204,7 @@ void joining(Game_c *game)
         game->PLAYERS = game->joinData.PLAYERS;
         game->gameState = game->joinData.gameState;
         game->hunterIndex = game->joinData.hunterindex;
-        printJoinData(game->joinData);
+        // printJoinData(game->joinData);
         if (game->gameState == PLAYING)
         {
             startGame(game);
