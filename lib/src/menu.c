@@ -35,69 +35,146 @@
 
 #define INPUT_FONT_SIZE WINDOW_HEIGHT / 20
 
+
+
 int volSliderValue = 30; // Initial volume value
 int prevVolSliderValue; // For slider to sync with mute/unmute button
 bool draggingSlider = false;
 bool musicMuted = false;
 
+
+
 typedef struct MenuItem {
     SDL_Texture* texture;
     SDL_Renderer* renderer;
-    SDL_Rect position;
+    SDL_Rect backgroundPosition;
+    SDL_Rect outlinePosition;
+    SDL_Rect textPosition;
+    int r, g, b; // Color of button
 } MenuItem;
 
-bool renderMenuItem(MenuItem *item)
-{
-    if (item->texture == NULL)
-    {
-        printf("Error loading image: %s\n", IMG_GetError());
-        return true;
-    }
-    // copy the texture to the rendering context
-    SDL_RenderCopy(item->renderer, item->texture, NULL, &item->position);
+typedef struct textItem {
+    SDL_Texture* texture;
+    SDL_Renderer* renderer;
+    SDL_Rect textPosition;
+} textItem;
 
-    return false;
+
+
+MenuItem startGameButton, resumeGameButton, leaveGameButton, optionsButton, quitGameButton, 
+         musicOnButton, musicOffButton, exitOptionsButton, ipInputBox, joinLobbyButton, backToMenuButton;
+
+textItem volumeSlider;
+textItem playersText[MAX_PLAYERS];
+
+
+
+MenuItem createMenuItem(SDL_Renderer *renderer, TTF_Font *Font, char *text, int r, int g, int b, int y)
+{   
+    MenuItem menuItem;
+    SDL_Color textColor = {0, 0, 0, SDL_ALPHA_OPAQUE};
+
+    menuItem.renderer = renderer;
+    menuItem.r = r;
+    menuItem.g = g;
+    menuItem.b = b;
+    menuItem.backgroundPosition = (SDL_Rect){BUTTONS_X, y, BUTTON_WIDTH, BUTTON_HEIGHT};
+    menuItem.outlinePosition = (SDL_Rect){BUTTONS_X - OUTLINE_WIDTH / 2, y - OUTLINE_WIDTH / 2,
+                                          BUTTON_WIDTH + OUTLINE_WIDTH, BUTTON_HEIGHT + OUTLINE_WIDTH};
+
+    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(Font, text, textColor);
+    menuItem.texture = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    menuItem.textPosition = (SDL_Rect){BUTTONS_X + 25, y + 25, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50};
+    SDL_FreeSurface(surfaceMessage);
+    return menuItem;
+}
+textItem createTextItem(SDL_Renderer *renderer, TTF_Font *Font, char *text, int r, int g, int b, int x, int y, int w, int h)
+{
+    textItem textItem;
+    SDL_Color textColor = {r, g, b, SDL_ALPHA_OPAQUE};
+
+    textItem.renderer = renderer;
+
+    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(Font, text, textColor);
+    textItem.texture = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+    textItem.textPosition = (SDL_Rect){x, y, w, h};
+    SDL_FreeSurface(surfaceMessage);
+
+    return textItem;
 }
 
-void createMenuButton(SDL_Renderer *renderer, char *text, int r, int g, int b, int y)
-{
-    SDL_Color textColor = {0, 0, 0, 255};
 
-    TTF_Font *Font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
-    if (Font == NULL)
-    {
+
+void initMenu(SDL_Renderer *renderer)
+{
+    if(TTF_Init() == -1) {
+        fprintf(stderr, "TTF could not initialize! TTF Error: %s\n", TTF_GetError());
         return;
     }
+    TTF_Font *font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
 
-    // Draw the outline
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // Outline color (black in this case)
-    SDL_Rect buttonOutline = {(BUTTONS_X) - (OUTLINE_WIDTH) / 2, y - (OUTLINE_WIDTH) / 2, (BUTTON_WIDTH) + (OUTLINE_WIDTH), (BUTTON_HEIGHT) + (OUTLINE_WIDTH)};
-    SDL_RenderFillRect(renderer, &buttonOutline);
+    startGameButton = createMenuItem(renderer, font, "Join/Start Game", 1, 50, 32, TOP_BUTTON_Y);
+    resumeGameButton = createMenuItem(renderer, font, "Resume Game", 1, 50, 32, TOP_BUTTON_Y);
+    leaveGameButton = createMenuItem(renderer, font, "Leave Game", 139, 0, 0, BOTTOM_BUTTON_Y);
+    optionsButton = createMenuItem(renderer, font, "Options", 105, 105, 105, MIDDLE_BUTTON_Y);
+    quitGameButton = createMenuItem(renderer, font, "Quit Game", 139, 0, 0, BOTTOM_BUTTON_Y);
+    musicOnButton = createMenuItem(renderer, font, "Music ON", 1, 50, 32, MIDDLE_BUTTON_Y);
+    musicOffButton = createMenuItem(renderer, font, "Music OFF", 139, 0, 0, MIDDLE_BUTTON_Y);
+    exitOptionsButton = createMenuItem(renderer, font, "Exit Options", 105, 105, 105, BOTTOM_BUTTON_Y);
+    ipInputBox = createMenuItem(renderer, font, "", 255, 255, 255, TOP_BUTTON_Y);
+    joinLobbyButton = createMenuItem(renderer, font, "Join Lobby", 1, 50, 32, MIDDLE_BUTTON_Y);
+    backToMenuButton = createMenuItem(renderer, font, "Back to Menu", 139, 0, 0, BOTTOM_BUTTON_Y);
+    
+    volumeSlider = createTextItem(renderer, font, "Volume Slider", 255, 255, 255, BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
+    
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        char *text = "Player ";
+        char playerNum[2];
+        sprintf(playerNum, "%d", i+1);
+        
+        // Calculate total length including null terminator
+        size_t totalLength = strlen(text) + strlen(playerNum) + 1;
+        
+        // Allocate memory for the concatenated string
+        char *result = (char *)malloc(totalLength);
+        
+        // Check if memory allocation succeeded
+        if (result != NULL) {
+            // Copy the strings into the result buffer
+            strcpy(result, text);
+            strcat(result, playerNum);
 
-    // Draw the button
-    SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
-    SDL_Rect buttonBackground = {BUTTONS_X, y, BUTTON_WIDTH, BUTTON_HEIGHT};
-    SDL_RenderFillRect(renderer, &buttonBackground);
+            playersText[i] = createTextItem(renderer, font, result, 255, 255, 255, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + PLAYER_TEXT_INBETWEEN_SPACE * i, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
 
-    // Draw the text
-    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(Font, text, textColor);
-    SDL_Texture *Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-    SDL_Rect Message_rect = {BUTTONS_X + 25, y + 25, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50};
-    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(Message);
+            // Free the dynamically allocated memory
+            free(result);
+        } else {
+            fprintf(stderr ,"Memory allocation failed!\n");
+        }
+
+    }
+
+    TTF_CloseFont(font);
+    TTF_Quit();
 }
 
-void drawText(SDL_Renderer *renderer, SDL_Color color, TTF_Font *font, char *text, int x, int y, int w, int h)
+
+
+void renderMenuItem(MenuItem *item)
 {
-    SDL_Surface *surfaceMessage = TTF_RenderText_Solid(font, text, color);
-    SDL_Texture *Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-    SDL_Rect Message_rect = {x, y, w, h};
-    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-    SDL_FreeSurface(surfaceMessage);
-    SDL_DestroyTexture(Message);
-}
+    SDL_SetRenderDrawColor(item->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // Outline color
+    SDL_RenderFillRect(item->renderer, &item->outlinePosition);
 
+    SDL_SetRenderDrawColor(item->renderer, item->r, item->g, item->b, SDL_ALPHA_OPAQUE);
+    SDL_RenderFillRect(item->renderer, &item->backgroundPosition);
+
+    SDL_RenderCopy(item->renderer, item->texture, NULL, &item->textPosition);
+}
+void renderTextItem(textItem *item)
+{
+    SDL_RenderCopy(item->renderer, item->texture, NULL, &item->textPosition);
+}
 void renderSlider(SDL_Renderer *renderer, float handleX)
 {
     // Volume slider background
@@ -110,6 +187,7 @@ void renderSlider(SDL_Renderer *renderer, float handleX)
     SDL_Rect sliderHandle = {handleX, SLIDER_Y, HANDLE_WIDTH, SLIDER_HEIGHT};
     SDL_RenderFillRect(renderer, &sliderHandle);
 }
+
 
 
 void toggle_music_logic(void)
@@ -126,10 +204,19 @@ void toggle_music_logic(void)
     }
     else
     {
-        volSliderValue = (prevVolSliderValue != 0) ? prevVolSliderValue : 50; // Set to default if prevVolSliderValue is zero
+        if (prevVolSliderValue == 0)
+        {
+            volSliderValue = 1;
+        }
+        else
+        {
+            volSliderValue = prevVolSliderValue;
+        }
+        // volSliderValue = (prevVolSliderValue != 0) ? prevVolSliderValue : 1; // Set to 1 if prevVolSliderValue is zero
         set_volume(volSliderValue);
     }
 }
+
 
 
 bool optionsMenu(SDL_Renderer *renderer)
@@ -140,7 +227,7 @@ bool optionsMenu(SDL_Renderer *renderer)
     float handleX;
 
     // Load background texture
-    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
     // Options loop
     while (options)
@@ -149,23 +236,26 @@ bool optionsMenu(SDL_Renderer *renderer)
         SDL_RenderClear(renderer);
 
         // Render menu items and background
-        if (renderMenuItem(&background))
-            return closeWindow;
-        TTF_Font *font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
-        drawText(renderer, (SDL_Color){255, 255, 255, 255}, font, "Volume Slider", BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
+        SDL_RenderCopy(renderer, background, NULL, NULL);
+        renderTextItem(&volumeSlider);
         handleX = (float)SLIDER_X + (float)(SLIDER_WIDTH - HANDLE_WIDTH) * ((float)volSliderValue / 100.0);
+
+        if (volSliderValue != 0)
+        {
+            prevVolSliderValue = volSliderValue;
+        }
         
         renderSlider(renderer, handleX);
 
         if (musicMuted)
         {
-            createMenuButton(renderer, "Music OFF", 139, 0, 0, MIDDLE_BUTTON_Y);
+            renderMenuItem(&musicOffButton);
         }
         else
         {
-            createMenuButton(renderer, "Music ON", 1, 50, 32, MIDDLE_BUTTON_Y);
+            renderMenuItem(&musicOnButton);
         }
-        createMenuButton(renderer, "Exit Options", 105, 105, 105, BOTTOM_BUTTON_Y);
+        renderMenuItem(&exitOptionsButton);
 
         SDL_RenderPresent(renderer);
 
@@ -249,12 +339,10 @@ bool optionsMenu(SDL_Renderer *renderer)
                 }
                 break;
             }
-
             if (!volSliderValue && !musicMuted || volSliderValue && musicMuted)
                 toggle_music_logic();
         }
     }
-
     return closeWindow;
 }
 
@@ -276,7 +364,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
     SDL_Color textColor = {0, 0, 0, 255}; // Black text
 
     // Load background texture
-    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
     // Find game loop
     while (findGame)
@@ -285,11 +373,10 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
         SDL_RenderClear(renderer);
 
         // Render background & menu button
-        if (renderMenuItem(&background))
-            return closeWindow;
-        createMenuButton(renderer, "", 255, 255, 255, TOP_BUTTON_Y);
-        createMenuButton(renderer, "Join Game", 1, 50, 32, MIDDLE_BUTTON_Y);
-        createMenuButton(renderer, "Back to Menu", 139, 0, 0, BOTTOM_BUTTON_Y);
+        SDL_RenderCopy(renderer, background, NULL, NULL);
+        renderMenuItem(&ipInputBox);
+        renderMenuItem(&joinLobbyButton);
+        renderMenuItem(&backToMenuButton);
 
         if (textLength > 0)
         {
@@ -394,10 +481,8 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
     bool closeWindow = false;
     bool joinGame = false;
 
-    TTF_Init(); // Initialize TTF
-
-    // Load all textures for main menu
-    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
+    // Load background texture
+    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
     // Main menu loop
     while (menu)
@@ -405,20 +490,19 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
         // Clear the screen
         SDL_RenderClear(renderer);
 
-        // Render background and menu items
-        if (renderMenuItem(&background))
-            return closeWindow;
+        // Render background
+        SDL_RenderCopy(renderer, background, NULL, NULL);
         if (inGame)
         {
-            createMenuButton(renderer, "Resume Game", 1, 50, 32, TOP_BUTTON_Y);
-            createMenuButton(renderer, "Leave Game", 139, 0, 0, BOTTOM_BUTTON_Y);
+            renderMenuItem(&resumeGameButton);
+            renderMenuItem(&leaveGameButton);
         }
         else
         {
-            createMenuButton(renderer, "Join Game", 1, 50, 32, TOP_BUTTON_Y);
-            createMenuButton(renderer, "Quit Game", 139, 0, 0, BOTTOM_BUTTON_Y);
+            renderMenuItem(&startGameButton);
+            renderMenuItem(&quitGameButton);
         }
-        createMenuButton(renderer, "Options", 105, 105, 105, MIDDLE_BUTTON_Y);
+        renderMenuItem(&optionsButton);
 
         SDL_RenderPresent(renderer);
 
@@ -489,37 +573,15 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
 
 void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int players)
 {
-    TTF_Init();
-    TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", 24);
     SDL_Color color = {255, 255, 255, 255};
     SDL_RenderClear(renderer);
 
-    MenuItem background = {IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH), renderer, {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT}};
-    renderMenuItem(&background);
+    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
+    SDL_RenderCopy(renderer, background, NULL, NULL);
     
     for (int i = 0; i < players; i++)
     {
-        char *text = "Player ";
-        char playerNum[2];
-        sprintf(playerNum, "%d", i+1);
-        
-        // Calculate total length including null terminator
-        size_t totalLength = strlen(text) + strlen(playerNum) + 1;
-        
-        // Allocate memory for the concatenated string
-        char *result = (char *)malloc(totalLength);
-        
-        // Check if memory allocation succeeded
-        if (result != NULL) {
-            // Copy the strings into the result buffer
-            strcpy(result, text);
-            strcat(result, playerNum);
-
-            // Free the dynamically allocated memory
-            free(result);
-        } else {
-            printf("Memory allocation failed!\n");
-        }
+        renderTextItem(&playersText[i]);
 
         if (readyPlayers[i])
         {
@@ -529,9 +591,9 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int player
         {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         }
-        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 5, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE, PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
+        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 5, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE,
+                         PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
         SDL_RenderFillRect(renderer, &rect);
-        drawText(renderer, color, font, result, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
     }
     SDL_RenderPresent(renderer);
 }

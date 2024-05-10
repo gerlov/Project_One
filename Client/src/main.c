@@ -86,6 +86,9 @@ int initiate(Game_c *game)
     {
         return 1;
     }
+
+    initMenu(game->pRenderer);
+
     if (SDLNet_Init() == -1)
     {
         fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
@@ -98,7 +101,7 @@ int initiate(Game_c *game)
     }
 
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
-    if(menu(game->pRenderer, game->hostAddress, false)) return 1; // This function can get the Host Address from the user in the future
+    //! Remember to move this to menu.c later
     if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
@@ -129,7 +132,7 @@ int initiate(Game_c *game)
     game->powerUpCount = 0;
     load_powerup_resources(game->pRenderer);
     init_LimitedVision(&game->lv, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, 400);
-    game->gameState = JOINING;
+    game->gameState = START;
     game->oldready.ready = false;
     game->oldready.start = false;
     game->oldready.quit = false;
@@ -270,6 +273,10 @@ void run(Game_c *game)
     {
         switch (game->gameState)
         {
+        case START:
+            if(menu(game->pRenderer, game->hostAddress, false)) return; // This function can get the Host Address from the user in the future
+            game->gameState = JOINING; // remove this line when main menu is implemented
+            break;
         case JOINING:
             joining(game);
             break;
@@ -436,6 +443,9 @@ void handleInput(Game_c *game, SDL_Event *event)
             break;
         case SDLK_SPACE:
             game->space = true;
+            break;
+        case SDLK_ESCAPE:
+            game->gameState = PAUSED;
             break;
         }
         break;
