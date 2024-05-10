@@ -10,8 +10,8 @@
 
 #define BACKGROUND_IMG_PATH "../lib/assets/menu/MenuBackground.png"
 
-#define WINDOW_WIDTH 500
-#define WINDOW_HEIGHT 500
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 700
 
 #define BUTTON_WIDTH WINDOW_WIDTH / 3
 #define BUTTON_HEIGHT WINDOW_HEIGHT / 4
