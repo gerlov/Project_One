@@ -83,8 +83,8 @@ int main(int argc, char *argv[])
 
 int initiate(Game_c *game)
 {
-    game->WINDOW_WIDTH = 1000;
-    game->WINDOW_HEIGHT = 800;
+    game->WINDOW_WIDTH = 1200;
+    game->WINDOW_HEIGHT = 700;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) == 1)
     {
         return 1;
