@@ -9,7 +9,7 @@ int init_SDL_window(SDL_Window **window, SDL_Renderer **renderer, int WINDOW_WID
         return 1;
     }
 
-    *window = SDL_CreateWindow("Labyrinth of Minotaur", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
+    *window = SDL_CreateWindow("Labyrinth of the Minotaur", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     if(!(*window)) {
         printf("Error creating window: %s\n", SDL_GetError());
         SDL_Quit();
