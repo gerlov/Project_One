@@ -196,8 +196,8 @@ void update_game(Game *game)
     {
     case PAUSED:
         SDL_RenderClear(game->pRenderer);
-
-        if (mainMenu(game->pRenderer))
+        char tmp[MAX_ADDRESS_LENGTH] = "";
+        if (menu(game->pRenderer, tmp, false))
             game->gameState = QUIT;
         else
             game->gameState = PLAYING;

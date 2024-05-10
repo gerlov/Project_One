@@ -34,6 +34,7 @@ typedef struct game
     UDPsocket serverSocket;
     IPaddress serverIP;
     UDPpacket *packet;
+    char hostAddress[MAX_ADDRESS_LENGTH];
 
     Character *characters[MAX_PLAYERS];
     Character *myCharacter;
@@ -79,12 +80,15 @@ int main(int argc, char *argv[])
 
 int initiate(Game_c *game)
 {
-    game->WINDOW_WIDTH = 500;
-    game->WINDOW_HEIGHT = 500;
+    game->WINDOW_WIDTH = 1200;
+    game->WINDOW_HEIGHT = 700;
     if (init_SDL_window(&game->pWindow, &game->pRenderer, game->WINDOW_WIDTH, game->WINDOW_HEIGHT) == 1)
     {
         return 1;
     }
+
+    initMenu(game->pRenderer);
+
     if (SDLNet_Init() == -1)
     {
         fprintf(stderr, "SDLNet_Init: %s\n", SDLNet_GetError());
@@ -97,7 +101,8 @@ int initiate(Game_c *game)
     }
 
     ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
-    if (SDLNet_ResolveHost(&game->serverIP, "127.0.0.1", SOCKET_PORT))
+    //! Remember to move this to menu.c later
+    if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
     {
         fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
         return 1;
@@ -202,7 +207,7 @@ void joining(Game_c *game)
         game->PLAYERS = game->joinData.PLAYERS;
         game->gameState = game->joinData.gameState;
         game->hunterIndex = game->joinData.hunterindex;
-        printJoinData(game->joinData);
+        // printJoinData(game->joinData);
         if (game->gameState == PLAYING)
         {
             startGame(game);
@@ -211,22 +216,7 @@ void joining(Game_c *game)
     }
     game->oldready = game->ready;
     SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
-    SDL_RenderClear(game->pRenderer);
-    for (int i = 0; i < game->PLAYERS; i++)
-    {
-        SDL_Rect rect = {10 + i * 60, 0, 50, 50};
-        if (game->joinData.readyPlayers[i])
-        {
-            SDL_SetRenderDrawColor(game->pRenderer, 0, 255, 0, 255);
-        }
-        else
-        {
-            SDL_SetRenderDrawColor(game->pRenderer, 255, 0, 0, 255);
-        }
-        SDL_RenderFillRect(game->pRenderer, &rect);
-        SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
-    }
-    SDL_RenderPresent(game->pRenderer);
+    drawLobby(game->pRenderer, game->joinData.readyPlayers, game->joinData.PLAYERS);
     if (game->ready.quit)
     {
         game->gameState = QUIT;
@@ -284,11 +274,9 @@ void run(Game_c *game)
         switch (game->gameState)
         {
         case START:
-            // main menu function goes here
-
+            if(menu(game->pRenderer, game->hostAddress, false)) return; // This function can get the Host Address from the user in the future
             game->gameState = JOINING; // remove this line when main menu is implemented
             break;
-
         case JOINING:
             joining(game);
             break;
@@ -298,7 +286,14 @@ void run(Game_c *game)
             break;
 
         case PAUSED:
-            // pause menu? function goes here if we would like to have it
+            if(menu(game->pRenderer, game->hostAddress, true))
+            {
+                game->gameState = QUIT;
+            }
+            else
+            {
+                game->gameState = PLAYING;
+            }
             break;
         case QUIT:
             break;
@@ -448,6 +443,9 @@ void handleInput(Game_c *game, SDL_Event *event)
             break;
         case SDLK_SPACE:
             game->space = true;
+            break;
+        case SDLK_ESCAPE:
+            game->gameState = PAUSED;
             break;
         }
         break;
