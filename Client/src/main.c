@@ -100,20 +100,13 @@ int initiate(Game_c *game)
         return 1;
     }
 
-    ///! When the menu is implemented, the server IP will be taken from the user, change this if statement to a function that gets the IP from the user
-    //! Remember to move this to menu.c later
-    if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
-    {
-        fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
-        return 1;
-    }
+    
     if (!(game->packet = SDLNet_AllocPacket(512)))
     {
         fprintf(stderr, "SDLNet_AllocPacket: %s\n", SDLNet_GetError());
         return 1;
     }
-    game->packet->address.host = game->serverIP.host;
-    game->packet->address.port = game->serverIP.port;
+    
     init_player_sounds();
 
     char *soundPathbgm[] = {
@@ -149,10 +142,7 @@ int initiate(Game_c *game)
     startGame(game);
 
 #else
-    // Send initial packet to server to establish connection
-    memcpy(game->packet->data, &game->ready, sizeof(ReadyData) + 1);
-    game->packet->len = sizeof(ReadyData) + 1;
-    SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
+   
 #endif
     return 0;
 }
@@ -276,6 +266,20 @@ void run(Game_c *game)
         case START:
             if(menu(game->pRenderer, game->hostAddress, false)) return; // This function can get the Host Address from the user in the future
             game->gameState = JOINING; // remove this line when main menu is implemented
+            
+            if (SDLNet_ResolveHost(&game->serverIP, game->hostAddress, SOCKET_PORT))
+            {
+                fprintf(stderr, "SDLNet_ResolveHost: %s\n", SDLNet_GetError());
+                game->gameState = QUIT;
+                break;
+            }
+            game->packet->address.host = game->serverIP.host;
+            game->packet->address.port = game->serverIP.port;
+            
+             // Send initial packet to server to establish connection
+            memcpy(game->packet->data, &game->ready, sizeof(ReadyData) + 1);
+            game->packet->len = sizeof(ReadyData) + 1;
+            SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
             break;
         case JOINING:
             joining(game);

@@ -433,6 +433,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 case SDL_SCANCODE_RETURN:
                     if (textLength > 0)
                     {
+                        strcpy(hostAddress, inputText);
                         *joinGame = true;
                         return closeWindow;
                     }
