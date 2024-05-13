@@ -17,7 +17,7 @@ SDL_FLAGS=-lSDL2_image -lSDL2_ttf -lSDL2_net -lSDL2_mixer
 ifeq ($(OS),Windows_NT)
 	# For Windows
 	INCLUDE=C:\msys64\mingw64\include\ # SDL2 include path
-	LDFLAGS=-lmingw32 -lSDL2main -lSDL2_image -lSDL2 $(SDL_FLAGS) -mwindows -lm
+	LDFLAGS=-lmingw32 -lSDL2main -lSDL2_image -lSDL2 $(SDL_FLAGS)
 	TARGET:=$(TARGET).exe
 else
 	UNAME_S := $(shell uname -s)
