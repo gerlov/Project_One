@@ -141,8 +141,6 @@ int initiate(Game_c *game)
     game->hunterIndex = 0;
     startGame(game);
 
-#else
-   
 #endif
     return 0;
 }
