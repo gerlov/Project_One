@@ -131,18 +131,14 @@ void apply_powerUp(Character *character, PowerUpType type, Character **character
 {
     switch (type) {
         case POWERUP_SPEED:
-            if (character->speedPowerupTime == 0) {
                 character->speed += 200;
                 character->speedPowerupTime = SDL_GetTicks() + 10000;
                 play_sound_once(soundSpeed, 10);
-            }
             break;
         case POWERUP_INVISIBLE:
-            if (character->invisiblePowerupTime == 0) {
                 character->visible = 0;
                 character->invisiblePowerupTime = SDL_GetTicks() + 10000;
                 play_sound_once(soundInvisible, 10);
-            }
             break;
         case POWERUP_SKULL:
             if (character->isHunter) {  
