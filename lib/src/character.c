@@ -221,9 +221,20 @@ void move_character(Character *character, TileMap *tilemap,
             {
                 continue; // dont apply POWRUP_SKULL and DONT deactivate it if intersected by non-hunter
             }
-            apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters, mazeView);
-            powerUps[i].active = 0;
-            character->lastPowerupCollected = powerUps[i].powerupid;
+            else if(powerUps[i].type == POWERUP_MAP && character->isHunter == 1)
+            {
+                continue; // dont apply POWRUP_MAP and DONT deactivate it if intersected by the hunter
+            } 
+            else if ((powerUps[i].type == POWERUP_SPEED && character->speedPowerupTime > SDL_GetTicks()) ||
+                 (powerUps[i].type == POWERUP_INVISIBLE && character->invisiblePowerupTime > SDL_GetTicks()))
+            {
+                continue; // dont apply or deactivate if the same type of powerup is still active on the current player
+            }
+            else {
+                apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters, mazeView);
+                powerUps[i].active = 0;
+                character->lastPowerupCollected = powerUps[i].powerupid;
+            }    
         }
     }
 }
