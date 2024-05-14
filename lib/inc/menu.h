@@ -16,6 +16,8 @@ void initMenu(SDL_Renderer *renderer);
 /// @return returns true if window should be closed
 bool menu(SDL_Renderer* renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inGame);
 
+void quitMenu(SDL_Renderer* renderer);
+
 /// @brief Function for drawing the lobby
 /// @param renderer The renderer to draw the lobby to
 /// @param readyPlayers An array of the players that are ready

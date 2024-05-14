@@ -169,7 +169,6 @@ void run(Game_s *game)
             break;
         case QUIT:
             printf("\n\tPreparing to close\n");
-
             closeRequest=1;
             break;
         default:

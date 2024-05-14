@@ -64,7 +64,7 @@ typedef struct textItem {
 MenuItem startGameButton, resumeGameButton, leaveGameButton, optionsButton, quitGameButton, 
          musicOnButton, musicOffButton, exitOptionsButton, ipInputBox, joinLobbyButton, backToMenuButton;
 
-textItem volumeSlider;
+textItem volumeSlider, gameOverText;
 textItem playersText[MAX_PLAYERS];
 
 
@@ -127,6 +127,9 @@ void initMenu(SDL_Renderer *renderer)
     
     volumeSlider = createTextItem(renderer, font, "Volume Slider", 255, 255, 255, BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
     
+    gameOverText = createTextItem(renderer, font, "Game Over", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
+
+
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
         char *text = "Player ";
@@ -576,6 +579,31 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
         }
     }
     return closeWindow;
+}
+
+void quitMenu(SDL_Renderer *renderer) {
+    bool closeWindow = false;
+
+
+    while(!closeWindow) {
+        SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, background, NULL, NULL);
+        renderTextItem(&gameOverText);
+        SDL_RenderPresent(renderer);
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+        {
+            switch (event.type)
+            {
+            case SDL_QUIT:
+                closeWindow = true;
+                break;
+            }
+        }
+    }
+
 }
 
 void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int players)
