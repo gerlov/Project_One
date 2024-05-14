@@ -494,6 +494,9 @@ void handleInput(Game_c *game, SDL_Event *event)
         case SDLK_d:
             right = false;
             break;
+        case SDLK_SPACE:
+            game->space = false;
+            break;
         }
         break;
     }
