@@ -45,7 +45,7 @@ void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size)
     memset(powerUpPlacement, 0, sizeof(powerUpPlacement)); //stk  
 
     int skullCount = 0;  
-    int maxSkull = 10;  ////////////////////////////// OBS OBS OBS CHANGE HERE
+    int maxSkull = 3;  ////////////////////////////// OBS OBS OBS CHANGE HERE
 
 
     for (int i = 0; i < MAX_POWERUPS; i++) {
