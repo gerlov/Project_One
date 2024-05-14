@@ -116,15 +116,15 @@ void stop_moving(Character *character)
 void move_character(Character *character, TileMap *tilemap,
                     float deltaTime, Character **other_characters, 
                     int num_other_characters, MazeView *mazeView)
-{
-
+{  
     if (character->isKilled == 1) return;
+    if(character->speed > 500) character -> speed = 500;
     Uint32 currentTicks = SDL_GetTicks(); // for powerup timers
 
     // 2 st check for powerup timers expiration, resets everything to default values if expired
     if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0)
     {
-        character->speed -= 200;         // set back to default speed (defined in init)
+        character->speed = 300;         // set back to default speed (defined in init)
         character->speedPowerupTime = 0; // reset poerup timer
     }
 
