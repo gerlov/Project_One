@@ -10,6 +10,7 @@
 #include "window.h"
 #include "character.h"
 #include "tilemap.h"
+#include "mazeview.h"
 #include "music.h"
 #include "limitedvision.h"
 #include "powerup.h"
@@ -23,6 +24,7 @@ typedef struct game
     SDL_Renderer *pRenderer;
     BackgroundMusic *bgm;
     TileMap tilemap;
+    MazeView mazeview; 
     LimitedVision lv;
     int activePlayer; // get from the server initally
     int seed;         // get from the server initally
@@ -47,6 +49,7 @@ typedef struct game
 
     PowerUp powerUps[MAX_POWERUPS];
     int powerUpCount;
+
     GameState gameState;
     Uint64 lastFrameTime;
     Uint64 currentFrameTime;
@@ -195,7 +198,7 @@ void joining(Game_c *game)
         game->PLAYERS = game->joinData.PLAYERS;
         game->gameState = game->joinData.gameState;
         game->hunterIndex = game->joinData.hunterindex;
-        // printJoinData(game->joinData);
+       // printJoinData(game->joinData);
         if (game->gameState == PLAYING)
         {
             startGame(game);
@@ -226,6 +229,7 @@ void startGame(Game_c *game)
     our_srand(game->seed);
     tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
+    init_maze_view(&game->mazeview, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
 
     play_background_music(game->bgm);
     free_bgm(game->bgm);
@@ -320,7 +324,6 @@ void playing(Game_c *game)
             memcpy(game->packet->data, &game->data, sizeof(CharacterData));
             game->packet->len = sizeof(CharacterData);
             SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
-            SDLNet_UDP_Send(game->serverSocket, -1, game->packet);
         }
         handleInput(game, &event);
     }
@@ -328,32 +331,42 @@ void playing(Game_c *game)
     updateFromServer(game);
 
     if (game->myCharacter->isHunter && game->space)
-    {
-        kill_command(game->myCharacter, game->characters, game->PLAYERS);
-    }
+        {
+            kill_command(game->myCharacter, game->characters, game->PLAYERS);
+        }
 
-    move_character(game->myCharacter, &game->tilemap,
-                   game->deltaTime, game->characters, game->PLAYERS);
+    if (game->mazeview.visible) {
+        set_volume(0);
+        render_maze_view(&game->mazeview, game->pRenderer); 
+        if (game->myCharacter && !game->myCharacter->isKilled) {
+            draw_character_on_mazeview(game->myCharacter, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT, &game->mazeview, game->pRenderer);
+        }
+    } else {
+        set_volume(30);
 
-    follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
-    if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
-    {
-        updateToServer(game);
-        game->lastPos = game->myCharacter->position;
-    }
-    // draw stage
-    SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
-    SDL_RenderClear(game->pRenderer);
-    tilemap_draw(&game->tilemap);
-    draw_powerUps(game->pRenderer, &game->tilemap);
+        move_character(game->myCharacter, &game->tilemap, game->deltaTime, game->characters, game->PLAYERS, &game->mazeview);
 
-    for (int i = 0; i < game->PLAYERS; i++)
-    {
-        if (game->characters[i] != game->myCharacter)
-            draw_character(game->pRenderer, game->characters[i], i == game->activePlayer, &game->tilemap.camera);
+        follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
+        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
+        {
+            updateToServer(game);
+            game->lastPos = game->myCharacter->position;
+        }
+
+        // draw stage
+        SDL_SetRenderDrawColor(game->pRenderer, 0, 0, 0, 255);
+        SDL_RenderClear(game->pRenderer);
+        tilemap_draw(&game->tilemap);
+        draw_powerUps(game->pRenderer, &game->tilemap);
+
+        for (int i = 0; i < game->PLAYERS; i++)
+        {
+            if (game->characters[i] != game->myCharacter)
+                draw_character(game->pRenderer, game->characters[i], i == game->activePlayer, &game->tilemap.camera);
+        }
+        draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
+        drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);
     }
-    draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
-    drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);
 
     SDL_RenderPresent(game->pRenderer);
 }
@@ -380,6 +393,13 @@ void updateFromServer(Game_c *game)
             game->characters[i]->speedPowerupTime = game->serverData.characters[i].speedPowerupTime;
             game->characters[i]->invisiblePowerupTime = game->serverData.characters[i].invisiblePowerupTime;
             game->characters[i]->frameLastUpdated = game->serverData.characters[i].frameLastUpdated;
+            int receivedPowerupId = game->serverData.characters[i].lastPowerupCollected;
+            for (int i = 0; i < powerUpCount; i++) {
+                if (powerUps[i].powerupid == receivedPowerupId) {
+                    powerUps[i].active = 0;
+                    break;
+                }
+            }
         }
         for (int i = 0; i < game->PLAYERS; i++)
         {
@@ -406,6 +426,7 @@ void updateToServer(Game_c *game)
     game->data.invisiblePowerupTime = game->myCharacter->invisiblePowerupTime;
     game->data.frameLastUpdated = game->myCharacter->frameLastUpdated;
     game->data.gameState = game->gameState;
+    game->data.lastPowerupCollected = game->myCharacter->lastPowerupCollected;
     game->data.disconnect = false;
     for (int i = 0; i < game->PLAYERS; i++)
     {
@@ -485,6 +506,7 @@ void close(Game_c *game)
         cleanup_character(game->characters[i]);
     }
     tilemap_free(&game->tilemap);
+    free_maze_view(&game->mazeview); 
     SDLNet_FreePacket(game->packet);
     SDLNet_UDP_Close(game->serverSocket);
     SDL_DestroyRenderer(game->pRenderer);

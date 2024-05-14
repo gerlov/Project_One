@@ -40,14 +40,15 @@ CFLAGS=-g -I$(INCLUDE) -I$(INCDIR) -c
 
 all: $(TARGET)
 
-$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/tilemap.o $(BUILD_DIR)/music.o $(BUILD_DIR)/window.o $(BUILD_DIR)/collisions.o $(BUILD_DIR)/powerup.o $(BUILD_DIR)/menu.o $(BUILD_DIR)/character.o $(BUILD_DIR)/texture.o $(BUILD_DIR)/limitedvision.o $(BUILD_DIR)/our_rand.o $(BUILD_DIR)/maze_gen.o $(INCDIR)/debug.h
+# run 'make' to compile the program
+$(TARGET): $(BUILD_DIR)/main.o $(BUILD_DIR)/tilemap.o $(BUILD_DIR)/music.o $(BUILD_DIR)/window.o $(BUILD_DIR)/collisions.o $(BUILD_DIR)/powerup.o $(BUILD_DIR)/mazeview.o $(BUILD_DIR)/menu.o $(BUILD_DIR)/character.o $(BUILD_DIR)/texture.o $(BUILD_DIR)/limitedvision.o $(BUILD_DIR)/our_rand.o $(BUILD_DIR)/maze_gen.o $(INCDIR)/debug.h
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(BUILD_DIR)/main.o: $(SRCDIR)/main.c $(INCDIR)/data.h $(INCDIR)/tilemap.h $(INCDIR)/window.h $(INCDIR)/music.h $(INCDIR)/powerup.h $(INCDIR)/character.h $(INCDIR)/texture.h $(INCDIR)/limitedvision.h $(INCDIR)/our_rand.h $(INCDIR)/debug.h
 	$(CC) $(CFLAGS) $(SRCDIR)/main.c -o $@
 	
 $(BUILD_DIR)/tilemap.o: $(COMMONSRCDIR)/tilemap.c $(INCDIR)/tilemap.h $(INCDIR)/our_rand.h $(INCDIR)/maze_gen.h $(INCDIR)/debug.h
-	$(CC) $(CFLAGS) $(COMMONSRCDIR)/tilemap.c -o $@
+	$(CC) $(CFLAGS) $(COMMONSRCDIR)/tilemap.c -o $@  
 
 $(BUILD_DIR)/music.o: $(COMMONSRCDIR)/music.c $(INCDIR)/music.h $(INCDIR)/debug.h
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/music.c -o $@
@@ -60,6 +61,9 @@ $(BUILD_DIR)/collisions.o: $(COMMONSRCDIR)/collisions.c $(INCDIR)/collisions.h $
 
 $(BUILD_DIR)/powerup.o: $(COMMONSRCDIR)/powerup.c $(INCDIR)/powerup.h $(INCDIR)/tilemap.h $(INCDIR)/character.h $(INCDIR)/texture.h $(INCDIR)/music.h $(INCDIR)/debug.h
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/powerup.c -o $@
+
+$(BUILD_DIR)/mazeview.o: $(COMMONSRCDIR)/mazeview.c $(INCDIR)/mazeview.h $(INCDIR)/tilemap.h $(INCDIR)/texture.h $(INCDIR)/debug.h
+	$(CC) $(CFLAGS) -c $(COMMONSRCDIR)/mazeview.c -o $@	
 
 $(BUILD_DIR)/menu.o: $(COMMONSRCDIR)/menu.c $(INCDIR)/menu.h $(INCDIR)/music.h $(INCDIR)/debug.h
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/menu.c -o $@
@@ -79,6 +83,7 @@ $(BUILD_DIR)/our_rand.o: $(COMMONSRCDIR)/our_rand.c $(INCDIR)/our_rand.h $(INCDI
 $(BUILD_DIR)/maze_gen.o: $(COMMONSRCDIR)/maze_gen.c $(INCDIR)/maze_gen.h $(INCDIR)/our_rand.h $(INCDIR)/debug.h
 	$(CC) $(CFLAGS) $(COMMONSRCDIR)/maze_gen.c -o $@
 
+
 # ----- Run the program -----------------
 # run 'make run' to compile and run the program in one command
 run: $(TARGET)
@@ -86,7 +91,10 @@ run: $(TARGET)
 
 # run 'make clean' to remove the object files and the executable
 clean:
-	rm -f *.o $(TARGET) $(BUILD_DIR)/*.o
-
+ifeq ($(OS),Windows_NT)
+	del /Q /F "$(BUILD_DIR)\*.o" "$(BUILD_DIR)\*.exe"
+else
+	rm -f $(BUILD_DIR)/*.o $(BUILD_DIR)/$(TARGET)
+endif
 
 .PHONY: all clean run
