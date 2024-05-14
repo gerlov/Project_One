@@ -32,6 +32,7 @@ typedef struct _game
     int nrOfClients;
     int PLAYERS;
     int seed;
+    int alivePlayers;
     IPaddress clients[MAX_PLAYERS];
     GameState gameState;
 
@@ -144,6 +145,7 @@ int init(Game_s *game)
     tilemap_init(&game->tilemap, game->pRenderer);
     game->gameState = START;
     game->nrOfClients = 0;
+    game->alivePlayers=MAX_PLAYERS;
     our_srand(time(NULL));
     game->seed = our_rand();
     for (int i = 0; i < MAX_PLAYERS; i++)
@@ -376,14 +378,14 @@ void playing(Game_s *game)
             }
         }
 
-        int aliveplayers=game->nrOfClients;
+        game->alivePlayers=game->nrOfClients;
         for(int i=0; i < game->nrOfClients; i++) {
             if(game->serverData.isKilled[i]) {
-                aliveplayers--;
+                 game->alivePlayers--;
             }
         }
 
-        if(aliveplayers==1) {
+        if(game->alivePlayers==1) {
             game->gameState = QUIT;
         }
 

@@ -303,7 +303,6 @@ void run(Game_c *game)
             }
             break;
         case QUIT:
-            printf("\nSee you\n");
             quitMenu(game->pRenderer);
             closeRequested=1;
             break;
