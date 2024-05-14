@@ -156,8 +156,8 @@ int init(Game_s *game)
 
 void run(Game_s *game)
 {
-
-    while (game->gameState != QUIT)
+    int closeRequest=0;
+    while (!closeRequest)
     {
         switch (game->gameState)
         {
@@ -166,6 +166,10 @@ void run(Game_s *game)
             break;
         case PLAYING:
             playing(game);
+            break;
+        case QUIT:
+            printf("\n\tPreparing to close\n");
+            closeRequest=1;
             break;
         default:
             break;
