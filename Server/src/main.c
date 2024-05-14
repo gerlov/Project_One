@@ -169,6 +169,7 @@ void run(Game_s *game)
             break;
         case QUIT:
             printf("\n\tPreparing to close\n");
+
             closeRequest=1;
             break;
         default:
@@ -344,7 +345,6 @@ void playing(Game_s *game)
 #endif
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
-
         memcpy(&game->recievedData, game->packet->data, sizeof(CharacterData));
         int playerIndex = game->recievedData.playerID;
         DEBUG_PRINT3("(Server) Packet received from %d\n", playerIndex);
@@ -352,6 +352,8 @@ void playing(Game_s *game)
         if (game->recievedData.disconnect)
         {
             DEBUG_PRINT("Player %d disconnected\n", playerIndex);
+            game->nrOfClients--;
+            printf("nrofclients %d", game->nrOfClients);
         }
         for (int i = 0; i < game->nrOfClients; i++)
         {
@@ -375,8 +377,20 @@ void playing(Game_s *game)
             }
         }
 
+        int aliveplayers=game->nrOfClients;
+        for(int i=0; i < game->nrOfClients; i++) {
+            if(game->serverData.isKilled[i]) {
+                aliveplayers--;
+            }
+        }
+
+        if(aliveplayers==1) {
+            game->gameState = QUIT;
+        }
+
         for (int i = 0; i < game->nrOfClients; i++)
         {
+            game->serverData.gameState = game->gameState;
             game->packet->address = game->clients[i];
             memcpy(game->packet->data, &game->serverData, sizeof(ServerData));
             game->packet->len = sizeof(ServerData);

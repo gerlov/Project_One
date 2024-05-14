@@ -259,9 +259,10 @@ void startGame(Game_c *game)
 // MARK: - Game Loop
 void run(Game_c *game)
 {
+    int closeRequested=0;
     SDL_Event event;
     game->lastFrameTime = SDL_GetPerformanceCounter();
-    while (game->gameState != QUIT)
+    while (!closeRequested)
     {
         switch (game->gameState)
         {
@@ -302,6 +303,8 @@ void run(Game_c *game)
             }
             break;
         case QUIT:
+            printf("\nSee you\n");
+            closeRequested=1;
             break;
         }
         game->currentFrameTime = SDL_GetPerformanceCounter();
@@ -378,6 +381,7 @@ void updateFromServer(Game_c *game)
     {
         DEBUG_PRINT3("(Client) Packet received\n");
         memcpy(&game->serverData, game->packet->data, sizeof(ServerData));
+        game->gameState = game->serverData.gameState;
         for (int i = 0; i < game->PLAYERS; i++)
         {
             if (i != game->activePlayer)

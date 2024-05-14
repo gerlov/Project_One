@@ -58,6 +58,7 @@ typedef struct {
 typedef struct {
     CharacterData characters[MAX_PLAYERS];
     bool isKilled[MAX_PLAYERS]; // 1 if player at index is killed
+    GameState gameState;
 } ServerData;
 
 #endif // DATA_H
