@@ -45,7 +45,7 @@ void init_powerUps(SDL_Renderer* renderer, TileMap* tilemap, int tile_size)
     memset(powerUpPlacement, 0, sizeof(powerUpPlacement)); //stk  
 
     int skullCount = 0;  
-    int maxSkull = 10;  ////////////////////////////// OBS OBS OBS CHANGE HERE
+    int maxSkull = 3;  ////////////////////////////// OBS OBS OBS CHANGE HERE
 
 
     for (int i = 0; i < MAX_POWERUPS; i++) {
@@ -131,23 +131,23 @@ void apply_powerUp(Character *character, PowerUpType type, Character **character
 {
     switch (type) {
         case POWERUP_SPEED:
-            if (character->speedPowerupTime == 0) character->speed += 200;
-            character->speedPowerupTime = SDL_GetTicks() + 10000;
-            play_sound_once(soundSpeed, 10);
+                character->speed += 200;
+                character->speedPowerupTime = SDL_GetTicks() + 10000;
+                play_sound_once(soundSpeed, 10);
             break;
         case POWERUP_INVISIBLE:
-            character->visible = 0;
-            character->invisiblePowerupTime = SDL_GetTicks() + 3000;
-            play_sound_once(soundInvisible, 10);
+                character->visible = 0;
+                character->invisiblePowerupTime = SDL_GetTicks() + 10000;
+                play_sound_once(soundInvisible, 10);
             break;
         case POWERUP_SKULL:
-            if (character->isHunter) {
-                play_sound_once(soundSkull, 10);
+            if (character->isHunter) {  
                 for (int i = 0; i < num_characters; i++) {
                     if (characters[i] != character && characters[i]->visible == 1) {
                         characters[i]->isKilled = 1;
                     }
                 }
+                play_sound_once(soundSkull, 10);
             } 
             break;
         case POWERUP_MAP:

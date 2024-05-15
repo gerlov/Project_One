@@ -116,15 +116,15 @@ void stop_moving(Character *character)
 void move_character(Character *character, TileMap *tilemap,
                     float deltaTime, Character **other_characters, 
                     int num_other_characters, MazeView *mazeView)
-{
-
+{  
     if (character->isKilled == 1) return;
+    if(character->speed > 500) character -> speed = 500;
     Uint32 currentTicks = SDL_GetTicks(); // for powerup timers
 
     // 2 st check for powerup timers expiration, resets everything to default values if expired
     if (currentTicks > character->speedPowerupTime && character->speedPowerupTime != 0)
     {
-        character->speed -= 200;         // set back to default speed (defined in init)
+        character->speed = 300;         // set back to default speed (defined in init)
         character->speedPowerupTime = 0; // reset poerup timer
     }
 
@@ -221,9 +221,20 @@ void move_character(Character *character, TileMap *tilemap,
             {
                 continue; // dont apply POWRUP_SKULL and DONT deactivate it if intersected by non-hunter
             }
-            apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters, mazeView);
-            powerUps[i].active = 0;
-            character->lastPowerupCollected = powerUps[i].powerupid;
+            else if(powerUps[i].type == POWERUP_MAP && character->isHunter == 1)
+            {
+                continue; // dont apply POWRUP_MAP and DONT deactivate it if intersected by the hunter
+            } 
+            else if ((powerUps[i].type == POWERUP_SPEED && character->speedPowerupTime > SDL_GetTicks()) ||
+                 (powerUps[i].type == POWERUP_INVISIBLE && character->invisiblePowerupTime > SDL_GetTicks()))
+            {
+                continue; // dont apply or deactivate if the same type of powerup is still active on the current player
+            }
+            else {
+                apply_powerUp(character, powerUps[i].type, other_characters, num_other_characters, mazeView);
+                powerUps[i].active = 0;
+                character->lastPowerupCollected = powerUps[i].powerupid;
+            }    
         }
     }
 }
