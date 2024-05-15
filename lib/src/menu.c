@@ -6,6 +6,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_net.h>
 #include "menu.h"
+#include "SDL2/SDL_render.h"
 #include "music.h"
 
 #define BACKGROUND_IMG_PATH "../lib/assets/menu/MenuBackground.png"
@@ -13,27 +14,27 @@
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 700
 
-#define BUTTON_WIDTH WINDOW_WIDTH / 3
-#define BUTTON_HEIGHT WINDOW_HEIGHT / 4
-#define BUTTONS_X WINDOW_WIDTH / 2 - BUTTON_WIDTH / 2
-#define BUTTONS_Y (WINDOW_HEIGHT - BUTTON_HEIGHT * 3) / 2
-#define BUTTON_SPACE_BETWEEN WINDOW_WIDTH / 20
+#define BUTTON_WIDTH WINDOW_WIDTH / (float)3
+#define BUTTON_HEIGHT WINDOW_HEIGHT / (float)4
+#define BUTTONS_X WINDOW_WIDTH / (float)2 - BUTTON_WIDTH / (float)2
+#define BUTTONS_Y (WINDOW_HEIGHT - BUTTON_HEIGHT * 3) / (float)2
+#define BUTTON_SPACE_BETWEEN WINDOW_WIDTH / (float)20
 #define TOP_BUTTON_Y BUTTONS_Y - BUTTON_SPACE_BETWEEN
 #define MIDDLE_BUTTON_Y BUTTONS_Y * 3
 #define BOTTOM_BUTTON_Y BUTTONS_Y * 5 + BUTTON_SPACE_BETWEEN
-#define OUTLINE_WIDTH WINDOW_WIDTH / 62
+#define OUTLINE_WIDTH WINDOW_WIDTH / (float)62
 
 #define SLIDER_WIDTH BUTTON_WIDTH + OUTLINE_WIDTH
-#define SLIDER_HEIGHT WINDOW_HEIGHT / 20
+#define SLIDER_HEIGHT WINDOW_HEIGHT / (float)20
 #define SLIDER_Y TOP_BUTTON_Y + BUTTON_HEIGHT - BUTTON_SPACE_BETWEEN + OUTLINE_WIDTH
-#define SLIDER_X BUTTONS_X - OUTLINE_WIDTH / 2
-#define HANDLE_WIDTH WINDOW_WIDTH / 20
+#define SLIDER_X BUTTONS_X - OUTLINE_WIDTH / (float)2
+#define HANDLE_WIDTH WINDOW_WIDTH / (float)20
 
-#define PLAYER_TEXT_OFFSET WINDOW_WIDTH / 40
-#define PLAYER_TEXT_HEIGHT WINDOW_WIDTH / 10
-#define PLAYER_TEXT_INBETWEEN_SPACE WINDOW_WIDTH / 8
+#define PLAYER_TEXT_OFFSET WINDOW_WIDTH / (float)40
+#define PLAYER_TEXT_HEIGHT WINDOW_WIDTH / (float)10
+#define PLAYER_TEXT_INBETWEEN_SPACE WINDOW_WIDTH / (float)8
 
-#define INPUT_FONT_SIZE WINDOW_HEIGHT / 20
+#define INPUT_FONT_SIZE WINDOW_HEIGHT / (float)20
 
 
 
@@ -66,7 +67,9 @@ MenuItem startGameButton, resumeGameButton, leaveGameButton, optionsButton, quit
 
 textItem volumeSlider, gameOverText;
 textItem playersText[MAX_PLAYERS];
+SDL_Texture *background;
 
+TTF_Font *Jacquard, *Roboto;
 
 
 MenuItem createMenuItem(SDL_Renderer *renderer, TTF_Font *Font, char *text, int r, int g, int b, int y)
@@ -111,25 +114,28 @@ void initMenu(SDL_Renderer *renderer)
         fprintf(stderr, "TTF could not initialize! TTF Error: %s\n", TTF_GetError());
         return;
     }
-    TTF_Font *font = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
+    Jacquard = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
+    Roboto = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", 24);
 
-    startGameButton = createMenuItem(renderer, font, "Join/Start Game", 1, 50, 32, TOP_BUTTON_Y);
-    resumeGameButton = createMenuItem(renderer, font, "Resume Game", 1, 50, 32, TOP_BUTTON_Y);
-    leaveGameButton = createMenuItem(renderer, font, "Leave Game", 139, 0, 0, BOTTOM_BUTTON_Y);
-    optionsButton = createMenuItem(renderer, font, "Options", 105, 105, 105, MIDDLE_BUTTON_Y);
-    quitGameButton = createMenuItem(renderer, font, "Quit Game", 139, 0, 0, BOTTOM_BUTTON_Y);
-    musicOnButton = createMenuItem(renderer, font, "Music ON", 1, 50, 32, MIDDLE_BUTTON_Y);
-    musicOffButton = createMenuItem(renderer, font, "Music OFF", 139, 0, 0, MIDDLE_BUTTON_Y);
-    exitOptionsButton = createMenuItem(renderer, font, "Exit Options", 105, 105, 105, BOTTOM_BUTTON_Y);
-    ipInputBox = createMenuItem(renderer, font, "", 255, 255, 255, TOP_BUTTON_Y);
-    joinLobbyButton = createMenuItem(renderer, font, "Join Lobby", 1, 50, 32, MIDDLE_BUTTON_Y);
-    backToMenuButton = createMenuItem(renderer, font, "Back to Menu", 139, 0, 0, BOTTOM_BUTTON_Y);
+    startGameButton = createMenuItem(renderer, Jacquard, "Join/Start Game", 1, 50, 32, TOP_BUTTON_Y);
+    resumeGameButton = createMenuItem(renderer, Jacquard, "Resume Game", 1, 50, 32, TOP_BUTTON_Y);
+    leaveGameButton = createMenuItem(renderer, Jacquard, "Leave Game", 139, 0, 0, BOTTOM_BUTTON_Y);
+    optionsButton = createMenuItem(renderer, Jacquard, "Options", 105, 105, 105, MIDDLE_BUTTON_Y);
+    quitGameButton = createMenuItem(renderer, Jacquard, "Quit Game", 139, 0, 0, BOTTOM_BUTTON_Y);
+    musicOnButton = createMenuItem(renderer, Jacquard, "Music ON", 1, 50, 32, MIDDLE_BUTTON_Y);
+    musicOffButton = createMenuItem(renderer, Jacquard, "Music OFF", 139, 0, 0, MIDDLE_BUTTON_Y);
+    exitOptionsButton = createMenuItem(renderer, Jacquard, "Exit Options", 105, 105, 105, BOTTOM_BUTTON_Y);
+    ipInputBox = createMenuItem(renderer, Jacquard, "", 255, 255, 255, TOP_BUTTON_Y);
+    joinLobbyButton = createMenuItem(renderer, Jacquard, "Join Lobby", 1, 50, 32, MIDDLE_BUTTON_Y);
+    backToMenuButton = createMenuItem(renderer, Jacquard, "Back to Menu", 139, 0, 0, BOTTOM_BUTTON_Y);
     
-    volumeSlider = createTextItem(renderer, font, "Volume Slider", 255, 255, 255, BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
+    volumeSlider = createTextItem(renderer, Jacquard, "Volume Slider", 255, 255, 255, BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
     
-    gameOverText = createTextItem(renderer, font, "Game Over", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
+    gameOverText = createTextItem(renderer, Jacquard, "Game Over", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
 
+    background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
+ 
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
         char *text = "Player ";
@@ -148,7 +154,7 @@ void initMenu(SDL_Renderer *renderer)
             strcpy(result, text);
             strcat(result, playerNum);
 
-            playersText[i] = createTextItem(renderer, font, result, 255, 255, 255, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + PLAYER_TEXT_INBETWEEN_SPACE * i, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
+            playersText[i] = createTextItem(renderer, Jacquard, result, 255, 255, 255, PLAYER_TEXT_OFFSET, PLAYER_TEXT_OFFSET + PLAYER_TEXT_INBETWEEN_SPACE * i, PLAYER_TEXT_HEIGHT * 2, PLAYER_TEXT_HEIGHT);
 
             // Free the dynamically allocated memory
             free(result);
@@ -158,8 +164,32 @@ void initMenu(SDL_Renderer *renderer)
 
     }
 
-    TTF_CloseFont(font);
-    TTF_Quit();
+}
+
+void cleanupMenu()
+{
+    SDL_DestroyTexture(startGameButton.texture);
+    SDL_DestroyTexture(resumeGameButton.texture);
+    SDL_DestroyTexture(leaveGameButton.texture);
+    SDL_DestroyTexture(optionsButton.texture);
+    SDL_DestroyTexture(quitGameButton.texture);
+    SDL_DestroyTexture(musicOnButton.texture);
+    SDL_DestroyTexture(musicOffButton.texture);
+    SDL_DestroyTexture(exitOptionsButton.texture);
+    SDL_DestroyTexture(ipInputBox.texture);
+    SDL_DestroyTexture(joinLobbyButton.texture);
+    SDL_DestroyTexture(backToMenuButton.texture);
+    SDL_DestroyTexture(volumeSlider.texture);
+    SDL_DestroyTexture(gameOverText.texture);
+
+    for (int i = 0; i < MAX_PLAYERS; i++)
+    {
+        SDL_DestroyTexture(playersText[i].texture);
+    }
+
+    SDL_DestroyTexture(background);
+    TTF_CloseFont(Jacquard);
+    TTF_CloseFont(Roboto);
 }
 
 
@@ -229,8 +259,6 @@ bool optionsMenu(SDL_Renderer *renderer)
     int mouseX, mouseY;
     float handleX;
 
-    // Load background texture
-    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
     // Options loop
     while (options)
@@ -277,6 +305,8 @@ bool optionsMenu(SDL_Renderer *renderer)
                 {
                 case SDL_SCANCODE_ESCAPE:
                     options = false; // Returns to the menu
+                    break;
+                default:
                     break;
                 }
                 break;
@@ -341,6 +371,8 @@ bool optionsMenu(SDL_Renderer *renderer)
                     set_volume(volSliderValue);
                 }
                 break;
+            default:
+                break;
             }
             if (!volSliderValue && !musicMuted || volSliderValue && musicMuted)
                 toggle_music_logic();
@@ -363,11 +395,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
 
     char inputText[MAX_ADDRESS_LENGTH] = "";
     int textLength = 0;
-    TTF_Font *font = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", INPUT_FONT_SIZE);
     SDL_Color textColor = {0, 0, 0, 255}; // Black text
-
-    // Load background texture
-    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
     // Find game loop
     while (findGame)
@@ -384,7 +412,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
         if (textLength > 0)
         {
             // Render the input text
-            SDL_Surface *textSurface = TTF_RenderText_Solid(font, inputText, textColor);
+            SDL_Surface *textSurface = TTF_RenderText_Solid(Roboto, inputText, textColor);
             if (textSurface == NULL)
             {
                 fprintf(stderr, "Text surface could not be created! TTF Error: %s\n", TTF_GetError());
@@ -440,6 +468,8 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                         *joinGame = true;
                         return closeWindow;
                     }
+                default:
+                    break;
                 }
                 break;
             case SDL_MOUSEBUTTONDOWN:
@@ -480,8 +510,6 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
             }
         }
     }
-    TTF_CloseFont(font);
-    TTF_Quit();
     return closeWindow;
 }
 
@@ -491,8 +519,6 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
     bool closeWindow = false;
     bool joinGame = false;
 
-    // Load background texture
-    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
     // Main menu loop
     while (menu)
@@ -532,6 +558,8 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
                 case SDL_SCANCODE_ESCAPE:
                     if (inGame)
                         menu = false; // Returns to the game
+                    break;
+                default:
                     break;
                 }
                 break;
@@ -586,7 +614,6 @@ void quitMenu(SDL_Renderer *renderer) {
 
 
     while(!closeWindow) {
-        SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, background, NULL, NULL);
         renderTextItem(&gameOverText);
@@ -611,7 +638,6 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int player
     SDL_Color color = {255, 255, 255, 255};
     SDL_RenderClear(renderer);
 
-    SDL_Texture *background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
     SDL_RenderCopy(renderer, background, NULL, NULL);
     
     for (int i = 0; i < players; i++)
