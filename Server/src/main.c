@@ -32,6 +32,7 @@ typedef struct _game
     int nrOfClients;
     int PLAYERS;
     int seed;
+    int alivePlayers;
     IPaddress clients[MAX_PLAYERS];
     GameState gameState;
 
@@ -144,6 +145,7 @@ int init(Game_s *game)
     tilemap_init(&game->tilemap, game->pRenderer);
     game->gameState = START;
     game->nrOfClients = 0;
+    game->alivePlayers=MAX_PLAYERS;
     our_srand(time(NULL));
     game->seed = our_rand();
     for (int i = 0; i < MAX_PLAYERS; i++)
@@ -156,8 +158,8 @@ int init(Game_s *game)
 
 void run(Game_s *game)
 {
-
-    while (game->gameState != QUIT)
+    int closeRequest=0;
+    while (!closeRequest)
     {
         switch (game->gameState)
         {
@@ -166,6 +168,10 @@ void run(Game_s *game)
             break;
         case PLAYING:
             playing(game);
+            break;
+        case QUIT:
+            printf("\n\tPreparing to close\n");
+            closeRequest=1;
             break;
         default:
             break;
@@ -340,7 +346,6 @@ void playing(Game_s *game)
 #endif
     if (SDLNet_UDP_Recv(game->serverSocket, game->packet) == 1)
     {
-
         memcpy(&game->recievedData, game->packet->data, sizeof(CharacterData));
         int playerIndex = game->recievedData.playerID;
         DEBUG_PRINT3("(Server) Packet received from %d\n", playerIndex);
@@ -348,6 +353,8 @@ void playing(Game_s *game)
         if (game->recievedData.disconnect)
         {
             DEBUG_PRINT("Player %d disconnected\n", playerIndex);
+            game->nrOfClients--;
+            printf("nrofclients %d", game->nrOfClients);
         }
         for (int i = 0; i < game->nrOfClients; i++)
         {
@@ -371,8 +378,20 @@ void playing(Game_s *game)
             }
         }
 
+        game->alivePlayers=game->nrOfClients;
+        for(int i=0; i < game->nrOfClients; i++) {
+            if(game->serverData.isKilled[i]) {
+                 game->alivePlayers--;
+            }
+        }
+
+        if(game->alivePlayers==1) {
+            game->gameState = QUIT;
+        }
+
         for (int i = 0; i < game->nrOfClients; i++)
         {
+            game->serverData.gameState = game->gameState;
             game->packet->address = game->clients[i];
             memcpy(game->packet->data, &game->serverData, sizeof(ServerData));
             game->packet->len = sizeof(ServerData);
