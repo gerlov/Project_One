@@ -15,6 +15,7 @@
 #include "limitedvision.h"
 #include "powerup.h"
 #include "menu.h"
+#include "escape_portal.h"
 
 #define NO_SERVER 0
 
@@ -230,6 +231,7 @@ void startGame(Game_c *game)
     tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
     init_maze_view(&game->mazeview, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
+    initPortal(game->pRenderer, &game->tilemap);
 
     play_background_music(game->bgm);
     free_bgm(game->bgm);
@@ -360,6 +362,7 @@ void playing(Game_c *game)
         SDL_RenderClear(game->pRenderer);
         tilemap_draw(&game->tilemap);
         draw_powerUps(game->pRenderer, &game->tilemap);
+        drawPortal(game->pRenderer, &game->tilemap);
 
         for (int i = 0; i < game->PLAYERS; i++)
         {
@@ -507,6 +510,7 @@ void handleInput(Game_c *game, SDL_Event *event)
 void close(Game_c *game)
 {
     cleanup_powerup_resources();
+    cleanUpPortalResources();
     for (int i = 0; i < game->PLAYERS; i++)
     {
         cleanup_character(game->characters[i]);

@@ -12,6 +12,7 @@
 #include "mazeview.h"
 #include "music.h"
 #include "powerup.h"
+#include "escape_portal.h"
 
 /*
      !IMPORTANT!
@@ -433,6 +434,7 @@ void setupgame(Game_s *game)
 #if SHOW_WINDOW
     tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
+    initPortal(game->pRenderer, &game->tilemap);
 
     const char *characterFiles[] = {
         "../lib/assets/characters/warriorTwo.png",
@@ -481,6 +483,7 @@ void close(Game_s *game)
 {
     DEBUG_PRINT("Cleaning up\n");
     cleanup_powerup_resources();
+    cleanUpPortalResources();
     tilemap_free(&game->tilemap);
     SDLNet_FreePacket(game->packet);
     SDLNet_UDP_Close(game->serverSocket);
