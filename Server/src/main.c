@@ -12,7 +12,10 @@
 #include "mazeview.h"
 #include "music.h"
 #include "powerup.h"
-#include "escape_portal.h"
+
+#define FOUND_PORTAL 10
+#define ELIMINATED 1
+
 
 /*
      !IMPORTANT!
@@ -33,7 +36,7 @@ typedef struct _game
     int nrOfClients;
     int PLAYERS;
     int seed;
-    int alivePlayers;
+    int escapers;
     IPaddress clients[MAX_PLAYERS];
     GameState gameState;
 
@@ -144,9 +147,10 @@ int init(Game_s *game)
         return 1;
     }
     tilemap_init(&game->tilemap, game->pRenderer);
+    
     game->gameState = START;
     game->nrOfClients = 0;
-    game->alivePlayers=MAX_PLAYERS;
+    game->escapers=0;
     our_srand(time(NULL));
     game->seed = our_rand();
     for (int i = 0; i < MAX_PLAYERS; i++)
@@ -171,7 +175,6 @@ void run(Game_s *game)
             playing(game);
             break;
         case QUIT:
-            printf("\n\tPreparing to close\n");
             closeRequest=1;
             break;
         default:
@@ -237,6 +240,8 @@ void start(Game_s *game)
         }
         
         game->joinData.PLAYERS = game->nrOfClients;
+        game->joinData.escapers = game->nrOfClients;
+        game->escapers = game->joinData.escapers;
         DEBUG_PRINT("Nr of clients: %d\n", game->joinData.PLAYERS);
         game->joinData.seed = game->seed;
         game->joinData.gameState = JOINING;
@@ -261,7 +266,7 @@ void start(Game_s *game)
         game->gameState = PLAYING;
         game->joinData.gameState = PLAYING;
         game->joinData.PLAYERS = game->nrOfClients;
-        
+        game->joinData.escapers = game->escapers;
         game->joinData.seed = game->seed;
         game->joinData.hunterindex = our_rand() % game->nrOfClients;
 
@@ -355,7 +360,7 @@ void playing(Game_s *game)
         {
             DEBUG_PRINT("Player %d disconnected\n", playerIndex);
             game->nrOfClients--;
-            printf("nrofclients %d", game->nrOfClients);
+
         }
         for (int i = 0; i < game->nrOfClients; i++)
         {
@@ -373,26 +378,34 @@ void playing(Game_s *game)
             update_character_rect(game->characters[i], &game->characters[i]->position);
 #endif
             game->serverData.characters[i] = game->clientsData[i];
+            game->serverData.escapers = game->clientsData[i].escapers;
+            if(game->serverData.escapers == FOUND_PORTAL)   break;
+            
             if (game->clientsData[i].isHunter)
             {
                 memcpy(&game->serverData.isKilled, &game->clientsData[i].hasKilledindex, sizeof(bool) * MAX_PLAYERS);
             }
         }
 
-        game->alivePlayers=game->nrOfClients;
-        for(int i=0; i < game->nrOfClients; i++) {
-            if(game->serverData.isKilled[i]) {
-                 game->alivePlayers--;
+        if(game->serverData.escapers == FOUND_PORTAL) {
+            game->escapers = FOUND_PORTAL;
+            game->gameState =QUIT;
+        } else {
+            game->escapers= game->nrOfClients;
+            for(int i=0; i < game->nrOfClients; i++) {
+                if(game->serverData.isKilled[i]) {
+                    game->escapers--;
+                }
             }
         }
-
-        if(game->alivePlayers==1) {
+        if(game->escapers==ELIMINATED) {
             game->gameState = QUIT;
         }
 
         for (int i = 0; i < game->nrOfClients; i++)
         {
             game->serverData.gameState = game->gameState;
+            game->serverData.escapers = game->escapers;
             game->packet->address = game->clients[i];
             memcpy(game->packet->data, &game->serverData, sizeof(ServerData));
             game->packet->len = sizeof(ServerData);
@@ -434,7 +447,6 @@ void setupgame(Game_s *game)
 #if SHOW_WINDOW
     tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
-    initPortal(game->pRenderer, &game->tilemap);
 
     const char *characterFiles[] = {
         "../lib/assets/characters/warriorTwo.png",
@@ -483,7 +495,6 @@ void close(Game_s *game)
 {
     DEBUG_PRINT("Cleaning up\n");
     cleanup_powerup_resources();
-    cleanUpPortalResources();
     tilemap_free(&game->tilemap);
     SDLNet_FreePacket(game->packet);
     SDLNet_UDP_Close(game->serverSocket);

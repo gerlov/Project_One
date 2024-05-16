@@ -11,6 +11,12 @@
 #include <SDL2/SDL_image.h>
 
 
+typedef struct {
+    SDL_Rect rect;
+} Portal;
+
+extern Portal portal;
+
 ///@brief Initialize the portal inside the tile map
 ///@param renderer Pointer to the SDL_Renderer used for rendering.
 ///@param tilemap Parameter for the game map

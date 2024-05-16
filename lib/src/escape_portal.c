@@ -1,7 +1,12 @@
 #include "escape_portal.h"
 
+#define PORTAL_WIDTH 32
+#define PORTAL_HEIGHT 64
+
+
 SDL_Texture* portalTexture;
 SDL_Point portal_position = {0, 0};
+Portal portal;
 
 
 void initPortal(SDL_Renderer* renderer, TileMap* tilemap) {
@@ -20,23 +25,32 @@ void initPortal(SDL_Renderer* renderer, TileMap* tilemap) {
 
     int index = our_rand() % tilemap->hunter_spawn.num_points;
     portal_position = tilemap->hunter_spawn.points[index];
+
+    // used for SDLHASINTERSECTION
+    portal.rect.x = portal_position.x;
+    portal.rect.y = portal_position.y;
+    portal.rect.w = PORTAL_WIDTH;
+    portal.rect.h = PORTAL_HEIGHT;
+
 }
 void drawPortal(SDL_Renderer* renderer, TileMap* tilemap) {
     if (!renderer || !portalTexture) {
         return;
     }
     SDL_Rect srcRect;
-    srcRect.w = 32;  
-    srcRect.h = 64;  
+    SDL_Rect dstRect;
+
+    srcRect.w = PORTAL_WIDTH;  
+    srcRect.h = PORTAL_HEIGHT;  
     srcRect.x = (SDL_GetTicks() / 100 % 5) * srcRect.w;
     srcRect.y = 0;
 
-    SDL_Rect dstRect;
     dstRect.w = 68;
     dstRect.h = 76;
 
     dstRect.x = portal_position.x - tilemap->camera.x; 
-    dstRect.y = portal_position.y - tilemap->camera.y; 
+    dstRect.y = portal_position.y - tilemap->camera.y;
+
     SDL_RenderCopy(renderer, portalTexture, &srcRect, &dstRect);
 }
 

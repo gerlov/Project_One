@@ -18,6 +18,9 @@
 #include "escape_portal.h"
 
 #define NO_SERVER 0
+#define FOUND_PORTAL 10
+#define ELIMINATED 1
+
 
 typedef struct game
 {
@@ -30,6 +33,7 @@ typedef struct game
     int activePlayer; // get from the server initally
     int seed;         // get from the server initally
     int PLAYERS;
+    int escapers; 
     int hunterIndex;
     int WINDOW_WIDTH;
     int WINDOW_HEIGHT;
@@ -197,9 +201,11 @@ void joining(Game_c *game)
         game->activePlayer = game->joinData.playerINDEX;
         game->seed = game->joinData.seed;
         game->PLAYERS = game->joinData.PLAYERS;
+        game->escapers = game->joinData.escapers;
         game->gameState = game->joinData.gameState;
         game->hunterIndex = game->joinData.hunterindex;
        // printJoinData(game->joinData);
+
         if (game->gameState == PLAYING)
         {
             startGame(game);
@@ -254,6 +260,7 @@ void startGame(Game_c *game)
     game->myCharacter = game->characters[game->activePlayer];
     game->lastPos = game->myCharacter->position;
 
+
 #if !NO_SERVER
     updateToServer(game);
 #endif
@@ -305,7 +312,7 @@ void run(Game_c *game)
             }
             break;
         case QUIT:
-            quitMenu(game->pRenderer);
+            quitMenu(game->pRenderer, game->escapers);
             closeRequested=1;
             break;
         }
@@ -339,6 +346,7 @@ void playing(Game_c *game)
             kill_command(game->myCharacter, game->characters, game->PLAYERS);
         }
 
+
     if (game->mazeview.visible) {
         set_volume(0);
         render_maze_view(&game->mazeview, game->pRenderer); 
@@ -349,6 +357,9 @@ void playing(Game_c *game)
         set_volume(30);
 
         move_character(game->myCharacter, &game->tilemap, game->deltaTime, game->characters, game->PLAYERS, &game->mazeview);
+        if(SDL_HasIntersection(&game->myCharacter->rect, &portal.rect) && !game->myCharacter->isHunter) {
+            game->escapers=10;
+        }
 
         follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
         if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
@@ -384,6 +395,8 @@ void updateFromServer(Game_c *game)
         DEBUG_PRINT3("(Client) Packet received\n");
         memcpy(&game->serverData, game->packet->data, sizeof(ServerData));
         game->gameState = game->serverData.gameState;
+        game->escapers = game->serverData.escapers;
+
         for (int i = 0; i < game->PLAYERS; i++)
         {
             if (i != game->activePlayer)
@@ -421,6 +434,7 @@ void updateFromServer(Game_c *game)
 void updateToServer(Game_c *game)
 {
     game->data.playerID = game->activePlayer;
+    game->data.escapers = game->escapers;
     game->data.iskilled = game->myCharacter->isKilled;
     game->data.isHunter = game->myCharacter->isHunter;
     game->data.visible = game->myCharacter->visible;
