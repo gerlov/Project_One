@@ -365,8 +365,9 @@ void playing(Game_c *game)
         }
 
         follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
-        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
+        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f )
         {
+            draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
             updateToServer(game);
             game->lastPos = game->myCharacter->position;
         }
