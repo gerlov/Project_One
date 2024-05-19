@@ -115,7 +115,7 @@ void initMenu(SDL_Renderer *renderer)
         return;
     }
     Jacquard = TTF_OpenFont("../lib/assets/Jacquard24-Regular.ttf", 24);
-    Roboto = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", 24);
+    Roboto = TTF_OpenFont("../lib/assets/Roboto-Regular.ttf", 45);
 
     startGameButton = createMenuItem(renderer, Jacquard, "Join/Start Game", 1, 50, 32, TOP_BUTTON_Y);
     resumeGameButton = createMenuItem(renderer, Jacquard, "Resume Game", 1, 50, 32, TOP_BUTTON_Y);
@@ -408,6 +408,18 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
         renderMenuItem(&ipInputBox);
         renderMenuItem(&joinLobbyButton);
         renderMenuItem(&backToMenuButton);
+        if (textBoxSelected)
+        {
+            SDL_SetRenderDrawColor(renderer, 255, 165, 0, SDL_ALPHA_OPAQUE); // Outline color
+            SDL_Rect outline = {BUTTONS_X - OUTLINE_WIDTH / 2, TOP_BUTTON_Y - OUTLINE_WIDTH / 2,
+                                BUTTON_WIDTH + OUTLINE_WIDTH, BUTTON_HEIGHT + OUTLINE_WIDTH};
+            int distance = 2;
+            outline.x -= distance;
+            outline.y -= distance;
+            outline.w += 2*distance;
+            outline.h += 2*distance;
+            SDL_RenderDrawRect(renderer, &outline);
+        }
 
         if (textLength > 0)
         {
@@ -428,7 +440,8 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 {
                     int textW, textH;
                     SDL_QueryTexture(textTexture, NULL, NULL, &textW, &textH);
-                    SDL_Rect textRect = {BUTTONS_X + 8, TOP_BUTTON_Y + BUTTON_HEIGHT / 2 - INPUT_FONT_SIZE / 2, textW, textH};
+
+                    SDL_Rect textRect = {BUTTONS_X + BUTTON_WIDTH/2 - textW/2, TOP_BUTTON_Y + BUTTON_HEIGHT / 2 - INPUT_FONT_SIZE / 2, textW, textH};
                     SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
                     SDL_DestroyTexture(textTexture);
                 }
@@ -452,7 +465,10 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 switch (event.key.keysym.scancode)
                 {
                 case SDL_SCANCODE_ESCAPE:
-                    findGame = false; // Returns to the menu
+                    if (textBoxSelected)
+                        textBoxSelected = false; // Deselects the text box
+                    else
+                        findGame = false; // Returns to the menu
                     break;
                 case SDL_SCANCODE_BACKSPACE:
                     if (textLength > 0)
@@ -464,9 +480,7 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 case SDL_SCANCODE_RETURN:
                     if (textLength > 0)
                     {
-                        strcpy(hostAddress, inputText);
                         *joinGame = true;
-                        return closeWindow;
                     }
                 default:
                     break;
@@ -484,15 +498,12 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                          mouseY >= MIDDLE_BUTTON_Y && mouseY <= MIDDLE_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     // Start the game
-                    strcpy(hostAddress, inputText);
                     *joinGame = true;
-                    return closeWindow;
                 }
                 else if (mouseX >= BUTTONS_X && mouseX <= BUTTONS_X + BUTTON_WIDTH &&
                          mouseY >= BOTTOM_BUTTON_Y && mouseY <= BOTTOM_BUTTON_Y + BUTTON_HEIGHT)
                 {
                     findGame = false;
-                    return closeWindow;
                 }
                 else
                 {
@@ -508,6 +519,11 @@ bool findGameScreen(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH]
                 }
                 break;
             }
+        }
+        if (*joinGame == true)
+        {
+            strcpy(hostAddress, inputText);
+            findGame = false;
         }
     }
     return closeWindow;
@@ -643,7 +659,21 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int player
     for (int i = 0; i < players; i++)
     {
         renderTextItem(&playersText[i]);
+        
+        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 20, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE,
+                         PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
+        if (i == 0)
+        {
 
+            SDL_Rect outline = rect;
+            int distance = 5;
+            outline.x -= distance;
+            outline.y -= distance;
+            outline.w += 2*distance;
+            outline.h += 2*distance;
+            SDL_SetRenderDrawColor(renderer, 255, 165, 0, 255);
+            SDL_RenderDrawRect(renderer, &outline);
+        }
         if (readyPlayers[i])
         {
             SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
@@ -652,8 +682,6 @@ void drawLobby(SDL_Renderer *renderer, int readyPlayers[MAX_PLAYERS], int player
         {
             SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         }
-        SDL_Rect rect = {PLAYER_TEXT_HEIGHT * 2 + PLAYER_TEXT_OFFSET + 5, PLAYER_TEXT_OFFSET + i * PLAYER_TEXT_INBETWEEN_SPACE,
-                         PLAYER_TEXT_HEIGHT, PLAYER_TEXT_HEIGHT};
         SDL_RenderFillRect(renderer, &rect);
     }
     SDL_RenderPresent(renderer);
