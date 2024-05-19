@@ -136,8 +136,8 @@ void initMenu(SDL_Renderer *renderer)
     volumeSlider = createTextItem(renderer, Jacquard, "Volume Slider", 255, 255, 255, BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
     
 
-    hunterWinsText = createTextItem(renderer, font, "The Hunter Wins", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
-    characterWinsText = createTextItem(renderer, font, "The characater Wins", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
+    hunterWinsText = createTextItem(renderer, Jacquard, "The Hunter Wins", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
+    characterWinsText = createTextItem(renderer, Jacquard, "The characater Wins", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
 
     background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
@@ -186,7 +186,8 @@ void cleanupMenu()
     SDL_DestroyTexture(joinLobbyButton.texture);
     SDL_DestroyTexture(backToMenuButton.texture);
     SDL_DestroyTexture(volumeSlider.texture);
-    SDL_DestroyTexture(gameOverText.texture);
+    SDL_DestroyTexture(hunterWinsText.texture);
+    SDL_DestroyTexture(characterWinsText.texture);
 
     for (int i = 0; i < MAX_PLAYERS; i++)
     {
