@@ -13,6 +13,7 @@
 
 typedef struct {
     SDL_Rect rect;
+    SDL_FPoint position;
 } Portal;
 
 extern Portal portal;

@@ -59,7 +59,7 @@ typedef struct game
     Uint64 lastFrameTime;
     Uint64 currentFrameTime;
     float deltaTime;
-    bool space, music, m, lower_volume, inc_volume;
+    bool space, music, m, lower_volume, inc_volume, teleport;
 
     SDL_FPoint lastPos;
 } Game_c;
@@ -342,9 +342,12 @@ void playing(Game_c *game)
     updateFromServer(game);
 
     if (game->myCharacter->isHunter && game->space)
-        {
-            kill_command(game->myCharacter, game->characters, game->PLAYERS);
-        }
+    {
+        kill_command(game->myCharacter, game->characters, game->PLAYERS);
+    } else if(game->myCharacter->isHunter && game->teleport) {
+        game->myCharacter->position.x = portal.position.x;
+        game->myCharacter->position.y = portal.position.y;
+    }
 
 
     if (game->mazeview.visible) {
@@ -491,7 +494,7 @@ void handleInput(Game_c *game, SDL_Event *event)
             game->gameState = PAUSED;
             break;
         case SDLK_t: 
-            printf("t");
+            game->teleport = true; //remove later only for testing
             break;
         }
         break;
@@ -517,7 +520,8 @@ void handleInput(Game_c *game, SDL_Event *event)
         case SDLK_SPACE:
             game->space = false;
             break;
-        case SDLK_t: 
+        case SDLK_t:
+            game->teleport = false;
             break;
         }
         break;
