@@ -358,7 +358,7 @@ void playing(Game_c *game)
 
         move_character(game->myCharacter, &game->tilemap, game->deltaTime, game->characters, game->PLAYERS, &game->mazeview);
         if(SDL_HasIntersection(&game->myCharacter->rect, &portal.rect) && !game->myCharacter->isHunter) {
-            game->escapers=10;
+            game->escapers=FOUND_PORTAL;
         }
 
         follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
@@ -490,6 +490,9 @@ void handleInput(Game_c *game, SDL_Event *event)
         case SDLK_ESCAPE:
             game->gameState = PAUSED;
             break;
+        case SDLK_t: 
+            printf("t");
+            break;
         }
         break;
     case SDL_KEYUP:
@@ -513,6 +516,8 @@ void handleInput(Game_c *game, SDL_Event *event)
             break;
         case SDLK_SPACE:
             game->space = false;
+            break;
+        case SDLK_t: 
             break;
         }
         break;
