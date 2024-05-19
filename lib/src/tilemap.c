@@ -49,13 +49,32 @@ void set_spawn_divisions(TileMap *tilemap, int maze[], int width, int height)
     int previous_division = -1;
     // amount of divisions in the maze. Actuall amount of spawn devisions is divisions^2
     int divisions = 12;
-    for (int k = 0; k < 2; k++)
+
+    for (int k = 0; k < 3; k++)
     {
         int selected = k;
         if (k == 1)
         {
             // selected = our_rand() % (divisions * divisions);
+        } else if (k == 2) {
+            bool is_valid_division = false;
+            int division_width = width / divisions;
+            int division_height = height / divisions;
+
+            while (!is_valid_division) {
+                selected = our_rand() % (divisions * divisions);
+
+                int start_x = (selected % divisions) * division_width;
+                int start_y = (selected / divisions) * division_height;
+
+                // just in case
+                if (start_x + division_width <= width && start_y + division_height <= height)
+                {
+                    is_valid_division = true;
+                }
+            }
         }
+
         previous_division = selected;
 
         int division_width = width / divisions;
@@ -74,22 +93,29 @@ void set_spawn_divisions(TileMap *tilemap, int maze[], int width, int height)
                 {
                     if (k == 0)
                     {
-                        maze[get_index(x, y, width)] = 2;
+                        maze[get_index(x, y, width)] = MAZE_HUMAN_SPAWNABLE;
                         tilemap->human_spawn.num_points++;
                     }
                     else if (k == 1)
                     {
-                        maze[get_index(x, y, width)] = 3;
+                        maze[get_index(x, y, width)] = MAZE_HUNTER_SPAWNABLE;
                         tilemap->hunter_spawn.num_points++;
+                    }
+                    else if (k== 2) {
+                        maze[get_index(x, y, width)] = MAZE_PORTAL_SPAWNABLE;
+                        tilemap->portal_spawn.num_points++;
                     }
                 }
             }
         }
     }
+
     tilemap->human_spawn.points = malloc(sizeof(SDL_Point) * tilemap->human_spawn.num_points * MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR);
     tilemap->hunter_spawn.points = malloc(sizeof(SDL_Point) * tilemap->hunter_spawn.num_points * MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR);
+    tilemap->portal_spawn.points = malloc(sizeof(SDL_Point) * tilemap->portal_spawn.num_points * MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR);
     tilemap->human_spawn.num_points *= MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR;
     tilemap->hunter_spawn.num_points *= MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR;
+    tilemap->portal_spawn.num_points *= MAZE_SCALEUP_FACTOR * MAZE_SCALEUP_FACTOR;
 }
 
 SDL_Point get_spawn_point(TileMap *tilemap, int ishunter)
@@ -150,6 +176,7 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
     }
     int human_spawn_count = 0;
     int hunter_spawn_count = 0;
+    int portal_spawn_count = 0;
     // set floor tiles according to the maze
     for (int y = 0; y < height; y++)
     {
@@ -178,6 +205,9 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
                 else if (type == MAZE_HUNTER_SPAWNABLE)
                 {
                     tile.hunter_spawnable = 1;
+                } 
+                else if(type == MAZE_PORTAL_SPAWNABLE) {
+                    tile.portal_spawnable = 1;
                 }
                 // scale up the floor tiles
                 for (int i = 0; i < MAZE_SCALEUP_FACTOR; i++)
@@ -194,6 +224,10 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
                         if (tile.hunter_spawnable)
                         {
                             tilemap->hunter_spawn.points[hunter_spawn_count++] = (SDL_Point){new_x * tilemap->tile_size, new_y * tilemap->tile_size};
+                        }
+                        if (tile.portal_spawnable)
+                        {
+                            tilemap->portal_spawn.points[portal_spawn_count++] = (SDL_Point){new_x * tilemap->tile_size, new_y * tilemap->tile_size};
                         }
                     }
                 }

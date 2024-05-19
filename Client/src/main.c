@@ -59,7 +59,7 @@ typedef struct game
     Uint64 lastFrameTime;
     Uint64 currentFrameTime;
     float deltaTime;
-    bool space, music, m, lower_volume, inc_volume;
+    bool space, music, m, lower_volume, inc_volume, teleport;
 
     SDL_FPoint lastPos;
 } Game_c;
@@ -342,9 +342,12 @@ void playing(Game_c *game)
     updateFromServer(game);
 
     if (game->myCharacter->isHunter && game->space)
-        {
-            kill_command(game->myCharacter, game->characters, game->PLAYERS);
-        }
+    {
+        kill_command(game->myCharacter, game->characters, game->PLAYERS);
+    } else if(game->myCharacter->isHunter && game->teleport) {
+        game->myCharacter->position.x = portal.position.x;
+        game->myCharacter->position.y = portal.position.y;
+    }
 
 
     if (game->mazeview.visible) {
@@ -358,12 +361,13 @@ void playing(Game_c *game)
 
         move_character(game->myCharacter, &game->tilemap, game->deltaTime, game->characters, game->PLAYERS, &game->mazeview);
         if(SDL_HasIntersection(&game->myCharacter->rect, &portal.rect) && !game->myCharacter->isHunter) {
-            game->escapers=10;
+            game->escapers=FOUND_PORTAL;
         }
 
         follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
-        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
+        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f )
         {
+            draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
             updateToServer(game);
             game->lastPos = game->myCharacter->position;
         }
@@ -490,6 +494,9 @@ void handleInput(Game_c *game, SDL_Event *event)
         case SDLK_ESCAPE:
             game->gameState = PAUSED;
             break;
+        case SDLK_t: 
+            game->teleport = true; //remove later only for testing
+            break;
         }
         break;
     case SDL_KEYUP:
@@ -513,6 +520,9 @@ void handleInput(Game_c *game, SDL_Event *event)
             break;
         case SDLK_SPACE:
             game->space = false;
+            break;
+        case SDLK_t:
+            game->teleport = false;
             break;
         }
         break;
