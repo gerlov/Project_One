@@ -18,6 +18,7 @@ typedef enum {
 typedef struct JoinData {
     int seed;
     int playerINDEX;
+    int escapers;
     int PLAYERS;
     int hunterindex;
     int readyPlayers[MAX_PLAYERS];
@@ -51,7 +52,8 @@ typedef struct {
     Uint32 invisiblePowerupTime;
     Uint32 frameLastUpdated;
     GameState gameState;
-    int lastPowerupCollected; 
+    int lastPowerupCollected;
+    int escapers;
 } CharacterData;
 
 
@@ -59,6 +61,7 @@ typedef struct {
     CharacterData characters[MAX_PLAYERS];
     bool isKilled[MAX_PLAYERS]; // 1 if player at index is killed
     GameState gameState;
+    int escapers;
 } ServerData;
 
 #endif // DATA_H

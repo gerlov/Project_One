@@ -42,6 +42,7 @@ typedef struct Tile
     SDL_Rect src_rect; // source rectangle of the texture
     bool hunter_spawnable;   // if the tile is spawnable
     bool human_spawnable;    // if the tile is spawnable
+    bool portal_spawnable;    // if the tile is spawnable
 } Tile;
 /// @brief Struct that represents a tilemap
 typedef struct TileMap
@@ -57,6 +58,7 @@ typedef struct TileMap
     int tile_size;           // in pixels
     SpawnArea hunter_spawn;
     SpawnArea human_spawn;
+    SpawnArea portal_spawn;
 } TileMap;
 
 

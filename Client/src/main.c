@@ -15,8 +15,12 @@
 #include "limitedvision.h"
 #include "powerup.h"
 #include "menu.h"
+#include "escape_portal.h"
 
 #define NO_SERVER 0
+#define FOUND_PORTAL 10
+#define ELIMINATED 1
+
 
 typedef struct game
 {
@@ -29,6 +33,7 @@ typedef struct game
     int activePlayer; // get from the server initally
     int seed;         // get from the server initally
     int PLAYERS;
+    int escapers; 
     int hunterIndex;
     int WINDOW_WIDTH;
     int WINDOW_HEIGHT;
@@ -54,7 +59,7 @@ typedef struct game
     Uint64 lastFrameTime;
     Uint64 currentFrameTime;
     float deltaTime;
-    bool space, music, m, lower_volume, inc_volume;
+    bool space, music, m, lower_volume, inc_volume, teleport;
 
     SDL_FPoint lastPos;
 } Game_c;
@@ -196,9 +201,11 @@ void joining(Game_c *game)
         game->activePlayer = game->joinData.playerINDEX;
         game->seed = game->joinData.seed;
         game->PLAYERS = game->joinData.PLAYERS;
+        game->escapers = game->joinData.escapers;
         game->gameState = game->joinData.gameState;
         game->hunterIndex = game->joinData.hunterindex;
        // printJoinData(game->joinData);
+
         if (game->gameState == PLAYING)
         {
             startGame(game);
@@ -230,6 +237,7 @@ void startGame(Game_c *game)
     tilemap_load(&game->tilemap, 2, game->seed);
     init_powerUps(game->pRenderer, &game->tilemap, game->tilemap.tile_size);
     init_maze_view(&game->mazeview, game->pRenderer, &game->tilemap, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
+    initPortal(game->pRenderer, &game->tilemap);
 
     play_background_music(game->bgm);
     free_bgm(game->bgm);
@@ -251,6 +259,7 @@ void startGame(Game_c *game)
     }
     game->myCharacter = game->characters[game->activePlayer];
     game->lastPos = game->myCharacter->position;
+
 
 #if !NO_SERVER
     updateToServer(game);
@@ -303,7 +312,7 @@ void run(Game_c *game)
             }
             break;
         case QUIT:
-            quitMenu(game->pRenderer);
+            quitMenu(game->pRenderer, game->escapers);
             closeRequested=1;
             break;
         }
@@ -333,9 +342,13 @@ void playing(Game_c *game)
     updateFromServer(game);
 
     if (game->myCharacter->isHunter && game->space)
-        {
-            kill_command(game->myCharacter, game->characters, game->PLAYERS);
-        }
+    {
+        kill_command(game->myCharacter, game->characters, game->PLAYERS);
+    } else if(game->myCharacter->isHunter && game->teleport) {
+        game->myCharacter->position.x = portal.position.x;
+        game->myCharacter->position.y = portal.position.y;
+    }
+
 
     if (game->mazeview.visible) {
         set_volume(0);
@@ -347,10 +360,14 @@ void playing(Game_c *game)
         set_volume(30);
 
         move_character(game->myCharacter, &game->tilemap, game->deltaTime, game->characters, game->PLAYERS, &game->mazeview);
+        if(SDL_HasIntersection(&game->myCharacter->rect, &portal.rect) && !game->myCharacter->isHunter) {
+            game->escapers=FOUND_PORTAL;
+        }
 
         follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
-        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f)
+        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f )
         {
+            draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
             updateToServer(game);
             game->lastPos = game->myCharacter->position;
         }
@@ -360,6 +377,7 @@ void playing(Game_c *game)
         SDL_RenderClear(game->pRenderer);
         tilemap_draw(&game->tilemap);
         draw_powerUps(game->pRenderer, &game->tilemap);
+        drawPortal(game->pRenderer, &game->tilemap);
 
         for (int i = 0; i < game->PLAYERS; i++)
         {
@@ -381,6 +399,8 @@ void updateFromServer(Game_c *game)
         DEBUG_PRINT3("(Client) Packet received\n");
         memcpy(&game->serverData, game->packet->data, sizeof(ServerData));
         game->gameState = game->serverData.gameState;
+        game->escapers = game->serverData.escapers;
+
         for (int i = 0; i < game->PLAYERS; i++)
         {
             if (i != game->activePlayer)
@@ -418,6 +438,7 @@ void updateFromServer(Game_c *game)
 void updateToServer(Game_c *game)
 {
     game->data.playerID = game->activePlayer;
+    game->data.escapers = game->escapers;
     game->data.iskilled = game->myCharacter->isKilled;
     game->data.isHunter = game->myCharacter->isHunter;
     game->data.visible = game->myCharacter->visible;
@@ -473,6 +494,9 @@ void handleInput(Game_c *game, SDL_Event *event)
         case SDLK_ESCAPE:
             game->gameState = PAUSED;
             break;
+        case SDLK_t: 
+            game->teleport = true; //remove later only for testing
+            break;
         }
         break;
     case SDL_KEYUP:
@@ -497,6 +521,9 @@ void handleInput(Game_c *game, SDL_Event *event)
         case SDLK_SPACE:
             game->space = false;
             break;
+        case SDLK_t:
+            game->teleport = false;
+            break;
         }
         break;
     }
@@ -507,6 +534,7 @@ void handleInput(Game_c *game, SDL_Event *event)
 void close(Game_c *game)
 {
     cleanup_powerup_resources();
+    cleanUpPortalResources();
     for (int i = 0; i < game->PLAYERS; i++)
     {
         cleanup_character(game->characters[i]);

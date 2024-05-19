@@ -8,6 +8,7 @@
 #include "menu.h"
 #include "SDL2/SDL_render.h"
 #include "music.h"
+#include <time.h>
 
 #define BACKGROUND_IMG_PATH "../lib/assets/menu/MenuBackground.png"
 
@@ -35,6 +36,9 @@
 #define PLAYER_TEXT_INBETWEEN_SPACE WINDOW_WIDTH / (float)8
 
 #define INPUT_FONT_SIZE WINDOW_HEIGHT / (float)20
+
+#define HUNTER 1
+#define CHARACTERS 10
 
 
 
@@ -65,7 +69,7 @@ typedef struct textItem {
 MenuItem startGameButton, resumeGameButton, leaveGameButton, optionsButton, quitGameButton, 
          musicOnButton, musicOffButton, exitOptionsButton, ipInputBox, joinLobbyButton, backToMenuButton;
 
-textItem volumeSlider, gameOverText;
+textItem volumeSlider, hunterWinsText, characterWinsText;
 textItem playersText[MAX_PLAYERS];
 SDL_Texture *background;
 
@@ -131,7 +135,9 @@ void initMenu(SDL_Renderer *renderer)
     
     volumeSlider = createTextItem(renderer, Jacquard, "Volume Slider", 255, 255, 255, BUTTONS_X + 25, SLIDER_Y - SLIDER_HEIGHT - BUTTON_SPACE_BETWEEN*2, BUTTON_WIDTH - 50, BUTTON_HEIGHT - 50);
     
-    gameOverText = createTextItem(renderer, Jacquard, "Game Over", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
+
+    hunterWinsText = createTextItem(renderer, font, "The Hunter Wins", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
+    characterWinsText = createTextItem(renderer, font, "The characater Wins", 255, 255, 255, WINDOW_WIDTH / 2 - 300, WINDOW_HEIGHT / 2 - 150, 600, 300);
 
     background = IMG_LoadTexture(renderer, BACKGROUND_IMG_PATH);
 
@@ -625,27 +631,39 @@ bool menu(SDL_Renderer *renderer, char hostAddress[MAX_ADDRESS_LENGTH], bool inG
     return closeWindow;
 }
 
-void quitMenu(SDL_Renderer *renderer) {
+void quitMenu(SDL_Renderer *renderer, int winner) {
     bool closeWindow = false;
+    bool reachedTwoSeconds = false;
+    clock_t initTimer = clock();
 
 
-    while(!closeWindow) {
+    while (!closeWindow && !reachedTwoSeconds) {
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, background, NULL, NULL);
-        renderTextItem(&gameOverText);
+        
+        if (HUNTER == winner) {
+            renderTextItem(&hunterWinsText);
+        } else if (CHARACTERS == winner) {
+            renderTextItem(&characterWinsText);
+        }
         SDL_RenderPresent(renderer);
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            switch (event.type)
-            {
-            case SDL_QUIT:
-                closeWindow = true;
-                break;
-            }
+        clock_t quitMenuTimer = clock();
+        double seconds = (double)(quitMenuTimer - initTimer) / CLOCKS_PER_SEC;
+
+        if (seconds >= 2.0) {
+            reachedTwoSeconds = true;
         }
-    }
+
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_QUIT:
+                    closeWindow = true;
+                    break;
+            }   
+        }
+}
 
 }
 

@@ -9,7 +9,8 @@ typedef enum
     MAZE_HUMAN_SPAWNABLE= 2,
     MAZE_HUNTER_SPAWNABLE = 3,
     MAZE_PIT = 4,
-    MAZE_CASM_FLOOR = 5
+    MAZE_CASM_FLOOR = 5,
+    MAZE_PORTAL_SPAWNABLE = 6
 } Maze_tile_type;
 
 #define T_NEW_PATH_PERCENT 1
