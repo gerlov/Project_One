@@ -56,22 +56,23 @@ void set_spawn_divisions(TileMap *tilemap, int maze[], int width, int height)
         if (k == 1)
         {
             // selected = our_rand() % (divisions * divisions);
-        } else if(k==2) {
-            do {
-                selected = our_rand() % (divisions * divisions);
+        } else if (k == 2) {
+            bool is_valid_division = false;
+            int division_width = width / divisions;
+            int division_height = height / divisions;
 
-                int division_width = width / divisions;
-                int division_height = height / divisions;
+            while (!is_valid_division) {
+                selected = our_rand() % (divisions * divisions);
 
                 int start_x = (selected % divisions) * division_width;
                 int start_y = (selected / divisions) * division_height;
 
-                // within tilemap?
+                // just in case
                 if (start_x + division_width <= width && start_y + division_height <= height)
                 {
-                    break;
+                    is_valid_division = true;
                 }
-            } while (true); // just in case
+            }
         }
 
         previous_division = selected;
