@@ -64,6 +64,8 @@ typedef struct game
     SDL_FPoint lastPos;
 } Game_c;
 
+float time_since_last_update = 0;
+
 int initiate(Game_c *game);
 void joining(Game_c *game);
 void run(Game_c *game);
@@ -319,6 +321,7 @@ void run(Game_c *game)
         game->currentFrameTime = SDL_GetPerformanceCounter();
         game->deltaTime = (float)((game->currentFrameTime - game->lastFrameTime) / (float)SDL_GetPerformanceFrequency());
         game->lastFrameTime = game->currentFrameTime;
+        time_since_last_update += game->deltaTime;
     }
 }
 
@@ -365,11 +368,13 @@ void playing(Game_c *game)
         }
 
         follow_player(&game->tilemap.camera, &game->myCharacter->rect, game->WINDOW_WIDTH, game->WINDOW_HEIGHT);
-        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f )
+        if (fabsf(game->myCharacter->position.x - game->lastPos.x) > 0.1f || fabsf(game->myCharacter->position.y - game->lastPos.y) > 0.1f || time_since_last_update > 2.0f)
         {
+
             draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
             updateToServer(game);
             game->lastPos = game->myCharacter->position;
+            time_since_last_update = 0;
         }
 
         // draw stage
@@ -382,7 +387,7 @@ void playing(Game_c *game)
         for (int i = 0; i < game->PLAYERS; i++)
         {
             if (game->characters[i] != game->myCharacter)
-                draw_character(game->pRenderer, game->characters[i], i == game->activePlayer, &game->tilemap.camera);
+                draw_character(game->pRenderer, game->characters[i], false, &game->tilemap.camera);
         }
         draw_character(game->pRenderer, game->myCharacter, true, &game->tilemap.camera);
         drawLimitedVision(&game->lv, get_character_center(game->myCharacter), game->tilemap.camera);

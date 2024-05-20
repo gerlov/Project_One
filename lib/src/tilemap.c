@@ -47,34 +47,24 @@ static SDL_Rect pits[] = {
 void set_spawn_divisions(TileMap *tilemap, int maze[], int width, int height)
 {
     int previous_division = -1;
-    // amount of divisions in the maze. Actuall amount of spawn devisions is divisions^2
+    // The amount of divisions in the maze. The actual amount of spawn divisions is divisions^2
     int divisions = 12;
+    if (width / divisions == 0 || height / divisions == 0)
+    {
+        DEBUG_PRINT("Error: Maze is to small for spawn divisions");
+        return;
+    }
 
     for (int k = 0; k < 3; k++)
     {
-        int selected = k;
+        int selected = our_rand() % (divisions * divisions);
         if (k == 1)
         {
-            // selected = our_rand() % (divisions * divisions);
-        } else if (k == 2) {
-            bool is_valid_division = false;
-            int division_width = width / divisions;
-            int division_height = height / divisions;
-
-            while (!is_valid_division) {
-                selected = our_rand() % (divisions * divisions);
-
-                int start_x = (selected % divisions) * division_width;
-                int start_y = (selected / divisions) * division_height;
-
-                // just in case
-                if (start_x + division_width <= width && start_y + division_height <= height)
-                {
-                    is_valid_division = true;
-                }
-            }
+            selected = ((previous_division+1)* divisions/2 ) % (divisions * divisions);  
         }
-
+        else if (k == 2) {
+            selected = ((previous_division+1)* divisions/2 ) % (divisions * divisions);
+        }
         previous_division = selected;
 
         int division_width = width / divisions;
@@ -156,13 +146,13 @@ SDL_Point get_spawn_point(TileMap *tilemap, int ishunter)
 
 void apply_maze(TileMap *tilemap, int maze[], int width, int height)
 {
-    tilemap->width = (width + 2) * MAZE_SCALEUP_FACTOR;
-    tilemap->height = (height + 2) * MAZE_SCALEUP_FACTOR;
+    tilemap->width = (width + 4) * MAZE_SCALEUP_FACTOR;
+    tilemap->height = (height + 4) * MAZE_SCALEUP_FACTOR;
 
     // Set all tiles to wall
-    for (int y = 0; y < TILEMAP_MAP1_H; y++)
+    for (int y = 0; y < TILEMAP_MAP1_H + 10; y++)
     {
-        for (int x = 0; x < TILEMAP_MAP1_W; x++)
+        for (int x = 0; x < TILEMAP_MAP1_W + 10; x++)
         {
             Tile tile = tiles_types[TILE_WALL];
             for (int i = 0; i < MAZE_SCALEUP_FACTOR; i++)
@@ -239,8 +229,8 @@ void apply_maze(TileMap *tilemap, int maze[], int width, int height)
 void generate_maze(TileMap *tilemap, int width, int height, int seed)
 {
     our_srand(seed);
-    int lesswidth = width - 2;
-    int lessheight = height - 2;
+    int lesswidth = width - 3;
+    int lessheight = height - 3;
     int *maze = malloc(sizeof(int) * lesswidth * lessheight);
     int *visited = malloc(sizeof(int) * lesswidth * lessheight);
     for (int i = 0; i < lesswidth * lessheight; i++)

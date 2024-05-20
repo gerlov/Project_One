@@ -54,7 +54,7 @@ typedef struct TileMap
     SDL_FPoint camera;       // camera position
     int width;               // in tiles
     int height;              // in tiles
-    Tile tiles[TILEMAP_MAP1_H*MAZE_SCALEUP_FACTOR][TILEMAP_MAP1_W*MAZE_SCALEUP_FACTOR];             // 1D array of tiles
+    Tile tiles[( TILEMAP_MAP1_H +10 )*MAZE_SCALEUP_FACTOR][( TILEMAP_MAP1_W + 10)*MAZE_SCALEUP_FACTOR];             // 1D array of tiles
     int tile_size;           // in pixels
     SpawnArea hunter_spawn;
     SpawnArea human_spawn;
