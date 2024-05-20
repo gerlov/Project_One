@@ -376,10 +376,13 @@ void tilemap_free(TileMap *tilemap)
 {
     free(tilemap->human_spawn.points);
     free(tilemap->hunter_spawn.points);
+    free(tilemap->portal_spawn.points);
     SDL_DestroyTexture(tilemap->pWallTexture);
     SDL_DestroyTexture(tilemap->pFloorTexture);
     SDL_DestroyTexture(tilemap->pPitTexture);
     tilemap->pWallTexture = NULL;
+    tilemap->pFloorTexture = NULL;
+    tilemap->pPitTexture = NULL;
     tilemap->pRenderer = NULL;
 }
 

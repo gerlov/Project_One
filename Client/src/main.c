@@ -539,6 +539,7 @@ void close(Game_c *game)
     {
         cleanup_character(game->characters[i]);
     }
+    cleanupMenu();
     tilemap_free(&game->tilemap);
     free_maze_view(&game->mazeview); 
     SDLNet_FreePacket(game->packet);

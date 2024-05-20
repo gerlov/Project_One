@@ -9,6 +9,9 @@
 /// @param renderer The renderer to draw the menu to
 void initMenu(SDL_Renderer *renderer);
 
+/// @brief Cleans up all the menu items and texts
+void cleanupMenu();
+
 /// @brief instead of having two functions for the menu, this function takes a bool that tells the function if the game just started or if it was paused this way we can have the same function for both cases, false for start and true for pause
 /// @param renderer The renderer to draw the menu to
 /// @param hostAddress The address of the server to connect to
