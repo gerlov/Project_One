@@ -10,6 +10,11 @@ void maze_init(int maze[], int visited[], int width, int height)
         visited[i] = 0;
     }
 }
+
+/// Recursive backtracking algorithm for maze generation
+/// Source: 
+/// https://en.wikipedia.org/wiki/Maze_generation_algorithm#Randomized_depth-first_search
+/// generates a maze with the given width and height.
 void recursive_backtrack(int maze[], int visited[], int width, int height, int current_x, int current_y)
 {
     visited[current_y * width + current_x] = 1;

@@ -133,6 +133,9 @@ void move_character(Character *character, TileMap *tilemap,
         character->visible = 1;              // visible again
         character->invisiblePowerupTime = 0; // reset powerup timer
     }
+    else if (character->invisiblePowerupTime == 0) {
+        character->visible = 1; // if the powerup timer is not set, make sure the character is visible
+    }
 
     if (currentTicks > mazeView->displayTime && 
         mazeView->displayTime != 0 && 
