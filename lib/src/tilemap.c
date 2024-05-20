@@ -333,14 +333,7 @@ void tilemap_draw(TileMap *tilemap)
             {
                 //? This is a temporary solution to show the spawnable tiles
                 used_texture = tilemap->pFloorTexture;
-                if (tile->human_spawnable)
-                {
-                    SDL_SetTextureColorMod(used_texture, 0, 255, 0);
-                }
-                else if (tile->hunter_spawnable)
-                {
-                    SDL_SetTextureColorMod(used_texture, 255, 0, 0);
-                }
+                
             }
             else if (tile->type == TILE_PIT)
             {
