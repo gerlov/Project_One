@@ -22,8 +22,8 @@ https://github.com/juliazubko/Labyrinth-of-the-Minotaur/assets/102211232/4077d54
 - **Power-Ups:** The game board includes randomly placed power-ups that provide players with various advantages for a limited time:
     - Red Coin: Increases speed for 10 seconds.
     - Green Crystal: Renders the player invisible to others for 10 seconds.
-    - Skull (Hunter-specific): Neutralizes all players who are not invisible at the moment it is activated (instant kill).
-    - Map (Human-specific): Displays the entire maze and the player's position for 10 seconds while simultaneously making the player invisible.
+    - Skull (Hunter-specific): Neutralizes all players who are not invisible at the moment it is activated (insta-kill).
+    - Map (Human-specific): Displays the entire maze and the player's position on it for 10 seconds and making the player invisible at the time.
 - **Escape portal:** Allows non-hunter players to instantly win the game by teleporting out of the maze when they enter it.
 - **Controls:** Players can navigate in the game using either the ASDW keys or the arrow keys. The menu is operable with the mouse. For hunters, pressing the spacebar allows eliminating humans within the "kill reach area."
   
