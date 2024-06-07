@@ -29,7 +29,7 @@ https://github.com/juliazubko/Labyrinth-of-the-Minotaur/assets/102211232/4077d54
   
 
 
-## 2. Code Structure and System Architecture  
+## 2. Code Structure  
 
 The game features a modular structure, where functions such as network communication and game logic are divided into separate modules. 
 
