@@ -37,7 +37,7 @@ Additionally, there are separate directories for the **server** and **client** ,
 ## 2. Features 
 
 - **Dynamically Generated Mazes:** Each game round features a uniquely created maze layout.
-- **Spawn Area:** The game utilizes an intelligent mechanism to strategically place players at different starting points on the map, balancing the game dynamics.
+- **Spawn Area:** The game utilizes an intelligent mechanism to strategically place humans and the hunter at different starting points on the map, balancing the game dynamics.
 - **Randomly Assigned Roles:** Players are randomly assigned various roles that influence their tasks and objectives within the game. Humans should aim to escape the maze, and hunter focus on preventing escapes by capturing characters within a specific range.
 - **Main Menu:**  Allows users to smoothly navigate through game settings and options, provide a server IP for connection, join a lobby/waiting area, control volume, and more.
 - **Power-Ups:** The game board includes randomly placed power-ups that provide players with various advantages for a limited time:
