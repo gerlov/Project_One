@@ -45,8 +45,8 @@ Additionally, there are separate directories for the **server** and **client** ,
     - Green Crystal: Renders the player invisible to others for 10 seconds.
     - Skull (Hunter-specific): Neutralizes all players who are not invisible at the moment it is activated (instant kill).
     - Map (Human-specific): Displays the entire maze and the player's position for 10 seconds while simultaneously making the player invisible.
-- **Escape portal:**
-- **Controls:** Players can navigate in the game using either the ASDW keys or the arrow keys. The menu is operable with the mouse.
+- **Escape portal:** Allows non-hunter players to instantly win the game by teleporting out of the maze when they enter it.
+- **Controls:** Players can navigate in the game using either the ASDW keys or the arrow keys. The menu is operable with the mouse. For hunters, pressing the spacebar allows eliminating humans within the "kill reach area."
 
 
 ## 3. System Requirements
