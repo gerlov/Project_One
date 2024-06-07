@@ -39,7 +39,7 @@ Additionally, there are separate directories for the **server** and **client** ,
 - **Dynamically Generated Mazes:** Each game round features a uniquely created maze layout.
 - **Spawn Area:** The game utilizes an intelligent mechanism to strategically place players at different starting points on the map, balancing the game dynamics.
 - **Randomly Assigned Roles:** Players are randomly assigned various roles that influence their tasks and objectives within the game. Humans should aim to escape the maze, and hunter focus on preventing escapes by capturing characters within a specific range.
-- **Main Menu:**  A graphical user interface allows users to smoothly navigate through the game settings and options.
+- **Main Menu:**  Allows users to smoothly navigate through the game settings and options.
 - **Power-Ups:** The game board includes randomly placed power-ups that provide players with various advantages for a limited time:
     - Red Coin: Increases speed for 10 seconds.
     - Green Crystal: Renders the player invisible to others for 10 seconds.
