@@ -24,7 +24,7 @@ Each module is independent and focuses on specific tasks, which minimizes depend
 
 **Inc Subolder:** header files where functions and data structures are declared.
 
-**Src Folder:**  source code for shared libraries managing the game logic.
+**Src Subfolder:**  source code for shared libraries managing the game logic.
 
 Additionally, there are separate directories for the **server** and **client** , each with its own Makefile to build the applications. 
 
