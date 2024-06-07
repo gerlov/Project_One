@@ -12,7 +12,24 @@ https://github.com/gerlov/Project_One
 https://github.com/juliazubko/Labyrinth-of-the-Minotaur/assets/102211232/4077d547-77d0-4cb4-adc8-15e58fc25c84
 
 
-## 1. Code Structure and System Architecture  
+
+## 1. Features 
+
+- **Dynamically Generated Mazes:** Each game round features a uniquely created maze layout.
+- **Spawn Area:** The game utilizes an intelligent mechanism to strategically place humans and the hunter at different starting points on the map, balancing the game dynamics.
+- **Randomly Assigned Roles:** Players are randomly assigned various roles that influence their tasks and objectives within the game. Humans should aim to escape the maze, and hunter focus on preventing escapes by capturing characters within a specific range.
+- **Main Menu:**  Allows users to smoothly navigate through game settings and options, provide a server IP for connection, join a lobby/waiting area, control volume, and more.
+- **Power-Ups:** The game board includes randomly placed power-ups that provide players with various advantages for a limited time:
+    - Red Coin: Increases speed for 10 seconds.
+    - Green Crystal: Renders the player invisible to others for 10 seconds.
+    - Skull (Hunter-specific): Neutralizes all players who are not invisible at the moment it is activated (instant kill).
+    - Map (Human-specific): Displays the entire maze and the player's position for 10 seconds while simultaneously making the player invisible.
+- **Escape portal:** Allows non-hunter players to instantly win the game by teleporting out of the maze when they enter it.
+- **Controls:** Players can navigate in the game using either the ASDW keys or the arrow keys. The menu is operable with the mouse. For hunters, pressing the spacebar allows eliminating humans within the "kill reach area."
+  
+
+
+## 2. Code Structure and System Architecture  
 
 The game features a modular structure, where functions such as network communication and game logic are divided into separate modules. 
 
@@ -32,21 +49,6 @@ Additionally, there are separate directories for the **server** and **client** ,
 
 ![Skärmbild 2024-06-07 140819](https://github.com/juliazubko/Labyrinth-of-the-Minotaur/assets/102211232/3eaba715-25fb-4ffd-9dc4-2ea92cd8226d)    
 
-
-
-## 2. Features 
-
-- **Dynamically Generated Mazes:** Each game round features a uniquely created maze layout.
-- **Spawn Area:** The game utilizes an intelligent mechanism to strategically place humans and the hunter at different starting points on the map, balancing the game dynamics.
-- **Randomly Assigned Roles:** Players are randomly assigned various roles that influence their tasks and objectives within the game. Humans should aim to escape the maze, and hunter focus on preventing escapes by capturing characters within a specific range.
-- **Main Menu:**  Allows users to smoothly navigate through game settings and options, provide a server IP for connection, join a lobby/waiting area, control volume, and more.
-- **Power-Ups:** The game board includes randomly placed power-ups that provide players with various advantages for a limited time:
-    - Red Coin: Increases speed for 10 seconds.
-    - Green Crystal: Renders the player invisible to others for 10 seconds.
-    - Skull (Hunter-specific): Neutralizes all players who are not invisible at the moment it is activated (instant kill).
-    - Map (Human-specific): Displays the entire maze and the player's position for 10 seconds while simultaneously making the player invisible.
-- **Escape portal:** Allows non-hunter players to instantly win the game by teleporting out of the maze when they enter it.
-- **Controls:** Players can navigate in the game using either the ASDW keys or the arrow keys. The menu is operable with the mouse. For hunters, pressing the spacebar allows eliminating humans within the "kill reach area."
 
 
 ## 3. System Requirements
