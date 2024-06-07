@@ -63,7 +63,7 @@ The system is designed to let users enter a server address through a user interf
 
 ### Compilation
 Run `make` (macOS) or `mingw32-make.exe` (Windows) in the top folder’s Makefile to compile both the server and client simultaneously (this  executes the Makefiles within the “Server/” and “Client/” directories which contain commands to compile the files; instructions are also provided to compile the client and server separately by running make server and make client). 
-Run `make clean`(macOS) or  `mingw32-make clean` (Windows) to clean both the server and client. 
+Run `make clean`(macOS) or  `mingw32-make clean` (Windows) to clean both the server and client, if needed. 
 
 ### Starting the Game
 
